@@ -14,8 +14,8 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
       className="glass group relative overflow-hidden p-6 transition-all duration-300"
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(99, 102, 241, 0.22)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 30px -8px rgba(99, 102, 241, 0.12)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201, 125, 78, 0.22)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 30px -8px rgba(201, 125, 78, 0.12)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
@@ -25,7 +25,7 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
       {/* Top accent */}
       <div
         className="absolute top-0 left-6 right-6 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.25), transparent)" }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.25), transparent)" }}
       />
 
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -43,9 +43,9 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
         <span
           className="rounded-lg px-2.5 py-1 font-mono text-[12px] font-bold"
           style={{
-            background: "rgba(99, 102, 241, 0.10)",
+            background: "rgba(201, 125, 78, 0.10)",
             color: "var(--accent-400)",
-            border: "1px solid rgba(99, 102, 241, 0.20)",
+            border: "1px solid rgba(201, 125, 78, 0.20)",
           }}
         >
           {formatCredits(service.credits)}

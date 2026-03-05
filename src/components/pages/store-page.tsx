@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Search,
 } from "lucide-react";
+import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -120,7 +121,7 @@ function ProductCard({
         </div>
         <div
           className="rounded-md px-2 py-1 font-mono text-[11px] font-bold"
-          style={{ background: "rgba(99, 102, 241, 0.08)", color: "var(--accent-400)" }}
+          style={{ background: "rgba(201, 125, 78, 0.08)", color: "var(--accent-400)" }}
         >
           {product.price} cr
         </div>
@@ -400,6 +401,12 @@ function OrderResultView({ result, onClose }: { result: OrderResult; onClose: ()
             )}
           </div>
         )}
+
+        <ZeroClickAd
+          query={result.product.name + (result.document?.title ? " " + result.document.title : "")}
+          muted={false}
+          signals={[{ category: "purchase_intent" as const, confidence: 0.85, subject: result.product.name, sentiment: "positive" as const }]}
+        />
 
         <button
           onClick={onClose}

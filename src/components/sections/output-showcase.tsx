@@ -103,9 +103,9 @@ export function OutputShowcase() {
           <span
             className="rounded-md px-2 py-1 font-mono text-[9px] font-semibold uppercase"
             style={{
-              background: "rgba(99, 102, 241, 0.08)",
+              background: "rgba(201, 125, 78, 0.08)",
               color: "var(--accent-400)",
-              border: "1px solid rgba(99, 102, 241, 0.16)",
+              border: "1px solid rgba(201, 125, 78, 0.16)",
             }}
           >
             Example output
@@ -189,7 +189,7 @@ export function OutputShowcase() {
                 className="group flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
                 style={{
                   background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-                  boxShadow: "0 0 16px -4px rgba(99, 102, 241, 0.28)",
+                  boxShadow: "0 0 16px -4px rgba(201, 125, 78, 0.28)",
                 }}
               >
                 Run this research

@@ -374,7 +374,7 @@ function BriefView({ brief, adsMuted }: { brief: StructuredBrief; adsMuted: bool
           <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>Deliverables</p>
           <div className="flex flex-wrap gap-1.5">
             {brief.deliverables.map((d, i) => (
-              <span key={i} className="rounded-md px-2 py-0.5 text-[10px]" style={{ background: "rgba(99, 102, 241, 0.07)", border: "1px solid rgba(99, 102, 241, 0.18)", color: "var(--accent-400)" }}>
+              <span key={i} className="rounded-md px-2 py-0.5 text-[10px]" style={{ background: "rgba(201, 125, 78, 0.07)", border: "1px solid rgba(201, 125, 78, 0.18)", color: "var(--accent-400)" }}>
                 {d}
               </span>
             ))}
@@ -723,7 +723,7 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center">
-      <div className="flex size-16 items-center justify-center rounded-2xl" style={{ background: "rgba(99, 102, 241, 0.08)" }}>
+      <div className="flex size-16 items-center justify-center rounded-2xl" style={{ background: "rgba(201, 125, 78, 0.08)" }}>
         <c.icon size={28} style={{ color: "var(--accent-400)" }} />
       </div>
       <div>
@@ -759,7 +759,7 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
 }
 
 // ─── Ad Context Extraction ──────────────────────────────────────────
-function extractAdContext(brief?: StructuredBrief): { query: string; signals: ZeroClickSignal[] } {
+function extractAdContext(brief?: StructuredBrief, purchasedAssets?: PurchasedAsset[]): { query: string; signals: ZeroClickSignal[] } {
   if (!brief) return { query: "", signals: [] };
 
   const query = [brief.title, ...brief.scope.slice(0, 2)].filter(Boolean).join(" · ");
@@ -791,6 +791,17 @@ function extractAdContext(brief?: StructuredBrief): { query: string; signals: Ze
       category: "recommendation_request",
       confidence: 0.8,
       subject: brief.deliverables[0],
+      sentiment: "positive",
+    });
+  }
+
+  // Agentic: when Buyer purchased marketplace assets, inject purchase_intent signals
+  if (purchasedAssets && purchasedAssets.length > 0) {
+    signals.push({
+      category: "purchase_intent",
+      confidence: 0.95,
+      subject: purchasedAssets[0].name,
+      relatedSubjects: purchasedAssets.slice(1, 4).map((a) => a.name),
       sentiment: "positive",
     });
   }
@@ -874,7 +885,7 @@ export function StudioPage() {
     });
   }
 
-  const adContext = useMemo(() => extractAdContext(result?.brief), [result?.brief]);
+  const adContext = useMemo(() => extractAdContext(result?.brief, result?.purchasedAssets), [result?.brief, result?.purchasedAssets]);
 
   // Fetch persisted stats on mount
   useEffect(() => {
@@ -1146,11 +1157,11 @@ export function StudioPage() {
               <span
                 className="rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase"
                 style={{
-                  background: mode === "pipeline" ? "rgba(99, 102, 241, 0.10)" :
+                  background: mode === "pipeline" ? "rgba(201, 125, 78, 0.10)" :
                     AGENT_CONFIG[mode]?.bgColor ?? AGENT_CONFIG.researcher.bgColor,
                   color: mode === "pipeline" ? "var(--accent-400)" :
                     AGENT_CONFIG[mode]?.color ?? AGENT_CONFIG.researcher.color,
-                  border: `1px solid ${mode === "pipeline" ? "rgba(99, 102, 241, 0.20)" :
+                  border: `1px solid ${mode === "pipeline" ? "rgba(201, 125, 78, 0.20)" :
                     AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
                 }}
               >
@@ -1197,8 +1208,8 @@ export function StudioPage() {
                   onClick={() => setOutputType(ot.value)}
                   className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] transition-all"
                   style={{
-                    background: outputType === ot.value ? "rgba(99, 102, 241, 0.10)" : "transparent",
-                    border: `1px solid ${outputType === ot.value ? "rgba(99, 102, 241, 0.20)" : "var(--border-default)"}`,
+                    background: outputType === ot.value ? "rgba(201, 125, 78, 0.10)" : "transparent",
+                    border: `1px solid ${outputType === ot.value ? "rgba(201, 125, 78, 0.20)" : "var(--border-default)"}`,
                     color: outputType === ot.value ? "var(--accent-400)" : "var(--gray-400)",
                   }}
                 >
@@ -1404,8 +1415,8 @@ export function StudioPage() {
                 disabled={isLoading}
                 className="ml-auto mr-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all disabled:opacity-30"
                 style={{
-                  background: result ? "rgba(99, 102, 241, 0.08)" : "var(--glass-bg)",
-                  border: result ? "1px solid rgba(99, 102, 241, 0.20)" : "1px solid var(--border-default)",
+                  background: result ? "rgba(201, 125, 78, 0.08)" : "var(--glass-bg)",
+                  border: result ? "1px solid rgba(201, 125, 78, 0.20)" : "1px solid var(--border-default)",
                   color: result ? "var(--accent-400)" : "var(--gray-500)",
                 }}
               >
@@ -1432,6 +1443,11 @@ export function StudioPage() {
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
               <div className="h-full overflow-y-auto p-6">
                 <PurchasedAssetGrid assets={result.purchasedAssets} />
+                <ZeroClickAd
+                  query={result.brief?.title || result.document?.query || input}
+                  muted={adsMuted}
+                  signals={[{ category: "purchase_intent" as const, confidence: 0.85, subject: result.purchasedAssets[0]?.name || "marketplace asset", sentiment: "positive" as const }]}
+                />
               </div>
             ) : (
               <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />

@@ -38,7 +38,7 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           <div className="flex items-center gap-3">
             <div
               className="flex size-10 items-center justify-center rounded-xl"
-              style={{ background: "rgba(99, 102, 241, 0.08)" }}
+              style={{ background: "rgba(201, 125, 78, 0.08)" }}
             >
               <Sparkles size={18} style={{ color: "var(--accent-400)" }} />
             </div>
@@ -58,9 +58,9 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           <span
             className="w-fit rounded-lg px-3 py-1.5 font-mono text-lg font-bold"
             style={{
-              background: "rgba(99, 102, 241, 0.08)",
+              background: "rgba(201, 125, 78, 0.08)",
               color: "var(--accent-400)",
-              border: "1px solid rgba(99, 102, 241, 0.18)",
+              border: "1px solid rgba(201, 125, 78, 0.18)",
             }}
           >
             {formatCredits(service.credits)}
@@ -97,7 +97,7 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
             className="group mt-2 flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
             style={{
               background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-              boxShadow: "0 0 20px -4px rgba(99, 102, 241, 0.28)",
+              boxShadow: "0 0 20px -4px rgba(201, 125, 78, 0.28)",
             }}
           >
             Start {service.name} in Studio

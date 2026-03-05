@@ -147,7 +147,7 @@ export function ToolSettingsPanel({ open, onClose, onSettingsChange }: ToolSetti
             <div className="mb-3 flex items-center gap-2">
               <div
                 className="flex size-6 items-center justify-center rounded-md"
-                style={{ background: "rgba(99, 102, 241, 0.1)", border: "1px solid rgba(99, 102, 241, 0.2)" }}
+                style={{ background: "rgba(201, 125, 78, 0.1)", border: "1px solid rgba(201, 125, 78, 0.2)" }}
               >
                 <Bot size={12} style={{ color: "rgb(99, 102, 241)" }} />
               </div>

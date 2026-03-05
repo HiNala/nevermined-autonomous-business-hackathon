@@ -97,7 +97,7 @@ function TransactionRow({ tx }: { tx: Transaction }) {
       style={{
         borderColor: "var(--border-default)",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99, 102, 241, 0.04)")}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(201, 125, 78, 0.04)")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       <span

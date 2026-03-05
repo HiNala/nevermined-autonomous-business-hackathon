@@ -33,7 +33,7 @@ export function HeroSection() {
             <span className="block text-[2.8rem] sm:text-[3.8rem]" style={{ color: "var(--gray-900)" }}>
               Describe the work.
             </span>
-            <span className="text-gradient-accent block text-[2.8rem] sm:text-[3.8rem]">
+            <span className="block text-[2.8rem] sm:text-[3.8rem]" style={{ color: "var(--accent-400)" }}>
               Agents build it.
             </span>
           </motion.h1>
@@ -69,8 +69,8 @@ export function HeroSection() {
                 outline: "none",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "rgba(99,102,241,0.40)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.08)";
+                e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.10)";
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = "var(--border-default)";
@@ -83,7 +83,7 @@ export function HeroSection() {
               className="flex items-center gap-2 rounded-xl px-5 py-3 text-[14px] font-medium text-white transition-all duration-200 disabled:opacity-30"
               style={{
                 background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-                boxShadow: q.trim() ? "0 0 20px -4px rgba(99,102,241,0.45)" : "none",
+                boxShadow: q.trim() ? "0 0 16px -4px rgba(201,125,78,0.40)" : "none",
               }}
             >
               <Send size={14} />

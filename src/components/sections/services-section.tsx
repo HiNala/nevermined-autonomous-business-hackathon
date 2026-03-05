@@ -12,7 +12,7 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="glass group relative overflow-hidden p-6 transition-all duration-300 hover:border-[rgba(99,102,241,0.22)]">
+      <div className="glass group relative overflow-hidden p-6 transition-all duration-300 hover:border-[rgba(201,125,78,0.28)]">
         {/* Credit badge */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -34,9 +34,9 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
             <span
               className="rounded-md px-2 py-0.5 font-mono text-[11px] font-bold"
               style={{
-                background: "rgba(99, 102, 241, 0.10)",
+                background: "rgba(201, 125, 78, 0.10)",
                 color: "var(--accent-400)",
-                border: "1px solid rgba(99, 102, 241, 0.20)",
+                border: "1px solid rgba(201, 125, 78, 0.20)",
               }}
             >
               {service.credits}cr

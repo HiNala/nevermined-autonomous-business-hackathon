@@ -60,7 +60,7 @@ export function Footer() {
       {/* Top glow line */}
       <div
         className="absolute top-0 left-[15%] right-[15%] h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.18), transparent)" }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.20), transparent)" }}
       />
 
       <div className="mx-auto max-w-6xl">
@@ -70,7 +70,7 @@ export function Footer() {
           <div className="col-span-2 sm:col-span-1">
             <div className="mb-4 flex items-center gap-2.5">
               <div className="relative flex size-5 items-center justify-center">
-                <span className="absolute size-5 rounded border border-white/10 rotate-45" />
+                <span className="absolute size-5 rounded border rotate-45" style={{ borderColor: "var(--border-strong)" }} />
                 <span className="size-1 rounded-full" style={{ background: "var(--accent-400)" }} />
               </div>
               <span className="font-mono text-[12px] font-semibold tracking-widest" style={{ color: "var(--gray-800)" }}>

@@ -101,7 +101,7 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
           >
             <div
               className="mb-4 ml-6 border-l-2 pl-4"
-              style={{ borderColor: "rgba(99,102,241,0.30)" }}
+              style={{ borderColor: "rgba(201,125,78,0.30)" }}
             >
               <p
                 className="text-[13px] leading-relaxed"

@@ -44,7 +44,7 @@ export function DecisionLogic() {
         {/* Connector line — desktop only */}
         <div
           className="absolute top-[52px] left-[33%] right-[33%] hidden h-px sm:block"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.25), transparent)" }}
+          style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.25), transparent)" }}
         />
 
         {STEPS.map((step, index) => (
@@ -59,20 +59,20 @@ export function DecisionLogic() {
             {/* Top accent */}
             <div
               className="absolute top-0 left-6 right-6 h-px"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.30), transparent)" }}
+              style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.30), transparent)" }}
             />
 
             {/* Number + Icon row */}
             <div className="mb-5 flex items-center justify-between">
               <div
                 className="flex size-11 items-center justify-center rounded-xl"
-                style={{ background: "rgba(99, 102, 241, 0.08)", border: "1px solid rgba(99, 102, 241, 0.16)" }}
+                style={{ background: "rgba(201, 125, 78, 0.08)", border: "1px solid rgba(201, 125, 78, 0.16)" }}
               >
                 <step.icon size={20} style={{ color: "var(--accent-400)" }} />
               </div>
               <span
                 className="font-mono text-[28px] font-bold leading-none"
-                style={{ color: "rgba(99, 102, 241, 0.15)" }}
+                style={{ color: "rgba(201, 125, 78, 0.15)" }}
               >
                 {step.number}
               </span>
@@ -94,9 +94,9 @@ export function DecisionLogic() {
             <span
               className="inline-flex rounded-md px-2.5 py-1 font-mono text-[10px] font-semibold"
               style={{
-                background: "rgba(99, 102, 241, 0.08)",
+                background: "rgba(201, 125, 78, 0.08)",
                 color: "var(--accent-400)",
-                border: "1px solid rgba(99, 102, 241, 0.18)",
+                border: "1px solid rgba(201, 125, 78, 0.18)",
               }}
             >
               {step.tag}

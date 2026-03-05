@@ -96,7 +96,7 @@ export function StudioEntry() {
                     border: "1px solid var(--border-default)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(99, 102, 241, 0.25)";
+                    e.currentTarget.style.borderColor = "rgba(201, 125, 78, 0.25)";
                     e.currentTarget.style.color = "var(--gray-700)";
                   }}
                   onMouseLeave={(e) => {
@@ -119,7 +119,7 @@ export function StudioEntry() {
                 className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40"
                 style={{
                   background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-                  boxShadow: query.trim() ? "0 0 20px -4px rgba(99, 102, 241, 0.35)" : "none",
+                  boxShadow: query.trim() ? "0 0 20px -4px rgba(201, 125, 78, 0.35)" : "none",
                 }}
               >
                 Open in Studio
@@ -153,11 +153,11 @@ export function StudioEntry() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: 0.15 + i * 0.07 }}
                 className="flex items-center gap-3 rounded-xl p-3.5"
-                style={{ background: "rgba(99, 102, 241, 0.04)", border: "1px solid rgba(99, 102, 241, 0.12)" }}
+                style={{ background: "rgba(201, 125, 78, 0.04)", border: "1px solid rgba(201, 125, 78, 0.12)" }}
               >
                 <div
                   className="flex size-8 shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: "rgba(99, 102, 241, 0.10)" }}
+                  style={{ background: "rgba(201, 125, 78, 0.10)" }}
                 >
                   <Zap size={14} style={{ color: "var(--accent-400)" }} />
                 </div>
@@ -172,9 +172,9 @@ export function StudioEntry() {
                 <span
                   className="shrink-0 rounded-md px-2 py-0.5 font-mono text-[11px] font-bold"
                   style={{
-                    background: "rgba(99, 102, 241, 0.10)",
+                    background: "rgba(201, 125, 78, 0.10)",
                     color: "var(--accent-400)",
-                    border: "1px solid rgba(99, 102, 241, 0.20)",
+                    border: "1px solid rgba(201, 125, 78, 0.20)",
                   }}
                 >
                   {o.credits}

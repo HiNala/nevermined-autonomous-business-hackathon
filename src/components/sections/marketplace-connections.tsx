@@ -13,7 +13,7 @@ function PartnerCard({ partner, index }: { partner: MarketplacePartner; index: n
       className="glass p-4 transition-all duration-200"
       style={{ borderColor: "var(--glass-border)" }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(99, 102, 241, 0.22)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201, 125, 78, 0.22)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
