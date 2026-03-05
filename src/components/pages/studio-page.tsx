@@ -42,6 +42,7 @@ import type {
   PipelineEvent,
   PurchasedAsset,
   PipelineResult,
+  SponsorToolUsage,
 } from "@/types/pipeline";
 import { AGENT_CONFIG } from "@/lib/agent/config";
 
@@ -924,6 +925,14 @@ export function StudioPage() {
   const [apiMode, setApiMode] = useState<"demo" | "live" | "checking">("checking");
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
   const [judgeMode, setJudgeMode] = useState(false);
+  const [adToolsUsed, setAdToolsUsed] = useState<SponsorToolUsage[]>([]);
+
+  const handleAdServed = useCallback(() => {
+    setAdToolsUsed((prev) => {
+      if (prev.some((t) => t.tool === "zeroclick-ad")) return prev;
+      return [...prev, { tool: "zeroclick-ad", label: "ZeroClick Contextual Ad Served", sponsor: "ZeroClick", timestamp: new Date().toISOString() }];
+    });
+  }, []);
 
   const handleJudgePreset = useCallback((preset: JudgePreset) => {
     setInput(preset.prompt);
@@ -1034,6 +1043,7 @@ export function StudioPage() {
     setResult(null);
     setPipelineEvents([]);
     setError(null);
+    setAdToolsUsed([]);
     inputRef.current?.focus();
   }
 
@@ -1205,6 +1215,7 @@ export function StudioPage() {
               isSelected={mode === "strategist"}
               onClick={() => setMode(mode === "strategist" ? "pipeline" : "strategist")}
               stats={agentStats.strategist}
+              toolLabel={toolSettings.strategist.search}
             />
             {mode === "pipeline" && (
               <div className="flex items-center justify-center py-1">
@@ -1221,6 +1232,7 @@ export function StudioPage() {
               isSelected={mode === "researcher"}
               onClick={() => setMode(mode === "researcher" ? "pipeline" : "researcher")}
               stats={agentStats.researcher}
+              toolLabel={toolSettings.researcher.search}
             />
             {mode === "pipeline" && (
               <div className="flex items-center justify-center py-1">
@@ -1237,6 +1249,7 @@ export function StudioPage() {
               isSelected={false}
               onClick={() => {}}
               stats={agentStats.buyer}
+              toolLabel="nevermined"
             />
             {mode === "pipeline" && (
               <div className="flex items-center justify-center py-1">
@@ -1253,6 +1266,7 @@ export function StudioPage() {
               isSelected={mode === "seller"}
               onClick={() => setMode(mode === "seller" ? "pipeline" : "seller")}
               stats={agentStats.seller}
+              toolLabel="nevermined"
             />
           </div>
 
@@ -1376,7 +1390,7 @@ export function StudioPage() {
                   }
                   rows={3}
                   className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+                  style={{ background: "var(--glass-bg-strong)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
                 />
                 <button
                   type="submit"

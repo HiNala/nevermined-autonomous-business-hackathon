@@ -40,6 +40,8 @@ interface ZeroClickAdProps {
   muted: boolean;
   /** IAB-compatible signals extracted from the pipeline brief for better targeting */
   signals?: ZeroClickSignal[];
+  /** Called when an ad offer is successfully loaded and will be displayed */
+  onAdServed?: (offer: ZeroClickOffer) => void;
 }
 
 type AdStatus = "idle" | "loading" | "loaded" | "empty";
@@ -58,7 +60,7 @@ function getSessionId(): string {
   }
 }
 
-export function ZeroClickAd({ query, muted, signals }: ZeroClickAdProps) {
+export function ZeroClickAd({ query, muted, signals, onAdServed }: ZeroClickAdProps) {
   const [status, setStatus] = useState<AdStatus>("idle");
   const [offer, setOffer] = useState<ZeroClickOffer | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -101,6 +103,7 @@ export function ZeroClickAd({ query, muted, signals }: ZeroClickAdProps) {
         if (data?.id) {
           setOffer(data);
           setStatus("loaded");
+          onAdServed?.(data);
         } else {
           setStatus("empty");
         }
