@@ -64,7 +64,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Three specialist AI agents &mdash; Strategist plans, Researcher discovers, Buyer procures.
+            Four specialist AI agents &mdash; Strategist plans, Researcher discovers, Buyer procures, Seller fulfills.
             Tell them what you need. Get a structured deliverable back in minutes.
             Pay only for what you use.
           </motion.p>

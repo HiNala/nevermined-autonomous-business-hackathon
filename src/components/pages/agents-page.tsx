@@ -138,7 +138,7 @@ export function AgentsPage() {
               Agent <span className="text-gradient-green">Team</span>
             </h1>
             <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-              Three specialist agents that strategize, research, and procure on demand.
+              Four specialist agents that strategize, research, procure, and sell on demand.
               Each runs independently or chains together for full deliverables.
             </p>
           </motion.div>

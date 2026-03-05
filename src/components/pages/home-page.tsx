@@ -13,6 +13,7 @@ import { TransactionFeed } from "@/components/sections/transaction-feed";
 import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
 import { FaqSection } from "@/components/sections/faq-section";
 import { CtaSection } from "@/components/sections/cta-section";
+import { OutputShowcase } from "@/components/sections/output-showcase";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { STAT_UPDATE_INTERVAL_MS } from "@/lib/constants";
 import { INITIAL_STATS } from "@/data/mock-transactions";
@@ -65,6 +66,8 @@ export function HomePage() {
         <AgentCards />
         <SectionDivider />
         <StudioServices />
+        <SectionDivider />
+        <OutputShowcase />
         <SectionDivider />
         <StudioEntry />
         <SectionDivider />

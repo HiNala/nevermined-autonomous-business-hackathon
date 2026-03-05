@@ -1046,40 +1046,49 @@ export function StudioPage() {
           </div>
 
           {/* Mode indicator */}
-          <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-            <span
-              className="rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase"
-              style={{
-                background: mode === "pipeline" ? "rgba(34, 197, 94, 0.10)" :
-                  mode === "strategist" ? AGENT_CONFIG.strategist.bgColor : AGENT_CONFIG.researcher.bgColor,
-                color: mode === "pipeline" ? "var(--green-400)" :
-                  mode === "strategist" ? AGENT_CONFIG.strategist.color : AGENT_CONFIG.researcher.color,
-                border: `1px solid ${mode === "pipeline" ? "rgba(34, 197, 94, 0.20)" :
-                  mode === "strategist" ? AGENT_CONFIG.strategist.borderColor : AGENT_CONFIG.researcher.borderColor}`,
-              }}
-            >
-              {mode === "pipeline" ? "⚡ Pipeline" : mode === "strategist" ? "◆ Strategist Only" : "◈ Researcher Only"}
-            </span>
-            {mode !== "pipeline" && (
-              <button
-                onClick={() => setMode("pipeline")}
-                className="flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[9px] transition-colors"
-                style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+          <div className="border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
+            <div className="flex items-center gap-2">
+              <span
+                className="rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase"
+                style={{
+                  background: mode === "pipeline" ? "rgba(34, 197, 94, 0.10)" :
+                    mode === "strategist" ? AGENT_CONFIG.strategist.bgColor : AGENT_CONFIG.researcher.bgColor,
+                  color: mode === "pipeline" ? "var(--green-400)" :
+                    mode === "strategist" ? AGENT_CONFIG.strategist.color : AGENT_CONFIG.researcher.color,
+                  border: `1px solid ${mode === "pipeline" ? "rgba(34, 197, 94, 0.20)" :
+                    mode === "strategist" ? AGENT_CONFIG.strategist.borderColor : AGENT_CONFIG.researcher.borderColor}`,
+                }}
               >
-                <RefreshCw size={9} /> Pipeline
-              </button>
-            )}
-            <div className="ml-auto">
-              <button
-                onClick={() => setSettingsOpen(true)}
-                className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
-                style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
-                title="Tool Settings"
-              >
-                <Settings size={10} />
-                tools
-              </button>
+                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Strategist Only" : "◈ Researcher Only"}
+              </span>
+              {mode !== "pipeline" && (
+                <button
+                  onClick={() => setMode("pipeline")}
+                  className="flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[9px] transition-colors"
+                  style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+                >
+                  <RefreshCw size={9} /> Full Pipeline
+                </button>
+              )}
+              <div className="ml-auto">
+                <button
+                  onClick={() => setSettingsOpen(true)}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+                  title="Tool Settings"
+                >
+                  <Settings size={10} />
+                  tools
+                </button>
+              </div>
             </div>
+            <p className="mt-1 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
+              {mode === "pipeline"
+                ? "Strategist → Researcher → Buyer. Full research + planning deliverable."
+                : mode === "strategist"
+                ? "Structured brief only. Fast strategy output, no web research."
+                : "Web research only. SCOUT searches and synthesizes from live sources."}
+            </p>
           </div>
 
           {/* Output type selector (only for pipeline/strategist) */}
@@ -1261,7 +1270,11 @@ export function StudioPage() {
                 onClick={handleNewRequest}
                 disabled={isLoading}
                 className="ml-auto mr-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all disabled:opacity-30"
-                style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
+                style={{
+                  background: result ? "rgba(34, 197, 94, 0.08)" : "var(--glass-bg)",
+                  border: result ? "1px solid rgba(34, 197, 94, 0.22)" : "1px solid var(--border-default)",
+                  color: result ? "var(--green-400)" : "var(--gray-500)",
+                }}
               >
                 <RotateCcw size={11} /> New Request
               </button>
