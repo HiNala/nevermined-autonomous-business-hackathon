@@ -115,7 +115,7 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
           <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
             {agent.stats.repeatBuyers} repeat
           </span>
-          <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+          <span className="font-mono text-[10px]" style={{ color: "var(--accent-400)" }}>
             {agent.stats.totalCreditsEarned}cr earned
           </span>
         </div>

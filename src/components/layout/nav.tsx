@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useScroll } from "@/hooks/use-scroll";
+import { useTheme } from "@/components/ui/theme-provider";
 import { SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 
 const PAGE_LINKS = [
   { label: "Studio", href: "/studio" },
@@ -22,6 +23,7 @@ interface NavProps {
 export function Nav({ txCount }: NavProps) {
   const scrolled = useScroll(10);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, toggle } = useTheme();
 
   return (
     <>
@@ -35,8 +37,8 @@ export function Nav({ txCount }: NavProps) {
       <div className="flex items-center gap-6">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
           <div className="relative flex size-6 items-center justify-center">
-            <span className="absolute size-6 rounded-md border border-white/10 rotate-45" />
-            <span className="size-1.5 rounded-full" style={{ background: "var(--green-500)" }} />
+            <span className="absolute size-6 rounded-md rotate-45" style={{ border: "1px solid var(--accent-400)", opacity: 0.4 }} />
+            <span className="size-1.5 rounded-full" style={{ background: "var(--accent-400)" }} />
           </div>
           <span
             className="font-mono text-[13px] font-semibold tracking-widest"
@@ -62,7 +64,7 @@ export function Nav({ txCount }: NavProps) {
         </div>
       </div>
 
-      {/* Right: live pill + CTA + mobile toggle */}
+      {/* Right: live pill + theme toggle + CTA + mobile toggle */}
       <div className="flex items-center gap-3">
         {typeof txCount === "number" && (
           <div className="glass-pill hidden items-center gap-2 px-3 py-1.5 sm:flex">
@@ -76,21 +78,33 @@ export function Nav({ txCount }: NavProps) {
           </div>
         )}
 
+        {/* Theme toggle */}
+        <button
+          onClick={toggle}
+          className="flex size-8 items-center justify-center rounded-lg transition-all duration-200"
+          style={{
+            background: "var(--glass-bg)",
+            border: "1px solid var(--border-default)",
+            color: "var(--gray-500)",
+          }}
+          aria-label="Toggle theme"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+        </button>
+
         <Link
           href="/studio"
-          className="hidden rounded-lg px-4 py-1.5 text-[13px] font-medium transition-all duration-200 sm:block"
+          className="hidden rounded-lg px-4 py-1.5 text-[13px] font-medium text-white transition-all duration-200 sm:block"
           style={{
-            background: "rgba(34, 197, 94, 0.12)",
-            color: "var(--green-400)",
-            border: "1px solid rgba(34, 197, 94, 0.20)",
+            background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+            boxShadow: "0 0 20px -4px rgba(99,102,241,0.35)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(34, 197, 94, 0.20)";
-            e.currentTarget.style.borderColor = "rgba(34, 197, 94, 0.35)";
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px -4px rgba(99,102,241,0.50)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(34, 197, 94, 0.12)";
-            e.currentTarget.style.borderColor = "rgba(34, 197, 94, 0.20)";
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px -4px rgba(99,102,241,0.35)";
           }}
         >
           Try Studio
@@ -120,7 +134,7 @@ export function Nav({ txCount }: NavProps) {
             className="rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150"
             style={{ color: "var(--gray-700)" }}
             onClick={() => setMobileOpen(false)}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--green-400)")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-400)")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "var(--gray-700)")}
           >
             {link.label}
@@ -130,7 +144,7 @@ export function Nav({ txCount }: NavProps) {
           <Link
             href="/studio"
             className="flex w-full items-center justify-center rounded-xl py-2.5 text-[14px] font-medium text-white"
-            style={{ background: "linear-gradient(135deg, var(--green-600), var(--green-500))" }}
+            style={{ background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
             onClick={() => setMobileOpen(false)}
           >
             Try Studio

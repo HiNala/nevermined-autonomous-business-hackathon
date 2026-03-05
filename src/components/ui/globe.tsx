@@ -17,15 +17,16 @@ interface Dot {
 interface Arc {
   startDot: Dot;
   endDot: Dot;
+  midOffsetY: number;
   progress: number;
   speed: number;
   color: string;
 }
 
-const GLOBE_RADIUS_FACTOR = 0.38;
-const DOT_COUNT = 900;
-const ARC_COUNT = 8;
-const ROTATION_SPEED = 0.001;
+const GLOBE_RADIUS_FACTOR = 0.40;
+const DOT_COUNT = 1400;
+const ARC_COUNT = 10;
+const ROTATION_SPEED = 0.0008;
 
 function latLngToXYZ(lat: number, lng: number, radius: number) {
   const phi = ((90 - lat) * Math.PI) / 180;
@@ -39,36 +40,38 @@ function latLngToXYZ(lat: number, lng: number, radius: number) {
 
 function generateDots(count: number, radius: number): Dot[] {
   const dots: Dot[] = [];
+  // Fibonacci sphere for even distribution
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
   for (let i = 0; i < count; i++) {
-    const lat = Math.asin(2 * Math.random() - 1) * (180 / Math.PI);
-    const lng = Math.random() * 360 - 180;
-    const { x, y, z } = latLngToXYZ(lat, lng, radius);
-    dots.push({ lat, lng, x, y, z });
+    const y = 1 - (i / (count - 1)) * 2;
+    const r = Math.sqrt(1 - y * y);
+    const theta = goldenAngle * i;
+    const lat = Math.asin(y) * (180 / Math.PI);
+    const lng = ((theta * 180) / Math.PI) % 360 - 180;
+    const pos = latLngToXYZ(lat, lng, radius);
+    dots.push({ lat, lng, ...pos });
   }
   return dots;
 }
 
-function generateArcs(dots: Dot[], count: number): Arc[] {
-  const arcs: Arc[] = [];
-  const colors = [
-    "rgba(34, 197, 94, 0.35)",
-    "rgba(74, 222, 128, 0.30)",
-    "rgba(14, 165, 233, 0.25)",
-    "rgba(124, 58, 237, 0.20)",
+function makeArc(dots: Dot[]): Arc {
+  const ARC_COLORS = [
+    "rgba(99,102,241,0.50)",
+    "rgba(129,140,248,0.40)",
+    "rgba(139,92,246,0.45)",
+    "rgba(167,139,250,0.35)",
   ];
-  for (let i = 0; i < count; i++) {
-    const startIdx = Math.floor(Math.random() * dots.length);
-    let endIdx = Math.floor(Math.random() * dots.length);
-    while (endIdx === startIdx) endIdx = Math.floor(Math.random() * dots.length);
-    arcs.push({
-      startDot: dots[startIdx],
-      endDot: dots[endIdx],
-      progress: Math.random(),
-      speed: 0.0015 + Math.random() * 0.003,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    });
-  }
-  return arcs;
+  const si = Math.floor(Math.random() * dots.length);
+  let ei = Math.floor(Math.random() * dots.length);
+  while (ei === si) ei = Math.floor(Math.random() * dots.length);
+  return {
+    startDot: dots[si],
+    endDot: dots[ei],
+    midOffsetY: 28 + Math.random() * 40,
+    progress: Math.random(),
+    speed: 0.0012 + Math.random() * 0.0025,
+    color: ARC_COLORS[Math.floor(Math.random() * ARC_COLORS.length)],
+  };
 }
 
 function rotateY(x: number, z: number, angle: number) {
@@ -99,7 +102,7 @@ export function Globe({ size = 480 }: GlobeProps) {
     const radius = size * GLOBE_RADIUS_FACTOR;
 
     const dots = generateDots(DOT_COUNT, radius);
-    const arcs = generateArcs(dots, ARC_COUNT);
+    const arcs: Arc[] = Array.from({ length: ARC_COUNT }, () => makeArc(dots));
     let rotation = 0;
 
     function animate() {
@@ -107,35 +110,50 @@ export function Globe({ size = 480 }: GlobeProps) {
       ctx.clearRect(0, 0, size, size);
       rotation += ROTATION_SPEED;
 
-      // Outer glow ring
-      const gradient = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.2);
-      gradient.addColorStop(0, "rgba(34, 197, 94, 0.04)");
-      gradient.addColorStop(1, "transparent");
+      // Atmospheric glow
+      const atmo = ctx.createRadialGradient(cx, cy, radius * 0.80, cx, cy, radius * 1.30);
+      atmo.addColorStop(0, "rgba(99,102,241,0.07)");
+      atmo.addColorStop(0.6, "rgba(139,92,246,0.04)");
+      atmo.addColorStop(1, "transparent");
       ctx.beginPath();
-      ctx.arc(cx, cy, radius * 1.2, 0, Math.PI * 2);
-      ctx.fillStyle = gradient;
+      ctx.arc(cx, cy, radius * 1.30, 0, Math.PI * 2);
+      ctx.fillStyle = atmo;
       ctx.fill();
 
-      // Globe outline
+      // Globe edge ring
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(99,102,241,0.12)";
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Dots
+      // Dots — back hemisphere first (painter's algorithm)
+      const frontDots: { screenX: number; screenY: number; depth: number }[] = [];
       for (const dot of dots) {
         const { x: rx, z: rz } = rotateY(dot.x, dot.z, rotation);
-        if (rz < 0) continue;
         const screenX = cx + rx;
         const screenY = cy - dot.y;
-        const depth = rz / radius;
-        const alpha = 0.06 + depth * 0.22;
-        const dotSize = 0.5 + depth * 0.7;
+        const depth = (rz + radius) / (2 * radius); // 0=back, 1=front
 
+        if (rz < 0) {
+          // Back hemisphere — very faint
+          const alpha = 0.04 + depth * 0.06;
+          ctx.beginPath();
+          ctx.arc(screenX, screenY, 0.6, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(99,102,241,${alpha})`;
+          ctx.fill();
+        } else {
+          frontDots.push({ screenX, screenY, depth });
+        }
+      }
+
+      // Front hemisphere dots — brighter
+      for (const { screenX, screenY, depth } of frontDots) {
+        const alpha = 0.15 + depth * 0.55;
+        const dotSize = 0.7 + depth * 0.85;
         ctx.beginPath();
         ctx.arc(screenX, screenY, dotSize, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(34, 197, 94, ${alpha})`;
+        ctx.fillStyle = `rgba(129,140,248,${alpha})`;
         ctx.fill();
       }
 
@@ -144,11 +162,7 @@ export function Globe({ size = 480 }: GlobeProps) {
         arc.progress += arc.speed;
         if (arc.progress > 1) {
           arc.progress = 0;
-          const ns = Math.floor(Math.random() * dots.length);
-          let ne = Math.floor(Math.random() * dots.length);
-          while (ne === ns) ne = Math.floor(Math.random() * dots.length);
-          arc.startDot = dots[ns];
-          arc.endDot = dots[ne];
+          Object.assign(arc, makeArc(dots));
         }
 
         const s = arc.startDot;
@@ -156,7 +170,7 @@ export function Globe({ size = 480 }: GlobeProps) {
         const { x: sx, z: sz } = rotateY(s.x, s.z, rotation);
         const { x: ex, z: ez } = rotateY(e.x, e.z, rotation);
 
-        if (sz < -radius * 0.3 && ez < -radius * 0.3) continue;
+        if (sz < -radius * 0.5 && ez < -radius * 0.5) continue;
 
         const startX = cx + sx;
         const startY = cy - s.y;
@@ -164,36 +178,44 @@ export function Globe({ size = 480 }: GlobeProps) {
         const endY = cy - e.y;
 
         const midX = (startX + endX) / 2;
-        const midY = (startY + endY) / 2 - 30 - Math.random() * 30;
+        const midY = (startY + endY) / 2 - arc.midOffsetY;
 
+        // Trail arc
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(midX, midY, endX, endY);
+        ctx.strokeStyle = arc.color.replace(/[\d.]+\)$/, "0.18)");
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([]);
+        ctx.stroke();
+
+        // Animated portion
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.quadraticCurveTo(midX, midY, endX, endY);
         ctx.strokeStyle = arc.color;
-        ctx.lineWidth = 1;
-        ctx.setLineDash([3, 4]);
-        ctx.lineDashOffset = -arc.progress * 80;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([6, 6]);
+        ctx.lineDashOffset = -(arc.progress * 200);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Traveling dot with glow
+        // Traveling dot
         const t = arc.progress;
-        const dotX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * midX + t * t * endX;
-        const dotY = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * midY + t * t * endY;
+        const dotX = (1-t)*(1-t)*startX + 2*(1-t)*t*midX + t*t*endX;
+        const dotY = (1-t)*(1-t)*startY + 2*(1-t)*t*midY + t*t*endY;
 
-        // Glow
-        const glow = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, 8);
-        glow.addColorStop(0, "rgba(74, 222, 128, 0.5)");
+        const glow = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, 7);
+        glow.addColorStop(0, "rgba(129,140,248,0.7)");
         glow.addColorStop(1, "transparent");
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 8, 0, Math.PI * 2);
+        ctx.arc(dotX, dotY, 7, 0, Math.PI * 2);
         ctx.fillStyle = glow;
         ctx.fill();
 
-        // Core dot
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(74, 222, 128, 0.9)";
+        ctx.arc(dotX, dotY, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(199,210,254,0.95)";
         ctx.fill();
       }
 

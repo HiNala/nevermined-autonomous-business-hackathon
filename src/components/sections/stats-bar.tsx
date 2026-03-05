@@ -19,7 +19,7 @@ function StatCard({ value, label, suffix = "", delay = 0 }: StatCardProps) {
 
   return (
     <div className="glass glow-green-subtle p-5">
-      <p className="font-mono text-3xl font-bold text-gradient-green">
+      <p className="font-mono text-3xl font-bold text-gradient-accent">
         {count.toLocaleString()}{suffix}
       </p>
       <p
