@@ -3,6 +3,7 @@ import "server-only";
 import { runStrategist, runFollowUp, type StrategistRequest, type StructuredBrief } from "./strategist";
 import { runResearch, type ResearchDocument } from "./researcher";
 import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
+import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 
 export type PipelineStage =
@@ -47,6 +48,17 @@ function makeEventId() {
 
 function makeTxId() {
   return `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** Push a pipeline event into the unified event store for SSE consumers */
+function broadcastEvent(event: PipelineEvent) {
+  const eventType = event.stage === "complete" ? "pipeline_complete" : event.stage;
+  agentEvents.push({
+    id: event.id,
+    type: eventType as Parameters<typeof agentEvents.push>[0]["type"],
+    timestamp: event.timestamp,
+    data: { agent: event.agent, stage: event.stage, message: event.message, ...event.data },
+  });
 }
 
 const strategist = AGENT_PROFILES.strategist;
@@ -123,6 +135,7 @@ export async function runPipeline(
     };
     events.push(event);
     onEvent?.(event);
+    broadcastEvent(event);
   }
 
   try {
@@ -329,13 +342,14 @@ export async function runStrategistStandalone(
     };
     events.push(event);
     onEvent?.(event);
+    broadcastEvent(event);
   }
 
   emit("strategist_working", "strategist", "Analyzing input and structuring brief…");
 
   const brief = await runStrategist({ userInput, outputType: outputType as StrategistRequest["outputType"], provider });
 
-  const tx: AgentTransaction = {
+  const txS: AgentTransaction = {
     id: makeTxId(),
     timestamp: new Date().toISOString(),
     from: { id: "user", name: "User" },
@@ -346,11 +360,11 @@ export async function runStrategistStandalone(
     status: "completed",
     durationMs: brief.durationMs,
   };
-  ledger.record(tx);
+  ledger.record(txS);
 
   emit("strategist_complete", "strategist", `Brief produced: "${brief.title}"`);
 
-  return { brief, transaction: tx, events };
+  return { brief, transaction: txS, events };
 }
 
 /**
@@ -375,13 +389,14 @@ export async function runResearcherStandalone(
     };
     events.push(event);
     onEvent?.(event);
+    broadcastEvent(event);
   }
 
   emit("researcher_working", "researcher", `Searching web for: "${query.slice(0, 60)}…"`);
 
   const document = await runResearch({ query, provider, depth });
 
-  const tx: AgentTransaction = {
+  const txR: AgentTransaction = {
     id: makeTxId(),
     timestamp: new Date().toISOString(),
     from: { id: "user", name: "User" },
@@ -392,9 +407,9 @@ export async function runResearcherStandalone(
     status: "completed",
     durationMs: document.durationMs,
   };
-  ledger.record(tx);
+  ledger.record(txR);
 
   emit("complete", "researcher", `Research complete — ${document.sections.length} sections, ${document.sources.length} sources`);
 
-  return { document, transaction: tx, events };
+  return { document, transaction: txR, events };
 }

@@ -72,7 +72,7 @@ export function Nav({ txCount }: NavProps) {
         )}
 
         <Link
-          href="#try-studio"
+          href="/studio"
           className="rounded-lg px-4 py-1.5 text-[13px] font-medium transition-all duration-200"
           style={{
             background: "rgba(34, 197, 94, 0.12)",

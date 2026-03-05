@@ -41,7 +41,7 @@ export function CtaSection() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="#try-studio"
+            href="/studio"
             className="group flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium text-white transition-all duration-200"
             style={{
               background: "linear-gradient(135deg, var(--green-600), var(--green-500))",

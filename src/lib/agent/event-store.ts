@@ -2,20 +2,9 @@ import "server-only";
 
 export interface AgentEvent {
   id: string;
-  type: "request_received" | "research_started" | "research_complete" | "payment_verified" | "error";
+  type: string;
   timestamp: string;
-  data: {
-    caller?: string;
-    query?: string;
-    depth?: string;
-    credits?: number;
-    provider?: string;
-    model?: string;
-    durationMs?: number;
-    documentId?: string;
-    error?: string;
-    paymentSignature?: string;
-  };
+  data: Record<string, unknown>;
 }
 
 type Listener = (event: AgentEvent) => void;

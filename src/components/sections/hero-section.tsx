@@ -67,18 +67,18 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <a
-              href="#services"
+              href="/studio"
               className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white transition-all duration-200"
               style={{
                 background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
                 boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
               }}
             >
-              Explore Services
+              Open Studio
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
             </a>
             <a
-              href="#try-studio"
+              href="/services"
               className="rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
               style={{
                 background: "var(--glass-bg)",
@@ -86,7 +86,7 @@ export function HeroSection() {
                 border: "1px solid var(--border-default)",
               }}
             >
-              Run a Request
+              View Services
             </a>
           </motion.div>
         </div>
