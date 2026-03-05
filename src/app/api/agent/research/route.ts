@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { runResearch, type ResearchRequest } from "@/lib/agent/researcher";
 import { agentEvents } from "@/lib/agent/event-store";
-import { getPaymentsClient } from "@/lib/nevermined/server";
+import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
 
 interface RequestBody {
   query?: string;
@@ -10,30 +10,11 @@ interface RequestBody {
   provider?: "openai" | "gemini" | "anthropic";
 }
 
+const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
+const ENDPOINT = "/api/agent/research";
+
 function generateEventId() {
   return `evt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
-async function verifyPayment(request: Request): Promise<{ valid: boolean; caller: string }> {
-  const paymentSignature = request.headers.get("payment-signature");
-
-  if (!paymentSignature) {
-    return { valid: false, caller: "anonymous" };
-  }
-
-  const payments = getPaymentsClient();
-  if (!payments) {
-    return { valid: false, caller: "unknown" };
-  }
-
-  try {
-    // In production, verify the x402 token with Nevermined SDK
-    // For now, accept any non-empty payment-signature header
-    // The Nevermined middleware will handle real verification
-    return { valid: true, caller: paymentSignature.slice(0, 12) + "..." };
-  } catch {
-    return { valid: false, caller: "invalid" };
-  }
 }
 
 export async function POST(request: Request) {
@@ -45,47 +26,64 @@ export async function POST(request: Request) {
   }
 
   const depth = body.depth ?? "standard";
+  const credits = CREDIT_COSTS[depth];
   const isInternalRequest = request.headers.get("x-internal-request") === "true";
   const paymentSignature = request.headers.get("payment-signature");
 
-  // For external agent-to-agent calls, verify payment
+  // ── x402 Flow for external agent-to-agent calls ────────────────────
   if (!isInternalRequest && !paymentSignature) {
-    // Return 402 with pricing info for x402 flow
-    const planId = process.env.NVM_PLAN_ID ?? "";
-    const agentId = process.env.NVM_AGENT_ID ?? "";
+    // Step 1: No token → return 402 Payment Required
+    const paymentRequired = buildPaymentSpec(ENDPOINT);
+    const encoded = paymentRequired
+      ? Buffer.from(JSON.stringify(paymentRequired)).toString("base64")
+      : "";
 
     return NextResponse.json(
       {
-        error: "Payment required",
+        error: "Payment Required",
         pricing: {
           quick: { credits: 1, description: "Fast 3-source scan" },
           standard: { credits: 5, description: "5-source structured research" },
           deep: { credits: 10, description: "8-source deep analysis" },
         },
-        planId,
-        agentId,
+        planId: process.env.NVM_PLAN_ID ?? null,
+        agentId: process.env.NVM_AGENT_ID ?? null,
       },
       {
         status: 402,
-        headers: {
-          "payment-required": JSON.stringify({ planId, agentId, credits: depth === "quick" ? 1 : depth === "deep" ? 10 : 5 }),
-        },
+        headers: encoded ? { "payment-required": encoded } : {},
       }
     );
   }
 
-  // Verify payment for external calls
+  // Determine caller identity
   let caller = "internal-ui";
-  if (!isInternalRequest) {
-    const verification = await verifyPayment(request);
-    caller = verification.caller;
+
+  if (!isInternalRequest && paymentSignature) {
+    caller = paymentSignature.slice(0, 12) + "...";
+
+    // Step 2: Verify token (does NOT burn credits)
+    const verification = await verifyX402Token(paymentSignature, ENDPOINT, credits);
 
     agentEvents.push({
       id: generateEventId(),
       type: "payment_verified",
       timestamp: new Date().toISOString(),
-      data: { caller, query, depth, paymentSignature: paymentSignature?.slice(0, 20) },
+      data: {
+        caller,
+        query,
+        depth,
+        credits,
+        paymentSignature: paymentSignature.slice(0, 20),
+      },
     });
+
+    if (!verification.valid) {
+      return NextResponse.json(
+        { error: verification.reason ?? "Invalid payment token" },
+        { status: 402 }
+      );
+    }
   }
 
   // Log the incoming request
@@ -93,7 +91,7 @@ export async function POST(request: Request) {
     id: generateEventId(),
     type: "request_received",
     timestamp: new Date().toISOString(),
-    data: { caller, query, depth },
+    data: { caller, query, depth, credits },
   });
 
   agentEvents.push({
@@ -103,6 +101,7 @@ export async function POST(request: Request) {
     data: { caller, query, depth, provider: body.provider },
   });
 
+  // Step 3: Execute — run the research
   try {
     const researchRequest: ResearchRequest = {
       query,
@@ -112,6 +111,22 @@ export async function POST(request: Request) {
     };
 
     const document = await runResearch(researchRequest);
+
+    // Step 4: Settle — burn credits after successful execution
+    if (!isInternalRequest && paymentSignature) {
+      const settlement = await settleX402Token(paymentSignature, ENDPOINT, credits);
+
+      agentEvents.push({
+        id: generateEventId(),
+        type: "payment_verified",
+        timestamp: new Date().toISOString(),
+        data: {
+          caller,
+          query,
+          credits: settlement.creditsRedeemed ?? credits,
+        },
+      });
+    }
 
     agentEvents.push({
       id: generateEventId(),

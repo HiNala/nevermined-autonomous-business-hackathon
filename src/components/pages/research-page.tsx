@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Nav } from "@/components/layout/nav";
-import { Footer } from "@/components/layout/footer";
 import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check } from "lucide-react";
 import type { AIProvider } from "@/lib/ai/providers";
 

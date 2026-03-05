@@ -9,15 +9,11 @@ import type { Transaction } from "@/types";
 import { Pause, Play } from "lucide-react";
 
 export function TransactionFeed() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(() =>
+    generateInitialTransactions(12)
+  );
   const [paused, setPaused] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
-
-  useEffect(() => {
-    setTransactions(generateInitialTransactions(12));
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -35,10 +31,9 @@ export function TransactionFeed() {
   }, [paused]);
 
   useEffect(() => {
-    if (!mounted) return;
     const interval = setInterval(addTransaction, FEED_UPDATE_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [addTransaction, mounted]);
+  }, [addTransaction]);
 
   const recentCount = transactions.filter(
     (tx) => currentTimestamp - tx.timestamp.getTime() < 300000

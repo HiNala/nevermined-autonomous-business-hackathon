@@ -1,22 +1,23 @@
 import "server-only";
 
-import { Payments } from "@nevermined-io/payments";
+import {
+  Payments,
+  buildPaymentRequired,
+  type EnvironmentName,
+  type X402PaymentRequired,
+} from "@nevermined-io/payments";
 import type { PaymentStatus } from "@/types";
-
-type NeverminedEnvironment = "sandbox" | "live";
 
 function normalizeEnvValue(value?: string | null): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
 }
 
-function getEnvironment(): NeverminedEnvironment {
+function getEnvironment(): EnvironmentName {
   const env = normalizeEnvValue(process.env.NVM_ENVIRONMENT)?.toLowerCase();
-
-  if (env === "live") {
-    return "live";
-  }
-
+  if (env === "live") return "live";
+  if (env === "staging_sandbox") return "staging_sandbox";
+  if (env === "staging_live") return "staging_live";
   return "sandbox";
 }
 
@@ -59,7 +60,7 @@ export function getSellerConfig() {
   };
 }
 
-export function getPaymentsClient() {
+export function getPaymentsClient(): Payments | null {
   const apiKey = normalizeEnvValue(process.env.NVM_API_KEY);
 
   if (!apiKey) {
@@ -68,6 +69,88 @@ export function getPaymentsClient() {
 
   return Payments.getInstance({
     nvmApiKey: apiKey,
-    environment: getEnvironment() as string as Parameters<typeof Payments.getInstance>[0]["environment"],
+    environment: getEnvironment(),
   });
+}
+
+/**
+ * Build a PaymentRequired spec for a given endpoint.
+ * Used by seller endpoints to produce proper 402 responses.
+ */
+export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X402PaymentRequired | null {
+  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
+  const agentId = normalizeEnvValue(process.env.NVM_AGENT_ID);
+
+  if (!planId || !agentId) return null;
+
+  return buildPaymentRequired(planId, {
+    endpoint,
+    agentId,
+    httpVerb,
+  });
+}
+
+/**
+ * Verify an x402 access token using the facilitator API.
+ * Returns { valid, reason } — does NOT burn credits.
+ */
+export async function verifyX402Token(
+  token: string,
+  endpoint: string,
+  credits: number = 1,
+  httpVerb: string = "POST"
+): Promise<{ valid: boolean; reason?: string }> {
+  const payments = getPaymentsClient();
+  const paymentRequired = buildPaymentSpec(endpoint, httpVerb);
+
+  if (!payments || !paymentRequired) {
+    return { valid: false, reason: "Nevermined not configured" };
+  }
+
+  try {
+    const verification = await payments.facilitator.verifyPermissions({
+      paymentRequired,
+      x402AccessToken: token,
+      maxAmount: BigInt(credits),
+    });
+
+    return {
+      valid: verification.isValid,
+      reason: verification.isValid ? undefined : (verification as { invalidReason?: string }).invalidReason ?? "Verification failed",
+    };
+  } catch (err) {
+    return { valid: false, reason: err instanceof Error ? err.message : "Verification error" };
+  }
+}
+
+/**
+ * Settle (burn credits) after successful execution.
+ */
+export async function settleX402Token(
+  token: string,
+  endpoint: string,
+  credits: number = 1,
+  httpVerb: string = "POST"
+): Promise<{ settled: boolean; creditsRedeemed?: number; error?: string }> {
+  const payments = getPaymentsClient();
+  const paymentRequired = buildPaymentSpec(endpoint, httpVerb);
+
+  if (!payments || !paymentRequired) {
+    return { settled: false, error: "Nevermined not configured" };
+  }
+
+  try {
+    const settlement = await payments.facilitator.settlePermissions({
+      paymentRequired,
+      x402AccessToken: token,
+      maxAmount: BigInt(credits),
+    });
+
+    return {
+      settled: true,
+      creditsRedeemed: Number((settlement as { creditsRedeemed?: bigint }).creditsRedeemed ?? credits),
+    };
+  } catch (err) {
+    return { settled: false, error: err instanceof Error ? err.message : "Settlement error" };
+  }
 }
