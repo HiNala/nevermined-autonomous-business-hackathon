@@ -272,6 +272,15 @@ export function ResearchPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q) {
+      setQuery(decodeURIComponent(q));
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim() || isLoading) return;
