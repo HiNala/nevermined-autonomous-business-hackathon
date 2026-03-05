@@ -147,6 +147,21 @@ export const STUDIO_AGENTS: StudioAgent[] = [
       totalCreditsEarned: 64,
     },
   },
+  {
+    id: "agent-seller",
+    name: "SELLER",
+    specialty: "Autonomous Order Fulfillment",
+    summary: "Receives external buyer orders, plans fulfillment using AI reasoning, and delivers generated outputs via the internal pipeline.",
+    outputs: ["Research reports", "Market analyses", "Strategic plans"],
+    accentColor: "#EF4444",
+    ctaLabel: "View store",
+    startingCredits: 0,
+    stats: {
+      totalSales: 8,
+      repeatBuyers: 2,
+      totalCreditsEarned: 96,
+    },
+  },
 ];
 
 export const SELLER_AGENT: Agent = {

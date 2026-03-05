@@ -58,6 +58,17 @@ export const AGENT_PROFILES: Record<string, AgentProfile> = {
     creditsSpent: 0,
     requestsHandled: 0,
   },
+  seller: {
+    id: "seller",
+    name: "Seller",
+    role: "Marketplace Sales",
+    description: "Receives external buyer orders, plans fulfillment using the internal pipeline, and delivers generated outputs to the marketplace.",
+    avatar: "◇",
+    color: "#EF4444",
+    creditsEarned: 0,
+    creditsSpent: 0,
+    requestsHandled: 0,
+  },
 };
 
 type TxListener = (tx: AgentTransaction) => void;

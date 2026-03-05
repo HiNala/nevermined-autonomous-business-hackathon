@@ -1,10 +1,19 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import { Globe } from "@/components/ui/globe";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Send } from "lucide-react";
 
 export function HeroSection() {
+  const [q, setQ] = useState("");
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    const trimmed = q.trim();
+    if (trimmed) window.location.href = `/studio?q=${encodeURIComponent(trimmed)}`;
+  }
+
   return (
     <section className="relative overflow-hidden pt-28 pb-20">
       {/* Geometric background layers */}
@@ -90,12 +99,46 @@ export function HeroSection() {
             </a>
           </motion.div>
 
+          {/* Hero search input */}
+          <motion.form
+            onSubmit={handleSearch}
+            className="flex gap-2"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.42 }}
+          >
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="What do you need? e.g. Research the AI agent market..."
+              className="flex-1 rounded-xl px-4 py-3 text-[13px] outline-none transition-colors"
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid var(--border-default)",
+                color: "var(--gray-800)",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34,197,94,0.30)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-default)")}
+            />
+            <button
+              type="submit"
+              disabled={!q.trim()}
+              className="flex items-center gap-1.5 rounded-xl px-4 py-3 text-[13px] font-medium text-white transition-all duration-200 disabled:opacity-40"
+              style={{
+                background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
+                boxShadow: q.trim() ? "0 0 16px -4px rgba(34,197,94,0.35)" : "none",
+              }}
+            >
+              <Send size={14} />
+            </button>
+          </motion.form>
+
           {/* Trust signals */}
           <motion.div
-            className="flex flex-wrap items-center gap-4 pt-1"
+            className="flex flex-wrap items-center gap-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.45 }}
+            transition={{ duration: 0.5, delay: 0.52 }}
           >
             {[
               "Research Sprint from 1cr",

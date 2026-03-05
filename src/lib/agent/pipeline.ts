@@ -3,6 +3,8 @@ import "server-only";
 import { runStrategist, runFollowUp, type StrategistRequest, type StructuredBrief } from "./strategist";
 import { runResearch, type ResearchDocument } from "./researcher";
 import { runBuyer, type BuyerResult, type PurchasedAsset } from "./buyer";
+import { planSellerOrder, type SellerOrder, type SellerResult } from "./seller";
+import { catalog } from "./inventory";
 import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
@@ -19,6 +21,10 @@ export type PipelineStage =
   | "buyer_discovering"
   | "buyer_purchasing"
   | "buyer_complete"
+  | "seller_received"
+  | "seller_planning"
+  | "seller_fulfilling"
+  | "seller_complete"
   | "complete"
   | "error";
 
@@ -26,7 +32,7 @@ export interface PipelineEvent {
   id: string;
   timestamp: string;
   stage: PipelineStage;
-  agent: "strategist" | "researcher" | "buyer" | "pipeline";
+  agent: "strategist" | "researcher" | "buyer" | "seller" | "pipeline";
   message: string;
   data?: Record<string, unknown>;
 }
@@ -501,4 +507,243 @@ export async function runResearcherStandalone(
   emit("complete", "researcher", `Research complete — ${document.sections.length} sections, ${document.sources.length} sources`);
 
   return { document, transaction: txR, events };
+}
+
+// ─── Reverse Pipeline: Fulfill External Seller Order ─────────────────
+// Flow: External Buyer → Seller Agent → Strategist → Researcher → (optional) Buyer → Output
+
+export interface SellerPipelineResult {
+  id: string;
+  orderId: string;
+  query: string;
+  sellerResult: SellerResult;
+  brief?: StructuredBrief;
+  document?: ResearchDocument;
+  purchasedAssets?: PurchasedAsset[];
+  transactions: AgentTransaction[];
+  events: PipelineEvent[];
+  totalCredits: number;
+  totalDurationMs: number;
+}
+
+export async function fulfillSellerOrder(
+  order: SellerOrder,
+  provider?: AIProvider,
+  onEvent?: EventCallback,
+  toolSettings?: ToolSettings
+): Promise<SellerPipelineResult> {
+  const pipelineId = `sell-pipe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const startTime = Date.now();
+  const events: PipelineEvent[] = [];
+  const transactions: AgentTransaction[] = [];
+  const seller = AGENT_PROFILES.seller;
+
+  function emit(stage: PipelineStage, agent: PipelineEvent["agent"], message: string, data?: Record<string, unknown>) {
+    const event: PipelineEvent = {
+      id: makeEventId(),
+      timestamp: new Date().toISOString(),
+      stage,
+      agent,
+      message,
+      data,
+    };
+    events.push(event);
+    onEvent?.(event);
+    broadcastEvent(event);
+  }
+
+  try {
+    // ── Stage 1: Seller receives order and plans fulfillment ──────────
+    emit("seller_received", "seller", `Order received: "${order.query.slice(0, 80)}…"`);
+    emit("seller_planning", "seller", "Running decision engine — matching product and planning fulfillment…");
+
+    const sellerResult = await planSellerOrder(order);
+
+    if (sellerResult.status === "failed") {
+      emit("seller_complete", "seller", `Order failed: ${sellerResult.error}`);
+      return {
+        id: pipelineId,
+        orderId: order.id,
+        query: order.query,
+        sellerResult,
+        transactions,
+        events,
+        totalCredits: 0,
+        totalDurationMs: Date.now() - startTime,
+      };
+    }
+
+    const plan = sellerResult.fulfillmentPlan;
+    emit("seller_planning", "seller",
+      `Product matched: "${plan.product.name}" (${plan.product.price}cr). ` +
+      `External data: ${plan.shouldBuyExternal ? "yes" : "no"}. ` +
+      `Reasoning: ${plan.reasoning.slice(0, 120)}`,
+      { productId: plan.product.id, shouldBuyExternal: plan.shouldBuyExternal }
+    );
+
+    // Record: external buyer → seller
+    const txOrder: AgentTransaction = {
+      id: makeTxId(),
+      timestamp: new Date().toISOString(),
+      from: { id: "external-buyer", name: order.caller ?? "External Buyer" },
+      to: { id: seller.id, name: seller.name },
+      credits: plan.product.price,
+      purpose: `Order: "${order.query.slice(0, 50)}…"`,
+      artifactId: sellerResult.id,
+      status: "completed",
+    };
+    transactions.push(txOrder);
+    ledger.record(txOrder);
+
+    emit("seller_fulfilling", "seller", "Dispatching to internal pipeline for generation…");
+
+    // ── Stage 2: Strategist structures the brief ──────────────────────
+    emit("strategist_working", "strategist", "Analyzing seller order and structuring brief…");
+
+    const brief = await runStrategist({
+      userInput: plan.expandedPrompt,
+      outputType: plan.product.outputType,
+      provider: order.provider ?? provider,
+    });
+
+    const txStrat: AgentTransaction = {
+      id: makeTxId(),
+      timestamp: new Date().toISOString(),
+      from: { id: seller.id, name: seller.name },
+      to: { id: strategist.id, name: strategist.name },
+      credits: brief.creditsUsed,
+      purpose: `Seller order brief: "${brief.title.slice(0, 50)}"`,
+      artifactId: brief.id,
+      status: "completed",
+      durationMs: brief.durationMs,
+    };
+    transactions.push(txStrat);
+    ledger.record(txStrat);
+
+    emit("strategist_complete", "strategist", `Brief produced: "${brief.title}"`);
+
+    // ── Stage 3: Researcher executes research ─────────────────────────
+    emit("researcher_working", "researcher", `Searching web with ${brief.searchQueries.length} queries…`);
+
+    let document = await runResearch({
+      query: brief.objective,
+      searchQueries: brief.searchQueries,
+      provider: order.provider ?? provider,
+      depth: "standard",
+      toolSettings: toolSettings?.researcher,
+    });
+
+    const txRes: AgentTransaction = {
+      id: makeTxId(),
+      timestamp: new Date().toISOString(),
+      from: { id: seller.id, name: seller.name },
+      to: { id: researcher.id, name: researcher.name },
+      credits: document.creditsUsed,
+      purpose: `Seller order research: "${brief.title.slice(0, 50)}"`,
+      artifactId: document.id,
+      status: "completed",
+      durationMs: document.durationMs,
+    };
+    transactions.push(txRes);
+    ledger.record(txRes);
+
+    // ── Stage 4: Optional Buyer — acquire 3rd-party data ──────────────
+    let purchasedAssets: PurchasedAsset[] = [];
+
+    if (plan.shouldBuyExternal && plan.externalServices.length > 0) {
+      emit("buyer_discovering", "buyer", `Seller requested ${plan.externalServices.length} external service(s)…`);
+
+      try {
+        const targetDids = plan.externalServices
+          .map((s) => s.did)
+          .filter((d) => d);
+
+        if (targetDids.length > 0) {
+          const buyerResult = await runBuyer({
+            query: brief.objective,
+            maxCredits: 20,
+            targetDids,
+          });
+
+          purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
+
+          if (purchasedAssets.length > 0) {
+            emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) for seller order`);
+
+            for (const asset of purchasedAssets) {
+              const txBuy: AgentTransaction = {
+                id: makeTxId(),
+                timestamp: new Date().toISOString(),
+                from: { id: buyer.id, name: buyer.name },
+                to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
+                credits: asset.creditsPaid,
+                purpose: `Seller order purchase: "${asset.name}"`,
+                artifactId: asset.id,
+                status: "completed",
+                durationMs: asset.durationMs,
+              };
+              transactions.push(txBuy);
+              ledger.record(txBuy);
+            }
+
+            // Merge purchased content into the document
+            const purchasedSections = purchasedAssets
+              .filter((a) => a.content)
+              .map((a) => ({
+                heading: `External Data: ${a.name}`,
+                content: a.content.slice(0, 4000),
+              }));
+
+            if (purchasedSections.length > 0) {
+              document = {
+                ...document,
+                sections: [...document.sections, ...purchasedSections],
+                creditsUsed: document.creditsUsed + buyerResult.totalCreditsSpent,
+              };
+            }
+          }
+
+          emit("buyer_complete", "buyer",
+            purchasedAssets.length > 0
+              ? `${purchasedAssets.length} external asset(s) merged into deliverable`
+              : "No external assets purchased — using research data only"
+          );
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "External purchase failed";
+        emit("buyer_complete", "buyer", `External procurement skipped: ${msg}`);
+      }
+    }
+
+    // ── Complete ──────────────────────────────────────────────────────
+    const totalCredits = transactions
+      .filter((tx) => tx.status === "completed")
+      .reduce((sum, tx) => sum + tx.credits, 0);
+
+    sellerResult.status = "complete";
+    sellerResult.output = { brief, document, purchasedAssets };
+    sellerResult.durationMs = Date.now() - startTime;
+
+    emit("seller_complete", "seller",
+      `Order fulfilled — "${plan.product.name}" delivered. ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} external assets, ${totalCredits}cr total`
+    );
+
+    return {
+      id: pipelineId,
+      orderId: order.id,
+      query: order.query,
+      sellerResult,
+      brief,
+      document,
+      purchasedAssets,
+      transactions,
+      events,
+      totalCredits,
+      totalDurationMs: Date.now() - startTime,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Seller pipeline failed";
+    emit("error", "seller", message);
+    throw error;
+  }
 }

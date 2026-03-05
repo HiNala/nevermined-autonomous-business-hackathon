@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
-import { TryStudio } from "@/components/sections/try-studio";
+import { StudioEntry } from "@/components/sections/studio-entry";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import { Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -152,7 +152,7 @@ export function AgentsPage() {
         </div>
 
         <div className="mt-16">
-          <TryStudio />
+          <StudioEntry />
         </div>
       </main>
       <Footer />

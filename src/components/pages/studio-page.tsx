@@ -166,6 +166,16 @@ const AGENT_CONFIG = {
     bgColor: "rgba(245, 158, 11, 0.08)",
     borderColor: "rgba(245, 158, 11, 0.20)",
   },
+  seller: {
+    id: "seller",
+    name: "Seller",
+    role: "Marketplace Sales",
+    description: "Receives external orders, plans fulfillment, and delivers generated outputs to the marketplace.",
+    avatar: "◇",
+    color: "#EF4444",
+    bgColor: "rgba(239, 68, 68, 0.08)",
+    borderColor: "rgba(239, 68, 68, 0.20)",
+  },
 };
 
 // ─── Transaction stream hook ────────────────────────────────────────
@@ -280,6 +290,10 @@ function PipelineStages({ events, isRunning }: { events: PipelineEvent[]; isRunn
     buyer_discovering: AGENT_CONFIG.buyer.color,
     buyer_purchasing: AGENT_CONFIG.buyer.color,
     buyer_complete: AGENT_CONFIG.buyer.color,
+    seller_received: AGENT_CONFIG.seller.color,
+    seller_planning: AGENT_CONFIG.seller.color,
+    seller_fulfilling: AGENT_CONFIG.seller.color,
+    seller_complete: AGENT_CONFIG.seller.color,
     complete: "var(--green-400)",
     error: "#EF4444",
   };
@@ -480,6 +494,63 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
   );
 }
 
+// ─── Markdown Renderer ─────────────────────────────────────────────
+function parseInline(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i} style={{ color: "var(--gray-700)", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+    }
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      return <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="underline-offset-2 underline" style={{ color: "var(--green-400)" }}>{linkMatch[1]}</a>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function MarkdownContent({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let listItems: string[] = [];
+  let key = 0;
+
+  function flushList() {
+    if (listItems.length === 0) return;
+    elements.push(
+      <ul key={`ul-${key++}`} className="my-2 space-y-1.5 pl-1">
+        {listItems.map((item, i) => (
+          <li key={i} className="flex items-start gap-2 text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            <span className="mt-[7px] size-1.5 shrink-0 rounded-full" style={{ background: "var(--green-400)", opacity: 0.55 }} />
+            <span>{parseInline(item)}</span>
+          </li>
+        ))}
+      </ul>
+    );
+    listItems = [];
+  }
+
+  lines.forEach((line) => {
+    if (line.startsWith("### ")) {
+      flushList();
+      elements.push(<h5 key={key++} className="mb-1 mt-4 text-[13px] font-semibold" style={{ color: "var(--gray-700)" }}>{line.slice(4)}</h5>);
+    } else if (line.startsWith("## ")) {
+      flushList();
+      elements.push(<h4 key={key++} className="mb-2 mt-5 text-[14px] font-semibold" style={{ color: "var(--gray-800)" }}>{line.slice(3)}</h4>);
+    } else if (line.match(/^[-*] /)) {
+      listItems.push(line.slice(2));
+    } else if (line.trim() === "") {
+      flushList();
+    } else {
+      flushList();
+      elements.push(<p key={key++} className="text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>{parseInline(line)}</p>);
+    }
+  });
+  flushList();
+
+  return <div className="space-y-1">{elements}</div>;
+}
+
 // ─── Document View ──────────────────────────────────────────────────
 function DocumentView({
   doc,
@@ -535,7 +606,7 @@ function DocumentView({
           {doc.sections.map((section, i) => (
             <div key={i}>
               <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>{section.heading}</h3>
-              <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--gray-500)" }}>{section.content}</p>
+              <MarkdownContent text={section.content} />
             </div>
           ))}
         </div>
@@ -578,6 +649,10 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
     buyer_discovering: "Buyer scanning the marketplace for assets…",
     buyer_purchasing: "Buyer purchasing marketplace assets…",
     buyer_complete: "Marketplace procurement complete",
+    seller_received: "Seller received an external order…",
+    seller_planning: "Seller planning fulfillment strategy…",
+    seller_fulfilling: "Seller dispatching to internal pipeline…",
+    seller_complete: "Seller order fulfilled and delivered",
   };
   const currentLabel = lastEvent ? (stageLabels[lastEvent.stage] ?? lastEvent.message) : "Initializing pipeline…";
 
@@ -622,6 +697,10 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
         </p>
         <p className="max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
           {currentLabel}
+        </p>
+        <p className="mt-2 font-mono text-[10px]" style={{ color: "var(--gray-300)" }}>
+          {mode === "pipeline" ? "Usually 3–7 min" : mode === "researcher" ? "Usually 1–3 min" : "Usually 30–60 sec"}
+          {events.length > 0 && ` · ${events.length} stage${events.length !== 1 ? "s" : ""} complete`}
         </p>
       </div>
 

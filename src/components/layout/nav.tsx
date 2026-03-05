@@ -9,6 +9,7 @@ import { Menu, X } from "lucide-react";
 
 const PAGE_LINKS = [
   { label: "Studio", href: "/studio" },
+  { label: "Store", href: "/store" },
   { label: "Research", href: "/research" },
   { label: "Services", href: "/services" },
   { label: "Agents", href: "/agents" },
