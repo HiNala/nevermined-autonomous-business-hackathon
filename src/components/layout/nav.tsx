@@ -6,6 +6,7 @@ import { SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const PAGE_LINKS = [
+  { label: "Studio", href: "/studio" },
   { label: "Research", href: "/research" },
   { label: "Services", href: "/services" },
   { label: "Agents", href: "/agents" },
