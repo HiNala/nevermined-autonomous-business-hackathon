@@ -36,9 +36,9 @@ export function StatsBar({ stats }: StatsBarProps) {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard value={stats.transactions} label="Transactions" delay={0} />
-        <StatCard value={stats.volume} label="Credits Volume" suffix="cr" delay={100} />
-        <StatCard value={stats.uniqueTeams} label="Unique Teams" delay={200} />
+        <StatCard value={stats.transactions} label="Requests Completed" delay={0} />
+        <StatCard value={stats.volume} label="Credits Used" suffix="cr" delay={100} />
+        <StatCard value={stats.uniqueTeams} label="Active Teams" delay={200} />
       </div>
     </section>
   );

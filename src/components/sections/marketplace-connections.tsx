@@ -50,27 +50,32 @@ function PartnerCard({ partner, index }: { partner: MarketplacePartner; index: n
 export function MarketplaceConnections() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="mb-6 flex items-center justify-between">
-        <h2
-          className="text-[11px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--gray-400)" }}
-        >
-          Network
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
-            {MARKETPLACE_PARTNERS.length} teams connected
-          </span>
-          <div className="flex items-center gap-0.5">
-            {MARKETPLACE_PARTNERS.map((p) => (
-              <span
-                key={p.id}
-                className="size-1.5 rounded-full"
-                style={{ background: "var(--green-500)", opacity: 0.6 }}
-              />
-            ))}
+      <div className="mb-8">
+        <div className="mb-2 flex items-center justify-between">
+          <h2
+            className="text-[11px] font-semibold uppercase tracking-widest"
+            style={{ color: "var(--gray-400)" }}
+          >
+            Network
+          </h2>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-0.5">
+              {MARKETPLACE_PARTNERS.map((p) => (
+                <span
+                  key={p.id}
+                  className="size-1.5 rounded-full"
+                  style={{ background: "var(--green-500)", opacity: 0.6 }}
+                />
+              ))}
+            </div>
+            <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
+              {MARKETPLACE_PARTNERS.length} teams connected
+            </span>
           </div>
         </div>
+        <p className="text-[18px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+          Teams already on the network.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,6 +83,9 @@ export function MarketplaceConnections() {
           <PartnerCard key={partner.id} partner={partner} index={i} />
         ))}
       </div>
+      <p className="mt-4 text-center font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+        Data shown is representative of Nevermined network activity
+      </p>
     </section>
   );
 }

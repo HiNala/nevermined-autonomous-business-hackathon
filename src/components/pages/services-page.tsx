@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
-import { TryStudio } from "@/components/sections/try-studio";
+import { StudioEntry } from "@/components/sections/studio-entry";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
 import { formatCredits } from "@/lib/utils";
 import { Clock, ArrowRight, Sparkles } from "lucide-react";
@@ -93,14 +93,14 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           </div>
 
           <Link
-            href="/studio"
+            href={`/studio?q=${encodeURIComponent(`I need a ${service.name}: ${service.summary.split(".")[0]}`)}`}
             className="group mt-2 flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
             style={{
               background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
               boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
             }}
           >
-            Order {service.name}
+            Start {service.name} in Studio
             <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
@@ -168,7 +168,7 @@ export function ServicesPage() {
         </div>
 
         <div className="mt-16">
-          <TryStudio />
+          <StudioEntry />
         </div>
       </main>
       <Footer />
