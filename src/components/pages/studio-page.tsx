@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Nav } from "@/components/layout/nav";
 import {
   Send,
@@ -24,7 +24,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
+import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface ResearchSource {
@@ -451,10 +451,12 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
 function DocumentView({
   doc,
   adQuery,
+  adSignals,
   adsMuted = false,
 }: {
   doc: ResearchDocument;
   adQuery?: string;
+  adSignals?: ZeroClickSignal[];
   adsMuted?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
@@ -505,7 +507,7 @@ function DocumentView({
           ))}
         </div>
 
-        <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} />
+        <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} signals={adSignals} />
 
         {doc.sources.length > 0 && (
           <div className="mt-8 border-t pt-5" style={{ borderColor: "var(--border-default)" }}>
@@ -641,6 +643,46 @@ function EmptyState({ mode }: { mode: ViewMode }) {
   );
 }
 
+// ─── Ad Context Extraction ──────────────────────────────────────────
+function extractAdContext(brief?: StructuredBrief): { query: string; signals: ZeroClickSignal[] } {
+  if (!brief) return { query: "", signals: [] };
+
+  const query = [brief.title, ...brief.scope.slice(0, 2)].filter(Boolean).join(" · ");
+
+  const signals: ZeroClickSignal[] = [];
+
+  if (brief.title) {
+    signals.push({
+      category: "interest",
+      confidence: 0.9,
+      subject: brief.title,
+      relatedSubjects: brief.scope.slice(0, 4),
+      sentiment: "positive",
+    });
+  }
+
+  if (brief.keyQuestions.length > 0) {
+    signals.push({
+      category: "evaluation",
+      confidence: 0.75,
+      subject: brief.keyQuestions[0],
+      relatedSubjects: brief.keyQuestions.slice(1, 3),
+      sentiment: "neutral",
+    });
+  }
+
+  if (brief.deliverables.length > 0) {
+    signals.push({
+      category: "recommendation_request",
+      confidence: 0.8,
+      subject: brief.deliverables[0],
+      sentiment: "positive",
+    });
+  }
+
+  return { query, signals };
+}
+
 // ─── Main Studio Page ───────────────────────────────────────────────
 export function StudioPage() {
   const [input, setInput] = useState("");
@@ -673,6 +715,8 @@ export function StudioPage() {
       return next;
     });
   }
+
+  const adContext = useMemo(() => extractAdContext(result?.brief), [result?.brief]);
 
   // Fetch persisted stats on mount
   useEffect(() => {
@@ -999,7 +1043,8 @@ export function StudioPage() {
             ) : rightTab === "document" && result.document ? (
               <DocumentView
                 doc={result.document}
-                adQuery={result.brief?.title ?? result.document?.query}
+                adQuery={adContext.query || result.brief?.title || result.document?.query}
+                adSignals={adContext.signals}
                 adsMuted={adsMuted}
               />
             ) : rightTab === "brief" && result.brief ? (

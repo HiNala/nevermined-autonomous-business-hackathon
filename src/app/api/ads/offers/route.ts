@@ -1,5 +1,22 @@
 import { NextResponse } from "next/server";
 
+interface ZeroClickSignal {
+  category: string;
+  confidence: number;
+  subject: string;
+  relatedSubjects?: string[];
+  sentiment?: string;
+  iab?: { type: string; version: string; ids: string[] };
+}
+
+interface OffersRequestBody {
+  query?: string;
+  userAgent?: string;
+  sessionId?: string;
+  locale?: string;
+  signals?: ZeroClickSignal[];
+}
+
 export async function POST(request: Request) {
   const apiKey = process.env.ZEROCLICK_API_KEY;
 
@@ -8,11 +25,11 @@ export async function POST(request: Request) {
     return new NextResponse(null, { status: 204 });
   }
 
-  let body: { query?: string; userAgent?: string } = {};
+  let body: OffersRequestBody = {};
   try {
-    body = (await request.json()) as { query?: string; userAgent?: string };
+    body = (await request.json()) as OffersRequestBody;
   } catch {
-    // malformed body — still attempt with null query
+    // malformed body — still attempt with defaults
   }
 
   const query = body.query?.trim() ?? null;
@@ -24,6 +41,24 @@ export async function POST(request: Request) {
     ? forwarded.split(",")[0].trim()
     : realIp ?? "127.0.0.1";
 
+  // Locale: explicit from client > Accept-Language header > default
+  const userLocale =
+    body.locale ??
+    request.headers.get("accept-language")?.split(",")[0]?.trim() ??
+    "en-US";
+
+  const zcBody: Record<string, unknown> = {
+    method: "server",
+    ipAddress,
+    userAgent: body.userAgent ?? "",
+    query,
+    limit: 1,
+    userLocale,
+  };
+
+  if (body.sessionId) zcBody.userSessionId = body.sessionId;
+  if (body.signals && body.signals.length > 0) zcBody.signals = body.signals;
+
   try {
     const zcResponse = await fetch("https://zeroclick.dev/api/v2/offers", {
       method: "POST",
@@ -31,15 +66,18 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
         "x-zc-api-key": apiKey,
       },
-      body: JSON.stringify({
-        method: "server",
-        ipAddress,
-        userAgent: body.userAgent ?? "",
-        query,
-        limit: 1,
-      }),
+      body: JSON.stringify(zcBody),
       cache: "no-store",
     });
+
+    // Surface rate-limit signal so callers can back off
+    if (zcResponse.status === 429) {
+      const retryAfter = zcResponse.headers.get("retry-after");
+      return new NextResponse(null, {
+        status: 204,
+        headers: retryAfter ? { "X-ZC-Retry-After": retryAfter } : {},
+      });
+    }
 
     if (!zcResponse.ok) {
       return new NextResponse(null, { status: 204 });
