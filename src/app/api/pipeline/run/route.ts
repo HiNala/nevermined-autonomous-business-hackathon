@@ -51,6 +51,7 @@ export async function POST(request: Request) {
         totalDurationMs: result.brief.durationMs,
         iterations: 1,
         transactions: [result.transaction],
+        toolsUsed: result.toolsUsed,
       });
     }
 
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
         totalDurationMs: result.document.durationMs,
         iterations: 1,
         transactions: [result.transaction],
+        toolsUsed: result.toolsUsed,
       });
     }
 

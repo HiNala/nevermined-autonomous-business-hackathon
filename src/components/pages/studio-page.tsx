@@ -26,11 +26,14 @@ import {
   Package,
   Settings,
   Download,
+  Award,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
 import { loadToolSettings, saveToolSettings, type ToolSettings } from "@/lib/tool-settings";
 import { PurchasedAssetGrid } from "@/components/ui/purchased-asset-card";
+import { SponsorRail } from "@/components/ui/sponsor-rail";
+import { JudgeMode, type JudgePreset } from "@/components/ui/judge-mode";
 import type {
   ResearchSource,
   ResearchDocument,
@@ -71,6 +74,15 @@ function useTransactionStream() {
   return transactions;
 }
 
+// ─── Tool provider badge colors ─────────────────────────────────────
+const TOOL_BADGE: Record<string, { label: string; color: string; bg: string }> = {
+  apify: { label: "Apify", color: "#00BFA5", bg: "rgba(0,191,165,0.12)" },
+  exa: { label: "Exa", color: "#6366F1", bg: "rgba(99,102,241,0.12)" },
+  duckduckgo: { label: "DDG", color: "#FB923C", bg: "rgba(251,146,60,0.12)" },
+  raw: { label: "Raw", color: "var(--gray-500)", bg: "var(--glass-bg)" },
+  nevermined: { label: "NVM", color: "#22C55E", bg: "rgba(34,197,94,0.12)" },
+};
+
 // ─── Agent Card ─────────────────────────────────────────────────────
 function AgentCard({
   agent,
@@ -78,13 +90,17 @@ function AgentCard({
   isSelected,
   onClick,
   stats,
+  toolLabel,
 }: {
   agent: typeof AGENT_CONFIG.strategist;
   isActive: boolean;
   isSelected: boolean;
   onClick: () => void;
   stats: { earned: number; handled: number };
+  toolLabel?: string;
 }) {
+  const badge = toolLabel ? TOOL_BADGE[toolLabel] : null;
+
   return (
     <button
       onClick={onClick}
@@ -108,6 +124,14 @@ function AgentCard({
           <span className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>
             {agent.name}
           </span>
+          {badge && (
+            <span
+              className="rounded px-1 py-0.5 font-mono text-[7px] font-bold"
+              style={{ background: badge.bg, color: badge.color }}
+            >
+              {badge.label}
+            </span>
+          )}
           {isActive && (
             <span className="relative flex size-1.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full opacity-50" style={{ background: agent.color }} />
@@ -124,6 +148,24 @@ function AgentCard({
       </div>
     </button>
   );
+}
+
+// ─── Sponsor badge helpers for pipeline stages ──────────────────────
+const STAGE_SPONSOR_HINTS: Record<string, { label: string; color: string; bg: string }> = {
+  researcher_working: { label: "Web Search", color: "#0EA5E9", bg: "rgba(14,165,233,0.10)" },
+  buyer_discovering: { label: "Nevermined", color: "#22C55E", bg: "rgba(34,197,94,0.10)" },
+  buyer_purchasing: { label: "NVM x402", color: "#22C55E", bg: "rgba(34,197,94,0.10)" },
+  seller_received: { label: "NVM x402", color: "#22C55E", bg: "rgba(34,197,94,0.10)" },
+  seller_planning: { label: "Nevermined", color: "#22C55E", bg: "rgba(34,197,94,0.10)" },
+};
+
+function inferSponsorBadge(msg: string): { label: string; color: string; bg: string } | null {
+  const m = msg.toLowerCase();
+  if (m.includes("apify")) return { label: "Apify", color: "#00BFA5", bg: "rgba(0,191,165,0.10)" };
+  if (m.includes("exa")) return { label: "Exa", color: "#6366F1", bg: "rgba(99,102,241,0.10)" };
+  if (m.includes("marketplace") || m.includes("purchase") || m.includes("x402")) return { label: "Nevermined", color: "#22C55E", bg: "rgba(34,197,94,0.10)" };
+  if (m.includes("zeroclick") || m.includes("ad")) return { label: "ZeroClick", color: "#F59E0B", bg: "rgba(245,158,11,0.10)" };
+  return null;
 }
 
 // ─── Pipeline Stage Indicator ───────────────────────────────────────
@@ -171,33 +213,47 @@ function PipelineStages({ events, isRunning }: { events: PipelineEvent[]; isRunn
 
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto px-3 py-2">
-      {events.map((event) => (
-        <div key={event.id} className="flex items-start gap-2.5 py-2 border-b" style={{ borderColor: "var(--border-default)" }}>
-          <span
-            className="mt-1 size-2 shrink-0 rounded-full"
-            style={{ background: stageColors[event.stage] ?? "var(--gray-400)" }}
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span
-                className="rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase"
-                style={{
-                  background: AGENT_CONFIG[event.agent as keyof typeof AGENT_CONFIG]?.bgColor ?? "var(--glass-bg)",
-                  color: AGENT_CONFIG[event.agent as keyof typeof AGENT_CONFIG]?.color ?? "var(--gray-400)",
-                }}
-              >
-                {event.agent}
-              </span>
-              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-                {new Date(event.timestamp).toLocaleTimeString()}
-              </span>
+      {events.map((event) => {
+        const stageHint = STAGE_SPONSOR_HINTS[event.stage];
+        const msgHint = inferSponsorBadge(event.message);
+        const badge = msgHint ?? stageHint;
+
+        return (
+          <div key={event.id} className="flex items-start gap-2.5 py-2 border-b" style={{ borderColor: "var(--border-default)" }}>
+            <span
+              className="mt-1 size-2 shrink-0 rounded-full"
+              style={{ background: stageColors[event.stage] ?? "var(--gray-400)" }}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className="rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase"
+                  style={{
+                    background: AGENT_CONFIG[event.agent as keyof typeof AGENT_CONFIG]?.bgColor ?? "var(--glass-bg)",
+                    color: AGENT_CONFIG[event.agent as keyof typeof AGENT_CONFIG]?.color ?? "var(--gray-400)",
+                  }}
+                >
+                  {event.agent}
+                </span>
+                {badge && (
+                  <span
+                    className="rounded px-1 py-0.5 font-mono text-[7px] font-bold uppercase"
+                    style={{ background: badge.bg, color: badge.color }}
+                  >
+                    {badge.label}
+                  </span>
+                )}
+                <span className="ml-auto font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+                  {new Date(event.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--gray-600)" }}>
+                {event.message}
+              </p>
             </div>
-            <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--gray-600)" }}>
-              {event.message}
-            </p>
           </div>
-        </div>
-      ))}
+        );
+      })}
       {isRunning && (
         <div className="flex items-center gap-2 py-2">
           <Loader2 size={12} className="animate-spin" style={{ color: "var(--green-400)" }} />
@@ -226,36 +282,67 @@ function TransactionFeed({ transactions }: { transactions: AgentTransaction[] })
     );
   }
 
+  const isMarketplace = (tx: AgentTransaction) =>
+    tx.to.id === "marketplace" || tx.from.id === "external-buyer" || tx.to.name.startsWith("Marketplace:");
+  const isExternal = (tx: AgentTransaction) =>
+    tx.from.id === "external-buyer" || tx.to.id === "marketplace";
+
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto px-3 py-2">
-      {transactions.map((tx) => (
-        <div key={tx.id} className="py-2 border-b" style={{ borderColor: "var(--border-default)" }}>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] font-semibold" style={{
-              color: AGENT_CONFIG[tx.from.id as keyof typeof AGENT_CONFIG]?.color ?? "var(--gray-400)"
-            }}>
-              {tx.from.name}
-            </span>
-            <ArrowRight size={10} style={{ color: "var(--gray-300)" }} />
-            <span className="font-mono text-[9px] font-semibold" style={{
-              color: AGENT_CONFIG[tx.to.id as keyof typeof AGENT_CONFIG]?.color ?? "var(--green-400)"
-            }}>
-              {tx.to.name}
-            </span>
-            <span className="ml-auto font-mono text-[9px] font-bold" style={{ color: "var(--green-400)" }}>
-              {tx.credits}cr
-            </span>
-            <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
-              {new Date(tx.timestamp).toLocaleTimeString()}
-            </span>
+      {transactions.map((tx) => {
+        const marketplace = isMarketplace(tx);
+        const external = isExternal(tx);
+        return (
+          <div
+            key={tx.id}
+            className="py-2 border-b"
+            style={{
+              borderColor: "var(--border-default)",
+              background: marketplace ? "rgba(34, 197, 94, 0.02)" : "transparent",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] font-semibold" style={{
+                color: AGENT_CONFIG[tx.from.id as keyof typeof AGENT_CONFIG]?.color ?? (external ? "#22C55E" : "var(--gray-400)")
+              }}>
+                {tx.from.name}
+              </span>
+              <ArrowRight size={10} style={{ color: marketplace ? "#22C55E" : "var(--gray-300)" }} />
+              <span className="font-mono text-[9px] font-semibold" style={{
+                color: AGENT_CONFIG[tx.to.id as keyof typeof AGENT_CONFIG]?.color ?? (marketplace ? "#22C55E" : "var(--green-400)")
+              }}>
+                {tx.to.name}
+              </span>
+              {marketplace && (
+                <span
+                  className="rounded px-1 py-0.5 font-mono text-[7px] font-bold uppercase"
+                  style={{ background: "rgba(34, 197, 94, 0.12)", color: "#22C55E", border: "1px solid rgba(34, 197, 94, 0.22)" }}
+                >
+                  NVM x402
+                </span>
+              )}
+              <span className="ml-auto font-mono text-[9px] font-bold" style={{ color: marketplace ? "#22C55E" : "var(--green-400)" }}>
+                {tx.credits}cr
+              </span>
+              <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                {new Date(tx.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+            <div className="mt-0.5 flex items-center gap-2">
+              {tx.purpose && (
+                <p className="truncate text-[10px]" style={{ color: "var(--gray-400)" }}>
+                  {tx.purpose}
+                </p>
+              )}
+              {tx.status === "completed" && marketplace && (
+                <span className="shrink-0 font-mono text-[7px]" style={{ color: "#22C55E" }}>
+                  ✓ settled
+                </span>
+              )}
+            </div>
           </div>
-          {tx.purpose && (
-            <p className="mt-0.5 truncate text-[10px]" style={{ color: "var(--gray-400)" }}>
-              {tx.purpose}
-            </p>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -836,6 +923,24 @@ export function StudioPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiMode, setApiMode] = useState<"demo" | "live" | "checking">("checking");
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
+  const [judgeMode, setJudgeMode] = useState(false);
+
+  const handleJudgePreset = useCallback((preset: JudgePreset) => {
+    setInput(preset.prompt);
+    setMode(preset.mode);
+    setOutputType(preset.outputType);
+    // Apply tool overrides
+    setToolSettings((prev) => {
+      const next = {
+        ...prev,
+        ...(preset.toolOverrides.researcher ? { researcher: { ...prev.researcher, ...preset.toolOverrides.researcher } } : {}),
+        ...(preset.toolOverrides.trading ? { trading: { ...prev.trading, ...preset.toolOverrides.trading } } : {}),
+      };
+      saveToolSettings(next);
+      return next;
+    });
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("zc_ads_muted");
@@ -1176,7 +1281,20 @@ export function StudioPage() {
                   <RefreshCw size={9} /> Full Pipeline
                 </button>
               )}
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-1.5">
+                <button
+                  onClick={() => setJudgeMode((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{
+                    color: judgeMode ? "var(--accent-400)" : "var(--gray-400)",
+                    background: judgeMode ? "rgba(201, 125, 78, 0.10)" : "var(--glass-bg)",
+                    border: `1px solid ${judgeMode ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
+                  }}
+                  title="Judge Demo Mode"
+                >
+                  <Award size={10} />
+                  judge
+                </button>
                 <button
                   onClick={() => setSettingsOpen(true)}
                   className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
@@ -1217,6 +1335,13 @@ export function StudioPage() {
                   {ot.label}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Judge Mode Presets */}
+          {judgeMode && (
+            <div className="border-b p-3" style={{ borderColor: "var(--border-default)", background: "rgba(201, 125, 78, 0.02)" }}>
+              <JudgeMode onSelect={handleJudgePreset} />
             </div>
           )}
 
@@ -1424,6 +1549,9 @@ export function StudioPage() {
               </button>
             )}
           </div>
+
+          {/* Sponsor Proof Rail */}
+          <SponsorRail toolsUsed={result?.toolsUsed ?? result?.document?.toolsUsed} />
 
           {/* Content */}
           <div className="flex-1 overflow-hidden">

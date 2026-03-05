@@ -8,6 +8,8 @@ import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
+import type { SponsorToolUsage } from "@/types/pipeline";
+export type { SponsorToolUsage };
 
 export type PipelineStage =
   | "idle"
@@ -50,6 +52,7 @@ export interface PipelineResult {
   totalCredits: number;
   totalDurationMs: number;
   iterations: number;
+  toolsUsed: SponsorToolUsage[];
 }
 
 type EventCallback = (event: PipelineEvent) => void;
@@ -138,6 +141,7 @@ export async function runPipeline(
   const events: PipelineEvent[] = [];
   const transactions: AgentTransaction[] = [];
   const followUpBriefs: StructuredBrief[] = [];
+  const toolsUsed: SponsorToolUsage[] = [];
 
   // Trading toggles (both default to true)
   const internalTrading = toolSettings?.trading?.internalTrading ?? true;
@@ -189,6 +193,8 @@ export async function runPipeline(
     };
     recordInternal(tx1);
 
+    toolsUsed.push({ tool: "llm-synthesis", label: `Strategist LLM — ${brief.provider}/${brief.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${brief.creditsUsed}cr` });
+
     emit("strategist_complete", "strategist", `Brief produced: "${brief.title}"`, {
       briefId: brief.id,
       searchQueries: brief.searchQueries.length,
@@ -224,6 +230,9 @@ export async function runPipeline(
       depth: "standard",
       toolSettings: toolSettings?.researcher,
     });
+
+    // Merge researcher's toolsUsed into pipeline toolsUsed
+    if (document.toolsUsed) toolsUsed.push(...document.toolsUsed);
 
     // Record transaction: pipeline → researcher
     const tx3: AgentTransaction = {
@@ -325,6 +334,7 @@ export async function runPipeline(
 
     if (externalTrading) {
       emit("buyer_discovering", "buyer", `Searching marketplace for assets related to: "${brief.title.slice(0, 60)}…"`);
+      toolsUsed.push({ tool: "nevermined-402", label: "Nevermined Marketplace Discovery", sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `query: ${brief.title.slice(0, 40)}` });
 
       try {
         buyerResult = await runBuyer({
@@ -337,6 +347,7 @@ export async function runPipeline(
 
         if (purchasedAssets.length > 0) {
           emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) from marketplace`);
+          toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined Purchase — ${purchasedAssets.length} asset(s), ${buyerResult.totalCreditsSpent}cr`, sponsor: "Nevermined", timestamp: new Date().toISOString() });
 
           // Record buyer transactions (external → always recorded to ledger)
           for (const asset of purchasedAssets) {
@@ -406,6 +417,7 @@ export async function runPipeline(
       totalCredits,
       totalDurationMs: Date.now() - startTime,
       iterations,
+      toolsUsed,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Pipeline failed";
@@ -458,7 +470,11 @@ export async function runStrategistStandalone(
 
   emit("strategist_complete", "strategist", `Brief produced: "${brief.title}"`);
 
-  return { brief, transaction: txS, events };
+  const toolsUsed: SponsorToolUsage[] = [
+    { tool: "llm-synthesis", label: `Strategist LLM — ${brief.provider}/${brief.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${brief.creditsUsed}cr` },
+  ];
+
+  return { brief, transaction: txS, events, toolsUsed };
 }
 
 /**
@@ -506,7 +522,7 @@ export async function runResearcherStandalone(
 
   emit("complete", "researcher", `Research complete — ${document.sections.length} sections, ${document.sources.length} sources`);
 
-  return { document, transaction: txR, events };
+  return { document, transaction: txR, events, toolsUsed: document.toolsUsed ?? [] };
 }
 
 // ─── Reverse Pipeline: Fulfill External Seller Order ─────────────────
@@ -524,6 +540,7 @@ export interface SellerPipelineResult {
   events: PipelineEvent[];
   totalCredits: number;
   totalDurationMs: number;
+  toolsUsed: SponsorToolUsage[];
 }
 
 export async function fulfillSellerOrder(
@@ -536,6 +553,7 @@ export async function fulfillSellerOrder(
   const startTime = Date.now();
   const events: PipelineEvent[] = [];
   const transactions: AgentTransaction[] = [];
+  const toolsUsed: SponsorToolUsage[] = [];
 
   function emit(stage: PipelineStage, agent: PipelineEvent["agent"], message: string, data?: Record<string, unknown>) {
     const event: PipelineEvent = {
@@ -569,6 +587,7 @@ export async function fulfillSellerOrder(
         events,
         totalCredits: 0,
         totalDurationMs: Date.now() - startTime,
+        toolsUsed,
       };
     }
 
@@ -579,6 +598,8 @@ export async function fulfillSellerOrder(
       `Reasoning: ${plan.reasoning.slice(0, 120)}`,
       { productId: plan.product.id, shouldBuyExternal: plan.shouldBuyExternal }
     );
+
+    toolsUsed.push({ tool: "nevermined-402", label: "Nevermined x402 — External Order Received", sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `${plan.product.price}cr` });
 
     // Record: external buyer → seller
     const txOrder: AgentTransaction = {
@@ -619,6 +640,8 @@ export async function fulfillSellerOrder(
     transactions.push(txStrat);
     ledger.record(txStrat);
 
+    toolsUsed.push({ tool: "llm-synthesis", label: `Strategist LLM — ${brief.provider}/${brief.model}`, sponsor: "LLM", timestamp: new Date().toISOString() });
+
     emit("strategist_complete", "strategist", `Brief produced: "${brief.title}"`);
 
     // ── Stage 3: Researcher executes research ─────────────────────────
@@ -631,6 +654,8 @@ export async function fulfillSellerOrder(
       depth: "standard",
       toolSettings: toolSettings?.researcher,
     });
+
+    if (document.toolsUsed) toolsUsed.push(...document.toolsUsed);
 
     const txRes: AgentTransaction = {
       id: makeTxId(),
@@ -651,6 +676,7 @@ export async function fulfillSellerOrder(
 
     if (plan.shouldBuyExternal && plan.externalServices.length > 0) {
       emit("buyer_discovering", "buyer", `Seller requested ${plan.externalServices.length} external service(s)…`);
+      toolsUsed.push({ tool: "nevermined-402", label: "Nevermined Marketplace — Seller External Buy", sponsor: "Nevermined", timestamp: new Date().toISOString() });
 
       try {
         const targetDids = plan.externalServices
@@ -668,6 +694,7 @@ export async function fulfillSellerOrder(
 
           if (purchasedAssets.length > 0) {
             emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) for seller order`);
+            toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined Settlement — ${purchasedAssets.length} asset(s)`, sponsor: "Nevermined", timestamp: new Date().toISOString() });
 
             for (const asset of purchasedAssets) {
               const txBuy: AgentTransaction = {
@@ -727,6 +754,8 @@ export async function fulfillSellerOrder(
       `Order fulfilled — "${plan.product.name}" delivered. ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} external assets, ${totalCredits}cr total`
     );
 
+    toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined x402 — Order Fulfilled & Settled`, sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `${totalCredits}cr total` });
+
     return {
       id: pipelineId,
       orderId: order.id,
@@ -739,6 +768,7 @@ export async function fulfillSellerOrder(
       events,
       totalCredits,
       totalDurationMs: Date.now() - startTime,
+      toolsUsed,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Seller pipeline failed";

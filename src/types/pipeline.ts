@@ -9,6 +9,14 @@ export interface ResearchSource {
   fetchedAt: string;
 }
 
+export interface SponsorToolUsage {
+  tool: "apify-search" | "apify-crawl" | "exa-search" | "exa-contents" | "duckduckgo" | "raw-fetch" | "nevermined-402" | "nevermined-settled" | "zeroclick-ad" | "llm-synthesis";
+  label: string;
+  sponsor: "Apify" | "Exa" | "Nevermined" | "ZeroClick" | "DuckDuckGo" | "LLM";
+  timestamp: string;
+  detail?: string;
+}
+
 export interface ResearchDocument {
   id: string;
   query: string;
@@ -21,6 +29,7 @@ export interface ResearchDocument {
   creditsUsed: number;
   createdAt: string;
   durationMs: number;
+  toolsUsed?: SponsorToolUsage[];
 }
 
 export interface StructuredBrief {
@@ -109,4 +118,5 @@ export interface PipelineResult {
   iterations?: number;
   followUpBriefs?: StructuredBrief[];
   transaction?: AgentTransaction;
+  toolsUsed?: SponsorToolUsage[];
 }

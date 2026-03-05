@@ -2,6 +2,8 @@ import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { AgentToolSettings, SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
+import type { SponsorToolUsage, ResearchDocument, ResearchSource } from "@/types/pipeline";
+export type { SponsorToolUsage, ResearchDocument, ResearchSource };
 import {
   isApifyConfigured,
   apifyGoogleSearch,
@@ -24,26 +26,6 @@ export interface ResearchRequest {
   scrapeTool?: ScrapeProvider;
 }
 
-export interface ResearchSource {
-  url: string;
-  title: string;
-  excerpt: string;
-  fetchedAt: string;
-}
-
-export interface ResearchDocument {
-  id: string;
-  query: string;
-  title: string;
-  summary: string;
-  sections: { heading: string; content: string }[];
-  sources: ResearchSource[];
-  provider: string;
-  model: string;
-  creditsUsed: number;
-  createdAt: string;
-  durationMs: number;
-}
 
 const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
 
@@ -55,10 +37,14 @@ const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
 async function searchAndFetch(
   queries: string[],
   maxUrls: number,
-  toolSettings?: AgentToolSettings
+  toolSettings?: AgentToolSettings,
+  toolsUsed?: SponsorToolUsage[]
 ): Promise<{ url: string; title: string; text: string }[]> {
   const searchPref = toolSettings?.search ?? "duckduckgo";
   const scrapePref = toolSettings?.scrape ?? "raw";
+  const track = (tool: SponsorToolUsage["tool"], label: string, sponsor: SponsorToolUsage["sponsor"], detail?: string) => {
+    toolsUsed?.push({ tool, label, sponsor, timestamp: new Date().toISOString(), detail });
+  };
 
   // ── Path A: Exa — neural search returns full content inline ──────────
   if (searchPref === "exa" && isExaConfigured()) {
@@ -75,7 +61,10 @@ async function searchAndFetch(
           }
         }
       }
-      if (results.length > 0) return results;
+      if (results.length > 0) {
+        track("exa-search", `Exa Neural Search — ${results.length} results`, "Exa", `${queries.length} queries`);
+        return results;
+      }
     } catch (err) {
       console.error("[Researcher] Exa search failed, falling back:", err);
     }
@@ -87,12 +76,15 @@ async function searchAndFetch(
     try {
       const sr = await apifyGoogleSearch(queries, 1);
       rawUrls = [...new Set(sr.map((r) => r.url))].slice(0, maxUrls);
+      track("apify-search", `Apify Google Search — ${rawUrls.length} URLs`, "Apify", `${queries.length} queries`);
     } catch (err) {
       console.error("[Researcher] Apify search failed, falling back to DDG:", err);
       rawUrls = (await fallbackSearchDDG(queries)).map((r) => r.url).slice(0, maxUrls);
+      track("duckduckgo", `DuckDuckGo Fallback — ${rawUrls.length} URLs`, "DuckDuckGo");
     }
   } else {
     rawUrls = (await fallbackSearchDDG(queries)).map((r) => r.url).slice(0, maxUrls);
+    track("duckduckgo", `DuckDuckGo Search — ${rawUrls.length} URLs`, "DuckDuckGo", `${queries.length} queries`);
   }
 
   if (rawUrls.length === 0) return [];
@@ -102,6 +94,7 @@ async function searchAndFetch(
     try {
       const contents = await exaGetContents(rawUrls);
       if (contents.length > 0) {
+        track("exa-contents", `Exa Content Extraction — ${contents.length} pages`, "Exa");
         return contents.map((r) => ({ url: r.url, title: r.title, text: r.text }));
       }
     } catch (err) {
@@ -114,6 +107,7 @@ async function searchAndFetch(
     try {
       const pages = await apifyScrapeUrls(rawUrls);
       if (pages.length > 0) {
+        track("apify-crawl", `Apify Website Crawler — ${pages.length} pages`, "Apify");
         return pages.map((p) => ({ url: p.url, title: p.title, text: p.markdown || p.text }));
       }
     } catch (err) {
@@ -123,7 +117,11 @@ async function searchAndFetch(
 
   // ── Path E: Raw HTML fetch (always available) ─────────────────────────
   const raw = await Promise.all(rawUrls.map(fallbackFetchAndExtract));
-  return raw.filter(Boolean) as { url: string; title: string; text: string }[];
+  const filtered = raw.filter(Boolean) as { url: string; title: string; text: string }[];
+  if (filtered.length > 0) {
+    track("raw-fetch", `Raw HTTP Fetch — ${filtered.length} pages`, "LLM");
+  }
+  return filtered;
 }
 
 /** Scrape explicit URLs via the configured scrape provider. */
@@ -220,6 +218,7 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
   const startTime = Date.now();
   const depth = request.depth ?? "standard";
   const id = `res-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const toolsUsed: SponsorToolUsage[] = [];
 
   const maxUrls = depth === "quick" ? 3 : depth === "standard" ? 5 : 8;
 
@@ -232,7 +231,7 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
     const queries = request.searchQueries?.length
       ? request.searchQueries.slice(0, depth === "quick" ? 1 : depth === "deep" ? 4 : 2)
       : [request.query];
-    successfulFetches = await searchAndFetch(queries, maxUrls, request.toolSettings);
+    successfulFetches = await searchAndFetch(queries, maxUrls, request.toolSettings, toolsUsed);
   }
 
   const sourceMaterial = successfulFetches
@@ -272,6 +271,8 @@ Produce the structured research document as JSON.`;
     temperature: 0.2,
   });
 
+  toolsUsed.push({ tool: "llm-synthesis", label: `LLM Synthesis — ${aiResult.provider}/${aiResult.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${depth} depth` });
+
   let parsed: { title: string; summary: string; sections: { heading: string; content: string }[] };
   try {
     const jsonMatch = aiResult.content.match(/\{[\s\S]*\}/);
@@ -303,5 +304,6 @@ Produce the structured research document as JSON.`;
     creditsUsed: CREDIT_COSTS[depth],
     createdAt: new Date().toISOString(),
     durationMs: Date.now() - startTime,
+    toolsUsed,
   };
 }
