@@ -20,6 +20,7 @@ import {
   Bot,
   ExternalLink,
   RefreshCw,
+  Search,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -423,6 +424,7 @@ export function StorePage() {
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
   const [orderingProductId, setOrderingProductId] = useState<string | null>(null);
   const [toolSettings, setToolSettings] = useState<ToolSettings | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setToolSettings(loadToolSettings());
@@ -518,6 +520,28 @@ export function StorePage() {
           </p>
         </motion.div>
 
+        {/* Search */}
+        {inventory && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <div className="relative">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-400)" }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products, tags, categories..."
+                className="w-full rounded-xl py-2.5 pl-10 pr-4 text-[13px] transition-all"
+                style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+              />
+            </div>
+          </motion.div>
+        )}
+
         {/* Stats bar */}
         {inventory && (
           <motion.div
@@ -569,18 +593,31 @@ export function StorePage() {
         )}
 
         {/* Product grid */}
-        {inventory && (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {inventory.products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onOrder={setSelectedProduct}
-                isOrdering={orderingProductId === product.id}
-              />
-            ))}
-          </div>
-        )}
+        {inventory && (() => {
+          const q = searchQuery.toLowerCase().trim();
+          const filtered = q ? inventory.products.filter((p) =>
+            p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) || p.tags.some((t) => t.toLowerCase().includes(q))
+          ) : inventory.products;
+          return filtered.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onOrder={setSelectedProduct}
+                  isOrdering={orderingProductId === product.id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Search size={28} style={{ color: "var(--gray-300)" }} />
+              <p className="mt-3 text-[14px] font-medium" style={{ color: "var(--gray-500)" }}>No products match &ldquo;{searchQuery}&rdquo;</p>
+              <button onClick={() => setSearchQuery("")} className="mt-2 text-[12px] underline" style={{ color: "var(--green-400)" }}>Clear search</button>
+            </div>
+          );
+        })()}
 
         {/* Third-party services section */}
         {inventory && inventory.thirdPartyServices.length > 0 && (

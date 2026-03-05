@@ -500,7 +500,7 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
           <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>Deliverables</p>
           <div className="flex flex-wrap gap-1.5">
             {brief.deliverables.map((d, i) => (
-              <span key={i} className="rounded-md px-2 py-0.5 text-[10px]" style={{ background: "rgba(34, 197, 94, 0.06)", border: "1px solid rgba(34, 197, 94, 0.15)", color: "var(--green-400)" }}>
+              <span key={i} className="rounded-md px-2 py-0.5 text-[10px]" style={{ background: "rgba(99, 102, 241, 0.07)", border: "1px solid rgba(99, 102, 241, 0.18)", color: "var(--accent-400)" }}>
                 {d}
               </span>
             ))}
@@ -533,7 +533,7 @@ function parseInline(text: string): React.ReactNode[] {
     }
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (linkMatch) {
-      return <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="underline-offset-2 underline" style={{ color: "var(--green-400)" }}>{linkMatch[1]}</a>;
+      return <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="underline-offset-2 underline" style={{ color: "var(--accent-400)" }}>{linkMatch[1]}</a>;
     }
     return <span key={i}>{part}</span>;
   });
@@ -551,7 +551,7 @@ function MarkdownContent({ text }: { text: string }) {
       <ul key={`ul-${key++}`} className="my-2 space-y-1.5 pl-1">
         {listItems.map((item, i) => (
           <li key={i} className="flex items-start gap-2 text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-            <span className="mt-[7px] size-1.5 shrink-0 rounded-full" style={{ background: "var(--green-400)", opacity: 0.55 }} />
+            <span className="mt-[7px] size-1.5 shrink-0 rounded-full" style={{ background: "var(--accent-400)", opacity: 0.55 }} />
             <span>{parseInline(item)}</span>
           </li>
         ))}
@@ -840,8 +840,8 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center">
-      <div className="flex size-16 items-center justify-center rounded-2xl" style={{ background: "rgba(34, 197, 94, 0.08)" }}>
-        <c.icon size={28} style={{ color: "var(--green-400)" }} />
+      <div className="flex size-16 items-center justify-center rounded-2xl" style={{ background: "rgba(99, 102, 241, 0.08)" }}>
+        <c.icon size={28} style={{ color: "var(--accent-400)" }} />
       </div>
       <div>
         <h3 className="mb-1 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>{c.title}</h3>
@@ -1224,11 +1224,11 @@ export function StudioPage() {
               <span
                 className="rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase"
                 style={{
-                  background: mode === "pipeline" ? "rgba(34, 197, 94, 0.10)" :
+                  background: mode === "pipeline" ? "rgba(99, 102, 241, 0.10)" :
                     AGENT_CONFIG[mode]?.bgColor ?? AGENT_CONFIG.researcher.bgColor,
-                  color: mode === "pipeline" ? "var(--green-400)" :
+                  color: mode === "pipeline" ? "var(--accent-400)" :
                     AGENT_CONFIG[mode]?.color ?? AGENT_CONFIG.researcher.color,
-                  border: `1px solid ${mode === "pipeline" ? "rgba(34, 197, 94, 0.20)" :
+                  border: `1px solid ${mode === "pipeline" ? "rgba(99, 102, 241, 0.20)" :
                     AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
                 }}
               >
@@ -1275,9 +1275,9 @@ export function StudioPage() {
                   onClick={() => setOutputType(ot.value)}
                   className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] transition-all"
                   style={{
-                    background: outputType === ot.value ? "rgba(34, 197, 94, 0.10)" : "transparent",
-                    border: `1px solid ${outputType === ot.value ? "rgba(34, 197, 94, 0.20)" : "var(--border-default)"}`,
-                    color: outputType === ot.value ? "var(--green-400)" : "var(--gray-400)",
+                    background: outputType === ot.value ? "rgba(99, 102, 241, 0.10)" : "transparent",
+                    border: `1px solid ${outputType === ot.value ? "rgba(99, 102, 241, 0.20)" : "var(--border-default)"}`,
+                    color: outputType === ot.value ? "var(--accent-400)" : "var(--gray-400)",
                   }}
                 >
                   <ot.icon size={10} />
@@ -1314,20 +1314,37 @@ export function StudioPage() {
                   type="submit"
                   disabled={!input.trim() || isLoading}
                   className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
-                  style={{ background: "linear-gradient(135deg, var(--green-600), var(--green-500))" }}
+                  style={{ background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
                   title="Send (Enter ↵)"
                 >
                   {isLoading ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
                 </button>
               </div>
               {error && (
-                <div className="mt-2 rounded-lg px-3 py-2" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
-                  <p className="text-[12px] font-medium" style={{ color: "#EF4444" }}>{error}</p>
-                  {apiMode === "demo" && (
-                    <p className="mt-0.5 text-[11px]" style={{ color: "var(--gray-400)" }}>
-                      Running in Demo Mode — add an OpenAI or Gemini key in environment variables to get real results.
-                    </p>
-                  )}
+                <div className="mt-2 rounded-lg px-3 py-2.5" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="text-[12px] font-medium" style={{ color: "#EF4444" }}>{error}</p>
+                      {apiMode === "demo" && (
+                        <p className="mt-0.5 text-[11px]" style={{ color: "var(--gray-400)" }}>
+                          Running in Demo Mode — add an OpenAI or Gemini key in environment variables to get real results.
+                        </p>
+                      )}
+                      {pipelineEvents.length > 0 && (
+                        <p className="mt-0.5 text-[10px]" style={{ color: "var(--gray-400)" }}>
+                          Failed after {pipelineEvents.length} stage{pipelineEvents.length !== 1 ? "s" : ""}
+                          {elapsed > 0 && ` · ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleSubmit as unknown as React.MouseEventHandler}
+                      className="shrink-0 flex items-center gap-1 rounded-md px-2.5 py-1 font-mono text-[10px] transition-all hover:opacity-80"
+                      style={{ background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.20)", color: "var(--accent-400)" }}
+                    >
+                      <RefreshCw size={10} /> Retry
+                    </button>
+                  </div>
                 </div>
               )}
             </form>
@@ -1341,8 +1358,8 @@ export function StudioPage() {
                 onClick={() => setBottomTab(tab)}
                 className="flex-1 px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-widest transition-colors"
                 style={{
-                  color: bottomTab === tab ? "var(--green-400)" : "var(--gray-400)",
-                  borderBottom: bottomTab === tab ? "2px solid var(--green-400)" : "2px solid transparent",
+                  color: bottomTab === tab ? "var(--accent-400)" : "var(--gray-400)",
+                  borderBottom: bottomTab === tab ? "2px solid var(--accent-400)" : "2px solid transparent",
                 }}
               >
                 {tab === "stages" ? "Pipeline Stages" : `Transactions (${transactions.length})`}
@@ -1362,7 +1379,7 @@ export function StudioPage() {
           {/* Stats bar */}
           <div className="flex items-center gap-4 border-t px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
             <div className="flex items-center gap-1.5">
-              <Zap size={11} style={{ color: "var(--green-400)" }} />
+              <Zap size={11} style={{ color: "var(--accent-400)" }} />
               <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
                 {result?.totalCredits ?? 0}cr
               </span>
@@ -1455,9 +1472,9 @@ export function StudioPage() {
                 disabled={isLoading}
                 className="ml-auto mr-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all disabled:opacity-30"
                 style={{
-                  background: result ? "rgba(34, 197, 94, 0.08)" : "var(--glass-bg)",
-                  border: result ? "1px solid rgba(34, 197, 94, 0.22)" : "1px solid var(--border-default)",
-                  color: result ? "var(--green-400)" : "var(--gray-500)",
+                  background: result ? "rgba(99, 102, 241, 0.08)" : "var(--glass-bg)",
+                  border: result ? "1px solid rgba(99, 102, 241, 0.20)" : "1px solid var(--border-default)",
+                  color: result ? "var(--accent-400)" : "var(--gray-500)",
                 }}
               >
                 <RotateCcw size={11} /> New Request

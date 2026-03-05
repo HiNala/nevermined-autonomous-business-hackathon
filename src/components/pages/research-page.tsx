@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Nav } from "@/components/layout/nav";
-import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check, PanelLeftClose, PanelLeftOpen, Download } from "lucide-react";
 import type { AIProvider } from "@/lib/ai/providers";
 import { ToolSettingsButton } from "@/components/ui/tool-settings-panel";
 import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
@@ -91,21 +91,27 @@ function EmptyState() {
 function DocumentView({ doc }: { doc: ResearchDocument }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(() => {
-    const text = [
-      `# ${doc.title}`,
-      "",
-      doc.summary,
-      "",
-      ...doc.sections.flatMap((s) => [`## ${s.heading}`, "", s.content, ""]),
-      "## Sources",
-      ...doc.sources.map((s) => `- [${s.title}](${s.url})`),
-    ].join("\n");
+  const buildMarkdown = useCallback(() => [
+    `# ${doc.title}`, "", doc.summary, "",
+    ...doc.sections.flatMap((s) => [`## ${s.heading}`, "", s.content, ""]),
+    "## Sources", ...doc.sources.map((s) => `- [${s.title}](${s.url})`),
+  ].join("\n"), [doc]);
 
-    navigator.clipboard.writeText(text);
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(buildMarkdown());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [doc]);
+  }, [buildMarkdown]);
+
+  const handleDownload = useCallback(() => {
+    const blob = new Blob([buildMarkdown()], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${doc.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [buildMarkdown, doc.title]);
 
   return (
     <div className="flex h-full flex-col">
@@ -130,14 +136,24 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
             </div>
           </div>
         </div>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors"
-          style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
-        >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors"
+            style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
+            title="Download as Markdown"
+          >
+            <Download size={12} />.md
+          </button>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors"
+            style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
       </div>
 
       {/* Document body */}
