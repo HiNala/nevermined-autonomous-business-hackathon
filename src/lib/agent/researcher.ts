@@ -4,6 +4,7 @@ import { complete, type AIProvider } from "@/lib/ai/providers";
 
 export interface ResearchRequest {
   query: string;
+  searchQueries?: string[];
   urls?: string[];
   provider?: AIProvider;
   depth?: "quick" | "standard" | "deep";
@@ -120,7 +121,21 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
   let urlsToFetch = request.urls ?? [];
 
   if (urlsToFetch.length === 0) {
-    urlsToFetch = await searchWeb(request.query);
+    // Use strategist-provided search queries if available, otherwise fall back to query
+    const queries = request.searchQueries?.length
+      ? request.searchQueries.slice(0, depth === "quick" ? 1 : depth === "deep" ? 4 : 2)
+      : [request.query];
+
+    const searchResults = await Promise.all(queries.map(searchWeb));
+    const seen = new Set<string>();
+    for (const urls of searchResults) {
+      for (const url of urls) {
+        if (!seen.has(url)) {
+          seen.add(url);
+          urlsToFetch.push(url);
+        }
+      }
+    }
   }
 
   const maxUrls = depth === "quick" ? 3 : depth === "standard" ? 5 : 8;

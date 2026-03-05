@@ -187,14 +187,10 @@ export async function runPipeline(
 
     emit("researcher_working", "researcher", `Searching web with ${brief.searchQueries.length} queries…`);
 
-    // Build a comprehensive research query from the brief
-    const researchQuery = [
-      brief.objective,
-      ...brief.keyQuestions.slice(0, 3),
-    ].join(" | ");
-
+    // Pass the strategist's search queries to the researcher for targeted multi-search
     let document = await runResearch({
-      query: researchQuery,
+      query: brief.objective,
+      searchQueries: brief.searchQueries,
       provider,
       depth: "standard",
     });

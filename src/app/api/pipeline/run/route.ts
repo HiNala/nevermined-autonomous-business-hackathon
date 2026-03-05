@@ -29,12 +29,26 @@ export async function POST(request: Request) {
   try {
     if (mode === "strategist") {
       const result = await runStrategistStandalone(input, outputType, provider);
-      return NextResponse.json({ mode: "strategist", ...result });
+      return NextResponse.json({
+        mode: "strategist",
+        ...result,
+        totalCredits: result.transaction.credits,
+        totalDurationMs: result.brief.durationMs,
+        iterations: 1,
+        transactions: [result.transaction],
+      });
     }
 
     if (mode === "researcher") {
       const result = await runResearcherStandalone(input, body.depth ?? "standard", provider);
-      return NextResponse.json({ mode: "researcher", ...result });
+      return NextResponse.json({
+        mode: "researcher",
+        ...result,
+        totalCredits: result.transaction.credits,
+        totalDurationMs: result.document.durationMs,
+        iterations: 1,
+        transactions: [result.transaction],
+      });
     }
 
     // Default: full pipeline

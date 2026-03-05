@@ -18,7 +18,13 @@ import {
   Sparkles,
   Search,
   LayoutList,
+  RotateCcw,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
+import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface ResearchSource {
@@ -320,24 +326,31 @@ function TransactionFeed({ transactions }: { transactions: AgentTransaction[] })
   return (
     <div ref={scrollRef} className="h-full overflow-y-auto px-3 py-2">
       {transactions.map((tx) => (
-        <div key={tx.id} className="flex items-center gap-2 py-1.5 border-b" style={{ borderColor: "var(--border-default)" }}>
-          <span className="font-mono text-[9px] font-semibold" style={{
-            color: AGENT_CONFIG[tx.from.id as keyof typeof AGENT_CONFIG]?.color ?? "var(--gray-400)"
-          }}>
-            {tx.from.name}
-          </span>
-          <ArrowRight size={10} style={{ color: "var(--gray-300)" }} />
-          <span className="font-mono text-[9px] font-semibold" style={{
-            color: AGENT_CONFIG[tx.to.id as keyof typeof AGENT_CONFIG]?.color ?? "var(--green-400)"
-          }}>
-            {tx.to.name}
-          </span>
-          <span className="ml-auto font-mono text-[9px] font-bold" style={{ color: "var(--green-400)" }}>
-            {tx.credits}cr
-          </span>
-          <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
-            {new Date(tx.timestamp).toLocaleTimeString()}
-          </span>
+        <div key={tx.id} className="py-2 border-b" style={{ borderColor: "var(--border-default)" }}>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] font-semibold" style={{
+              color: AGENT_CONFIG[tx.from.id as keyof typeof AGENT_CONFIG]?.color ?? "var(--gray-400)"
+            }}>
+              {tx.from.name}
+            </span>
+            <ArrowRight size={10} style={{ color: "var(--gray-300)" }} />
+            <span className="font-mono text-[9px] font-semibold" style={{
+              color: AGENT_CONFIG[tx.to.id as keyof typeof AGENT_CONFIG]?.color ?? "var(--green-400)"
+            }}>
+              {tx.to.name}
+            </span>
+            <span className="ml-auto font-mono text-[9px] font-bold" style={{ color: "var(--green-400)" }}>
+              {tx.credits}cr
+            </span>
+            <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+              {new Date(tx.timestamp).toLocaleTimeString()}
+            </span>
+          </div>
+          {tx.purpose && (
+            <p className="mt-0.5 truncate text-[10px]" style={{ color: "var(--gray-400)" }}>
+              {tx.purpose}
+            </p>
+          )}
         </div>
       ))}
     </div>
@@ -401,6 +414,30 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
         </div>
       )}
 
+      {brief.deliverables.length > 0 && (
+        <div>
+          <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>Deliverables</p>
+          <div className="flex flex-wrap gap-1.5">
+            {brief.deliverables.map((d, i) => (
+              <span key={i} className="rounded-md px-2 py-0.5 text-[10px]" style={{ background: "rgba(34, 197, 94, 0.06)", border: "1px solid rgba(34, 197, 94, 0.15)", color: "var(--green-400)" }}>
+                {d}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {brief.constraints.length > 0 && (
+        <div>
+          <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>Constraints</p>
+          <div className="space-y-1">
+            {brief.constraints.map((c, i) => (
+              <p key={i} className="text-[11px]" style={{ color: "var(--gray-500)" }}>⚠ {c}</p>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: "var(--border-default)" }}>
         <span className="font-mono text-[9px]" style={{ color: AGENT_CONFIG.strategist.color }}>{brief.provider}/{brief.model}</span>
         <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>{brief.creditsUsed}cr</span>
@@ -411,7 +448,15 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
 }
 
 // ─── Document View ──────────────────────────────────────────────────
-function DocumentView({ doc }: { doc: ResearchDocument }) {
+function DocumentView({
+  doc,
+  adQuery,
+  adsMuted = false,
+}: {
+  doc: ResearchDocument;
+  adQuery?: string;
+  adsMuted?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
@@ -460,6 +505,8 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
           ))}
         </div>
 
+        <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} />
+
         {doc.sources.length > 0 && (
           <div className="mt-8 border-t pt-5" style={{ borderColor: "var(--border-default)" }}>
             <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
@@ -478,6 +525,83 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Loading Skeleton ────────────────────────────────────────────────
+function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEvent[] }) {
+  const lastEvent = events[events.length - 1];
+  const stageLabels: Record<string, string> = {
+    strategist_working: "Strategist is analyzing your input…",
+    strategist_complete: "Brief structured — handing off to Researcher…",
+    researcher_buying: "Researcher purchasing brief from Strategist…",
+    researcher_working: "Researcher searching and scraping the web…",
+    researcher_evaluating: "Evaluating document completeness…",
+    researcher_followup: "Requesting additional context…",
+  };
+  const currentLabel = lastEvent ? (stageLabels[lastEvent.stage] ?? lastEvent.message) : "Initializing pipeline…";
+
+  const agentWorking = lastEvent?.agent ?? "pipeline";
+  const color = agentWorking === "strategist" ? AGENT_CONFIG.strategist.color
+    : agentWorking === "researcher" ? AGENT_CONFIG.researcher.color
+    : "var(--green-400)";
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-6 px-8">
+      {/* Animated ring */}
+      <div className="relative flex size-20 items-center justify-center">
+        <div
+          className="absolute inset-0 animate-spin rounded-full"
+          style={{
+            border: `2px solid transparent`,
+            borderTopColor: color,
+            borderRightColor: color,
+            animationDuration: "1.5s",
+          }}
+        />
+        <div
+          className="absolute inset-2 animate-spin rounded-full"
+          style={{
+            border: `2px solid transparent`,
+            borderBottomColor: color,
+            animationDuration: "2.5s",
+            animationDirection: "reverse",
+          }}
+        />
+        {mode === "pipeline" ? (
+          <Bot size={28} style={{ color }} />
+        ) : agentWorking === "strategist" ? (
+          <Sparkles size={28} style={{ color }} />
+        ) : (
+          <Search size={28} style={{ color }} />
+        )}
+      </div>
+
+      {/* Status */}
+      <div className="text-center">
+        <p className="mb-1 text-[14px] font-semibold" style={{ color: "var(--gray-700)" }}>
+          {mode === "pipeline" ? "Pipeline Running" : agentWorking === "strategist" ? "Strategist Working" : "Researcher Working"}
+        </p>
+        <p className="max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
+          {currentLabel}
+        </p>
+      </div>
+
+      {/* Progress dots */}
+      <div className="flex items-center gap-2">
+        {events.map((evt, i) => (
+          <div
+            key={evt.id}
+            className="size-2 rounded-full transition-all"
+            style={{
+              background: i === events.length - 1 ? color : "var(--gray-300)",
+              opacity: i === events.length - 1 ? 1 : 0.4,
+            }}
+          />
+        ))}
+        <div className="size-2 animate-pulse rounded-full" style={{ background: color }} />
       </div>
     </div>
   );
@@ -528,20 +652,47 @@ export function StudioPage() {
   const [error, setError] = useState<string | null>(null);
   const [rightTab, setRightTab] = useState<"document" | "brief">("document");
   const [bottomTab, setBottomTab] = useState<"stages" | "transactions">("stages");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number } }>({
+    strategist: { earned: 0, handled: 0 },
+    researcher: { earned: 0, handled: 0 },
+  });
   const transactions = useTransactionStream();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [adsMuted, setAdsMuted] = useState(false);
 
-  // Aggregate stats from transactions for agent cards
+  useEffect(() => {
+    const stored = localStorage.getItem("zc_ads_muted");
+    if (stored === "true") setAdsMuted(true);
+  }, []);
+
+  function toggleAdsMuted() {
+    setAdsMuted((prev) => {
+      const next = !prev;
+      localStorage.setItem("zc_ads_muted", String(next));
+      return next;
+    });
+  }
+
+  // Aggregate stats: initial + live SSE transactions
   const agentStats = {
     strategist: {
-      earned: transactions.filter((t) => t.to.id === "strategist" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
-      handled: transactions.filter((t) => t.to.id === "strategist" && t.status === "completed").length,
+      earned: initialStats.strategist.earned + transactions.filter((t) => t.to.id === "strategist" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
+      handled: initialStats.strategist.handled + transactions.filter((t) => t.to.id === "strategist" && t.status === "completed").length,
     },
     researcher: {
-      earned: transactions.filter((t) => t.to.id === "researcher" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
-      handled: transactions.filter((t) => t.to.id === "researcher" && t.status === "completed").length,
+      earned: initialStats.researcher.earned + transactions.filter((t) => t.to.id === "researcher" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
+      handled: initialStats.researcher.handled + transactions.filter((t) => t.to.id === "researcher" && t.status === "completed").length,
     },
   };
+
+  function handleNewRequest() {
+    setInput("");
+    setResult(null);
+    setPipelineEvents([]);
+    setError(null);
+    inputRef.current?.focus();
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -586,8 +737,20 @@ export function StudioPage() {
       <Nav />
 
       <div className="flex flex-1 overflow-hidden pt-14">
+        {/* Sidebar toggle (mobile) */}
+        <button
+          onClick={() => setSidebarOpen((v) => !v)}
+          className="absolute left-3 top-[68px] z-20 flex size-8 items-center justify-center rounded-lg lg:hidden"
+          style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+        >
+          {sidebarOpen ? <PanelLeftClose size={14} style={{ color: "var(--gray-400)" }} /> : <PanelLeftOpen size={14} style={{ color: "var(--gray-400)" }} />}
+        </button>
+
         {/* ── LEFT PANE: Controls ── */}
-        <div className="flex w-[380px] shrink-0 flex-col border-r" style={{ borderColor: "var(--border-default)" }}>
+        <div
+          className={`flex w-[380px] shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-10 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
+          style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
+        >
 
           {/* Agent Cards */}
           <div className="space-y-2 border-b p-3" style={{ borderColor: "var(--border-default)" }}>
@@ -754,47 +917,76 @@ export function StudioPage() {
                 {result?.document?.sources.length ?? 0} sources
               </span>
             </div>
+            <button
+              onClick={toggleAdsMuted}
+              title={adsMuted ? "Ads muted — click to enable" : "Click to mute ads"}
+              className="ml-auto flex items-center gap-1 rounded-md px-2 py-1 font-mono text-[9px] transition-all"
+              style={{
+                background: adsMuted ? "rgba(239, 68, 68, 0.08)" : "transparent",
+                border: `1px solid ${adsMuted ? "rgba(239, 68, 68, 0.20)" : "var(--border-default)"}`,
+                color: adsMuted ? "#EF4444" : "var(--gray-400)",
+              }}
+            >
+              {adsMuted ? <VolumeX size={10} /> : <Volume2 size={10} />}
+              <span>{adsMuted ? "ads off" : "ads"}</span>
+            </button>
           </div>
         </div>
 
         {/* ── RIGHT PANE: Output ── */}
         <div className="flex flex-1 flex-col overflow-hidden">
-          {/* Tabs (only when we have both brief and document) */}
-          {result && (result.brief || result.document) && (
-            <div className="flex border-b" style={{ borderColor: "var(--border-default)" }}>
-              {result.document && (
-                <button
-                  onClick={() => setRightTab("document")}
-                  className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
-                  style={{
-                    color: rightTab === "document" ? AGENT_CONFIG.researcher.color : "var(--gray-400)",
-                    borderBottom: rightTab === "document" ? `2px solid ${AGENT_CONFIG.researcher.color}` : "2px solid transparent",
-                  }}
-                >
-                  <FileText size={12} /> Report
-                </button>
-              )}
-              {result.brief && (
-                <button
-                  onClick={() => setRightTab("brief")}
-                  className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
-                  style={{
-                    color: rightTab === "brief" ? AGENT_CONFIG.strategist.color : "var(--gray-400)",
-                    borderBottom: rightTab === "brief" ? `2px solid ${AGENT_CONFIG.strategist.color}` : "2px solid transparent",
-                  }}
-                >
-                  <Sparkles size={12} /> Brief
-                </button>
-              )}
-            </div>
-          )}
+          {/* Tabs */}
+          <div className="flex items-center border-b" style={{ borderColor: "var(--border-default)" }}>
+            {result?.document && (
+              <button
+                onClick={() => setRightTab("document")}
+                className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
+                style={{
+                  color: rightTab === "document" ? AGENT_CONFIG.researcher.color : "var(--gray-400)",
+                  borderBottom: rightTab === "document" ? `2px solid ${AGENT_CONFIG.researcher.color}` : "2px solid transparent",
+                }}
+              >
+                <FileText size={12} /> Report
+              </button>
+            )}
+            {result?.brief && (
+              <button
+                onClick={() => setRightTab("brief")}
+                className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
+                style={{
+                  color: rightTab === "brief" ? AGENT_CONFIG.strategist.color : "var(--gray-400)",
+                  borderBottom: rightTab === "brief" ? `2px solid ${AGENT_CONFIG.strategist.color}` : "2px solid transparent",
+                }}
+              >
+                <Sparkles size={12} /> Brief
+              </button>
+            )}
+
+            {/* New Request button */}
+            {(result || isLoading) && (
+              <button
+                onClick={handleNewRequest}
+                disabled={isLoading}
+                className="ml-auto mr-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all disabled:opacity-30"
+                style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
+              >
+                <RotateCcw size={11} /> New Request
+              </button>
+            )}
+          </div>
 
           {/* Content */}
           <div className="flex-1 overflow-hidden">
-            {!result ? (
+            {isLoading ? (
+              <LoadingSkeleton mode={mode} events={pipelineEvents} />
+            ) : !result ? (
               <EmptyState mode={mode} />
             ) : rightTab === "document" && result.document ? (
-              <DocumentView doc={result.document} />
+              <DocumentView
+                doc={result.document}
+                adQuery={result.brief?.title ?? result.document?.query}
+                adsMuted={adsMuted}
+              />
             ) : rightTab === "brief" && result.brief ? (
               <div className="h-full overflow-y-auto">
                 <BriefView brief={result.brief} />
