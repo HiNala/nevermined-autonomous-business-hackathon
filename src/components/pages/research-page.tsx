@@ -7,6 +7,7 @@ import type { AIProvider } from "@/lib/ai/providers";
 import { ToolSettingsButton } from "@/components/ui/tool-settings-panel";
 import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
 import type { ResearchSource, ResearchDocument } from "@/types/pipeline";
+import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 
 interface AgentEvent {
   id: string;
@@ -158,6 +159,8 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
             </div>
           ))}
         </div>
+
+        <ZeroClickAd query={doc.query || doc.title} muted={false} />
 
         {/* Sources */}
         {doc.sources.length > 0 && (

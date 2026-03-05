@@ -16,11 +16,7 @@ const PAGE_LINKS = [
   { label: "Agents", href: "/agents" },
 ];
 
-interface NavProps {
-  txCount?: number;
-}
-
-export function Nav({ txCount }: NavProps) {
+export function Nav() {
   const scrolled = useScroll(10);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, toggle } = useTheme();
@@ -64,20 +60,8 @@ export function Nav({ txCount }: NavProps) {
         </div>
       </div>
 
-      {/* Right: live pill + theme toggle + CTA + mobile toggle */}
+      {/* Right: theme toggle + CTA + mobile toggle */}
       <div className="flex items-center gap-3">
-        {typeof txCount === "number" && (
-          <div className="glass-pill hidden items-center gap-2 px-3 py-1.5 sm:flex">
-            <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full opacity-60" style={{ background: "var(--green-400)" }} />
-              <span className="relative inline-flex size-1.5 rounded-full" style={{ background: "var(--green-500)" }} />
-            </span>
-            <span className="font-mono text-[11px]" style={{ color: "var(--green-400)" }}>
-              {txCount} live
-            </span>
-          </div>
-        )}
-
         {/* Theme toggle */}
         <button
           onClick={toggle}

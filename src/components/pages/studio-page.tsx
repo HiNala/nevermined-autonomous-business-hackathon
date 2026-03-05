@@ -261,7 +261,7 @@ function TransactionFeed({ transactions }: { transactions: AgentTransaction[] })
 }
 
 // ─── Brief View ─────────────────────────────────────────────────────
-function BriefView({ brief }: { brief: StructuredBrief }) {
+function BriefView({ brief, adsMuted }: { brief: StructuredBrief; adsMuted: boolean }) {
   const [copied, setCopied] = useState(false);
 
   const buildText = useCallback(() => [
@@ -392,6 +392,15 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
           </div>
         </div>
       )}
+
+      <ZeroClickAd
+        query={[brief.title, ...brief.scope.slice(0, 2)].filter(Boolean).join(" · ")}
+        muted={adsMuted}
+        signals={[
+          { category: "interest" as const, confidence: 0.9, subject: brief.title, relatedSubjects: brief.scope.slice(0, 4), sentiment: "positive" as const },
+          ...(brief.keyQuestions.length > 0 ? [{ category: "evaluation" as const, confidence: 0.75, subject: brief.keyQuestions[0], sentiment: "neutral" as const }] : []),
+        ]}
+      />
 
       </div>
     </div>
@@ -1419,7 +1428,7 @@ export function StudioPage() {
                 adsMuted={adsMuted}
               />
             ) : rightTab === "brief" && result.brief ? (
-              <BriefView brief={result.brief} />
+              <BriefView brief={result.brief} adsMuted={adsMuted} />
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
               <div className="h-full overflow-y-auto p-6">
                 <PurchasedAssetGrid assets={result.purchasedAssets} />
