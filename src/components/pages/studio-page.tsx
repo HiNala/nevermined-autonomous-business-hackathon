@@ -1200,8 +1200,16 @@ export function StudioPage() {
             </div>
           )}
 
-          {/* Input */}
+          {/* Cost estimate + Input */}
           <div className="border-b p-3" style={{ borderColor: "var(--border-default)" }}>
+            {input.trim() && !isLoading && (
+              <div className="mb-2 flex items-center gap-2">
+                <span className="rounded-md px-2 py-0.5 font-mono text-[9px]" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)", color: "var(--green-400)" }}>
+                  ~{mode === "pipeline" ? "6–16" : mode === "seller" ? "6–16" : mode === "researcher" ? "1–10" : "1"} credits
+                </span>
+                <span className="text-[9px]" style={{ color: "var(--gray-300)" }}>estimated cost</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit}>
               <div className="relative">
                 <textarea
@@ -1217,6 +1225,8 @@ export function StudioPage() {
                   placeholder={
                     mode === "researcher"
                       ? "What would you like to research?"
+                      : mode === "seller"
+                      ? "Describe what a buyer needs…"
                       : "Describe what you need…"
                   }
                   rows={3}

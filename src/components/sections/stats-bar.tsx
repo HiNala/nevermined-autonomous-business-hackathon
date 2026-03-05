@@ -18,7 +18,7 @@ function StatCard({ value, label, suffix = "", delay = 0 }: StatCardProps) {
   const count = useAnimatedCounter(value, 1500, delay);
 
   return (
-    <div className="glass glow-green-subtle p-5">
+    <div className="glass glow-accent p-5">
       <p className="font-mono text-3xl font-bold text-gradient-accent">
         {count.toLocaleString()}{suffix}
       </p>

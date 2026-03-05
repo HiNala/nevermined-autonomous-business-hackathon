@@ -92,7 +92,7 @@ function AgentDetailCard({ agent, index }: { agent: StudioAgent; index: number }
               <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Repeat</p>
             </div>
             <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--green-400)" }}>{agent.stats.totalCreditsEarned}cr</p>
+              <p className="font-mono text-lg font-bold" style={{ color: "var(--accent-400)" }}>{agent.stats.totalCreditsEarned}cr</p>
               <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Earned</p>
             </div>
           </div>
@@ -135,7 +135,7 @@ export function AgentsPage() {
             className="mb-12"
           >
             <h1 className="mb-3 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
-              Agent <span className="text-gradient-green">Team</span>
+              Agent <span className="text-gradient-accent">Team</span>
             </h1>
             <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
               Four specialist agents that strategize, research, procure, and sell on demand.
