@@ -47,6 +47,17 @@ export const AGENT_PROFILES: Record<string, AgentProfile> = {
     creditsSpent: 0,
     requestsHandled: 0,
   },
+  buyer: {
+    id: "buyer",
+    name: "Buyer",
+    role: "Marketplace Procurement",
+    description: "Discovers, purchases, and retrieves outputs from third-party agents and services on the Nevermined marketplace.",
+    avatar: "◎",
+    color: "#F59E0B",
+    creditsEarned: 0,
+    creditsSpent: 0,
+    requestsHandled: 0,
+  },
 };
 
 type TxListener = (tx: AgentTransaction) => void;

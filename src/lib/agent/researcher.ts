@@ -1,12 +1,17 @@
 import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
+import type { AgentToolSettings, SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
 import {
   isApifyConfigured,
   apifyGoogleSearch,
   apifyScrapeUrls,
-  type SearchResult,
 } from "@/lib/apify/client";
+import {
+  isExaConfigured,
+  exaSearch,
+  exaGetContents,
+} from "@/lib/exa/client";
 
 export interface ResearchRequest {
   query: string;
@@ -14,6 +19,9 @@ export interface ResearchRequest {
   urls?: string[];
   provider?: AIProvider;
   depth?: "quick" | "standard" | "deep";
+  toolSettings?: AgentToolSettings;
+  searchTool?: SearchProvider;
+  scrapeTool?: ScrapeProvider;
 }
 
 export interface ResearchSource {
@@ -39,23 +47,114 @@ export interface ResearchDocument {
 
 const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
 
-// ─── Apify-powered search ────────────────────────────────────────────
-async function searchWeb(queries: string[]): Promise<SearchResult[]> {
-  if (isApifyConfigured()) {
+// ─── Unified search + fetch router ──────────────────────────────────
+/**
+ * Routes based on toolSettings. Exa path returns full text inline —
+ * no separate scrape step needed. Falls back gracefully if keys missing.
+ */
+async function searchAndFetch(
+  queries: string[],
+  maxUrls: number,
+  toolSettings?: AgentToolSettings
+): Promise<{ url: string; title: string; text: string }[]> {
+  const searchPref = toolSettings?.search ?? "duckduckgo";
+  const scrapePref = toolSettings?.scrape ?? "raw";
+
+  // ── Path A: Exa — neural search returns full content inline ──────────
+  if (searchPref === "exa" && isExaConfigured()) {
     try {
-      return await apifyGoogleSearch(queries, 1);
+      const perQuery = Math.ceil(maxUrls / Math.max(queries.length, 1)) + 2;
+      const seen = new Set<string>();
+      const results: { url: string; title: string; text: string }[] = [];
+      for (const query of queries) {
+        const hits = await exaSearch(query, perQuery);
+        for (const r of hits) {
+          if (!seen.has(r.url) && r.text && results.length < maxUrls) {
+            seen.add(r.url);
+            results.push({ url: r.url, title: r.title, text: r.text });
+          }
+        }
+      }
+      if (results.length > 0) return results;
     } catch (err) {
-      console.error("[Researcher] Apify search failed, falling back to DuckDuckGo:", err);
+      console.error("[Researcher] Exa search failed, falling back:", err);
     }
   }
-  // Fallback: DuckDuckGo HTML scrape (no API key needed)
-  return fallbackSearchDDG(queries);
+
+  // ── Path B: URL discovery via Apify Google Search or DuckDuckGo ──────
+  let rawUrls: string[] = [];
+  if (searchPref === "apify" && isApifyConfigured()) {
+    try {
+      const sr = await apifyGoogleSearch(queries, 1);
+      rawUrls = [...new Set(sr.map((r) => r.url))].slice(0, maxUrls);
+    } catch (err) {
+      console.error("[Researcher] Apify search failed, falling back to DDG:", err);
+      rawUrls = (await fallbackSearchDDG(queries)).map((r) => r.url).slice(0, maxUrls);
+    }
+  } else {
+    rawUrls = (await fallbackSearchDDG(queries)).map((r) => r.url).slice(0, maxUrls);
+  }
+
+  if (rawUrls.length === 0) return [];
+
+  // ── Path C: Exa getContents for clean text ────────────────────────────
+  if (scrapePref === "exa" && isExaConfigured()) {
+    try {
+      const contents = await exaGetContents(rawUrls);
+      if (contents.length > 0) {
+        return contents.map((r) => ({ url: r.url, title: r.title, text: r.text }));
+      }
+    } catch (err) {
+      console.error("[Researcher] Exa getContents failed, falling back:", err);
+    }
+  }
+
+  // ── Path D: Apify Website Content Crawler ────────────────────────────
+  if (scrapePref !== "raw" && isApifyConfigured()) {
+    try {
+      const pages = await apifyScrapeUrls(rawUrls);
+      if (pages.length > 0) {
+        return pages.map((p) => ({ url: p.url, title: p.title, text: p.markdown || p.text }));
+      }
+    } catch (err) {
+      console.error("[Researcher] Apify scrape failed, falling back to raw fetch:", err);
+    }
+  }
+
+  // ── Path E: Raw HTML fetch (always available) ─────────────────────────
+  const raw = await Promise.all(rawUrls.map(fallbackFetchAndExtract));
+  return raw.filter(Boolean) as { url: string; title: string; text: string }[];
 }
 
-async function fallbackSearchDDG(queries: string[]): Promise<SearchResult[]> {
-  const results: SearchResult[] = [];
-  const seen = new Set<string>();
+/** Scrape explicit URLs via the configured scrape provider. */
+async function scrapeUrls(
+  urls: string[],
+  toolSettings?: AgentToolSettings
+): Promise<{ url: string; title: string; text: string }[]> {
+  const pref = toolSettings?.scrape ?? "raw";
+  if (pref === "exa" && isExaConfigured()) {
+    try {
+      const contents = await exaGetContents(urls);
+      if (contents.length > 0) return contents.map((r) => ({ url: r.url, title: r.title, text: r.text }));
+    } catch (err) {
+      console.error("[Researcher] Exa getContents failed, falling back:", err);
+    }
+  }
+  if (pref !== "raw" && isApifyConfigured()) {
+    try {
+      const pages = await apifyScrapeUrls(urls);
+      if (pages.length > 0) return pages.map((p) => ({ url: p.url, title: p.title, text: p.markdown || p.text }));
+    } catch (err) {
+      console.error("[Researcher] Apify scrape failed, falling back to raw fetch:", err);
+    }
+  }
+  const raw = await Promise.all(urls.map(fallbackFetchAndExtract));
+  return raw.filter(Boolean) as { url: string; title: string; text: string }[];
+}
 
+async function fallbackSearchDDG(queries: string[]): Promise<{ url: string }[]> {
+  const urls: string[] = [];
+  const seen = new Set<string>();
   for (const query of queries) {
     const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
     try {
@@ -65,7 +164,7 @@ async function fallbackSearchDDG(queries: string[]): Promise<SearchResult[]> {
       const html = await response.text();
       const linkRegex = /class="result__a"[^>]*href="([^"]+)"/g;
       let match;
-      while ((match = linkRegex.exec(html)) !== null && results.length < 20) {
+      while ((match = linkRegex.exec(html)) !== null && urls.length < 20) {
         let href = match[1];
         if (href.startsWith("//duckduckgo.com/l/?")) {
           const udMatch = href.match(/uddg=([^&]+)/);
@@ -73,36 +172,17 @@ async function fallbackSearchDDG(queries: string[]): Promise<SearchResult[]> {
         }
         if (href.startsWith("http") && !seen.has(href)) {
           seen.add(href);
-          results.push({ title: "", url: href, description: "" });
+          urls.push(href);
         }
       }
     } catch {
-      // silently skip failed DDG searches
+      // silently skip
     }
   }
-  return results;
+  return urls.map((u) => ({ url: u }));
 }
 
-// ─── Apify-powered scraping ──────────────────────────────────────────
-async function fetchPages(
-  urls: string[]
-): Promise<{ url: string; title: string; text: string }[]> {
-  if (isApifyConfigured()) {
-    try {
-      const pages = await apifyScrapeUrls(urls);
-      return pages.map((p) => ({ url: p.url, title: p.title, text: p.text }));
-    } catch (err) {
-      console.error("[Researcher] Apify scrape failed, falling back to raw fetch:", err);
-    }
-  }
-  // Fallback: raw HTTP fetch with basic HTML stripping
-  const results = await Promise.all(urls.map(fallbackFetchAndExtract));
-  return results.filter(Boolean) as { url: string; title: string; text: string }[];
-}
-
-async function fallbackFetchAndExtract(
-  url: string
-): Promise<{ url: string; title: string; text: string } | null> {
+async function fallbackFetchAndExtract(url: string): Promise<{ url: string; title: string; text: string } | null> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
@@ -141,29 +221,19 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
   const depth = request.depth ?? "standard";
   const id = `res-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-  let urlsToFetch = request.urls ?? [];
+  const maxUrls = depth === "quick" ? 3 : depth === "standard" ? 5 : 8;
 
-  // ── Step 1: Search (via Apify Google Search or DuckDuckGo fallback) ──
-  if (urlsToFetch.length === 0) {
+  // ── Step 1: Search + fetch (tool-routed) ─────────────────────────────
+  let successfulFetches: { url: string; title: string; text: string }[];
+
+  if (request.urls && request.urls.length > 0) {
+    successfulFetches = await scrapeUrls(request.urls.slice(0, maxUrls), request.toolSettings);
+  } else {
     const queries = request.searchQueries?.length
       ? request.searchQueries.slice(0, depth === "quick" ? 1 : depth === "deep" ? 4 : 2)
       : [request.query];
-
-    const searchResults = await searchWeb(queries);
-    const seen = new Set<string>();
-    for (const r of searchResults) {
-      if (!seen.has(r.url)) {
-        seen.add(r.url);
-        urlsToFetch.push(r.url);
-      }
-    }
+    successfulFetches = await searchAndFetch(queries, maxUrls, request.toolSettings);
   }
-
-  const maxUrls = depth === "quick" ? 3 : depth === "standard" ? 5 : 8;
-  urlsToFetch = urlsToFetch.slice(0, maxUrls);
-
-  // ── Step 2: Scrape (via Apify Website Content Crawler or raw fetch fallback) ──
-  const successfulFetches = await fetchPages(urlsToFetch);
 
   const sourceMaterial = successfulFetches
     .map((s, i) => `--- SOURCE ${i + 1}: ${s.title} (${s.url}) ---\n${s.text}`)

@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Nav } from "@/components/layout/nav";
 import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { AIProvider } from "@/lib/ai/providers";
+import { ToolSettingsButton } from "@/components/ui/tool-settings-panel";
+import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
 
 interface ResearchSource {
   url: string;
@@ -268,6 +270,7 @@ export function ResearchPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const events = useSSE();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -287,6 +290,8 @@ export function ResearchPage() {
           query: query.trim(),
           depth,
           ...(provider !== "auto" ? { provider } : {}),
+          searchTool: toolSettings.researcher.search,
+          scrapeTool: toolSettings.researcher.scrape,
         }),
       });
 
@@ -363,6 +368,11 @@ export function ResearchPage() {
                 <option value="gemini">Google Gemini</option>
                 <option value="anthropic">Anthropic Claude</option>
               </select>
+
+              {/* Tool settings */}
+              <div className="flex items-center">
+                <ToolSettingsButton onSettingsChange={setToolSettings} />
+              </div>
 
               {/* Text input */}
               <div className="relative">

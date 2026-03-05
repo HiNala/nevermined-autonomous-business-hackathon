@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { runResearch, type ResearchRequest } from "@/lib/agent/researcher";
 import { agentEvents } from "@/lib/agent/event-store";
 import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
+import type { SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
 
 interface RequestBody {
   query?: string;
   urls?: string[];
   depth?: "quick" | "standard" | "deep";
   provider?: "openai" | "gemini" | "anthropic";
+  searchTool?: SearchProvider;
+  scrapeTool?: ScrapeProvider;
 }
 
 const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
@@ -108,6 +111,8 @@ export async function POST(request: Request) {
       urls: body.urls,
       provider: body.provider,
       depth,
+      searchTool: body.searchTool,
+      scrapeTool: body.scrapeTool,
     };
 
     const document = await runResearch(researchRequest);

@@ -23,8 +23,11 @@ import {
   PanelLeftOpen,
   Volume2,
   VolumeX,
+  Settings,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
+import { SettingsPanel } from "@/components/ui/settings-panel";
+import { loadToolSettings, saveToolSettings, type ToolSettings } from "@/lib/tool-settings";
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface ResearchSource {
@@ -702,6 +705,8 @@ export function StudioPage() {
   const transactions = useTransactionStream();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [adsMuted, setAdsMuted] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
 
   useEffect(() => {
     const stored = localStorage.getItem("zc_ads_muted");
@@ -770,6 +775,7 @@ export function StudioPage() {
           input: input.trim(),
           outputType,
           mode,
+          toolSettings,
         }),
       });
 
@@ -792,6 +798,16 @@ export function StudioPage() {
   }
 
   return (
+    <>
+    <SettingsPanel
+      open={settingsOpen}
+      onClose={() => setSettingsOpen(false)}
+      settings={toolSettings}
+      onChange={(next) => {
+        setToolSettings(next);
+        saveToolSettings(next);
+      }}
+    />
     <div className="flex h-screen flex-col" style={{ background: "var(--bg-base)" }}>
       <Nav />
 
@@ -865,6 +881,17 @@ export function StudioPage() {
                 <RefreshCw size={9} /> Pipeline
               </button>
             )}
+            <div className="ml-auto">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+                title="Tool Settings"
+              >
+                <Settings size={10} />
+                tools
+              </button>
+            </div>
           </div>
 
           {/* Output type selector (only for pipeline/strategist) */}
@@ -1058,5 +1085,6 @@ export function StudioPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

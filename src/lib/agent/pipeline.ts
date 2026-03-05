@@ -2,9 +2,11 @@ import "server-only";
 
 import { runStrategist, runFollowUp, type StrategistRequest, type StructuredBrief } from "./strategist";
 import { runResearch, type ResearchDocument } from "./researcher";
+import { runBuyer, type BuyerResult, type PurchasedAsset } from "./buyer";
 import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
+import type { ToolSettings } from "@/lib/tool-settings";
 
 export type PipelineStage =
   | "idle"
@@ -14,6 +16,9 @@ export type PipelineStage =
   | "researcher_working"
   | "researcher_evaluating"
   | "researcher_followup"
+  | "buyer_discovering"
+  | "buyer_purchasing"
+  | "buyer_complete"
   | "complete"
   | "error";
 
@@ -21,7 +26,7 @@ export interface PipelineEvent {
   id: string;
   timestamp: string;
   stage: PipelineStage;
-  agent: "strategist" | "researcher" | "pipeline";
+  agent: "strategist" | "researcher" | "buyer" | "pipeline";
   message: string;
   data?: Record<string, unknown>;
 }
@@ -33,6 +38,8 @@ export interface PipelineResult {
   brief: StructuredBrief;
   followUpBriefs: StructuredBrief[];
   document: ResearchDocument;
+  purchasedAssets: PurchasedAsset[];
+  buyerResult?: BuyerResult;
   transactions: AgentTransaction[];
   events: PipelineEvent[];
   totalCredits: number;
@@ -63,6 +70,7 @@ function broadcastEvent(event: PipelineEvent) {
 
 const strategist = AGENT_PROFILES.strategist;
 const researcher = AGENT_PROFILES.researcher;
+const buyer = AGENT_PROFILES.buyer;
 
 /**
  * Evaluate whether the research document is sufficient or needs more context.
@@ -116,7 +124,8 @@ export async function runPipeline(
   outputType: string = "general",
   provider?: AIProvider,
   onEvent?: EventCallback,
-  maxIterations: number = 2
+  maxIterations: number = 2,
+  toolSettings?: ToolSettings
 ): Promise<PipelineResult> {
   const pipelineId = `pipe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const startTime = Date.now();
@@ -193,6 +202,7 @@ export async function runPipeline(
       searchQueries: brief.searchQueries,
       provider,
       depth: "standard",
+      toolSettings: toolSettings?.researcher,
     });
 
     // Record transaction: pipeline → researcher
@@ -255,6 +265,7 @@ export async function runPipeline(
         query: followUpQuery,
         provider,
         depth: "quick",
+        toolSettings: toolSettings?.researcher,
       });
 
       // Merge additional findings into the document
@@ -289,12 +300,74 @@ export async function runPipeline(
       iterations++;
     }
 
+    // ── Stage 4: Buyer Agent — discover & purchase marketplace assets ──
+    let buyerResult: BuyerResult | undefined;
+    let purchasedAssets: PurchasedAsset[] = [];
+
+    emit("buyer_discovering", "buyer", `Searching marketplace for assets related to: "${brief.title.slice(0, 60)}…"`);
+
+    try {
+      buyerResult = await runBuyer({
+        query: brief.objective,
+        maxCredits: 20,
+        preferredTypes: ["report", "dataset", "service"],
+      });
+
+      purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
+
+      if (purchasedAssets.length > 0) {
+        emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) from marketplace`);
+
+        // Record buyer transactions
+        for (const asset of purchasedAssets) {
+          const txBuy: AgentTransaction = {
+            id: makeTxId(),
+            timestamp: new Date().toISOString(),
+            from: { id: buyer.id, name: buyer.name },
+            to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
+            credits: asset.creditsPaid,
+            purpose: `Purchase: "${asset.name}"`,
+            artifactId: asset.id,
+            status: "completed",
+            durationMs: asset.durationMs,
+          };
+          transactions.push(txBuy);
+          ledger.record(txBuy);
+        }
+
+        // Merge purchased content into the research document as additional sections
+        const purchasedSections = purchasedAssets
+          .filter((a) => a.content)
+          .map((a) => ({
+            heading: `Marketplace: ${a.name}`,
+            content: a.content.slice(0, 4000),
+          }));
+
+        if (purchasedSections.length > 0) {
+          document = {
+            ...document,
+            sections: [...document.sections, ...purchasedSections],
+            creditsUsed: document.creditsUsed + buyerResult.totalCreditsSpent,
+          };
+        }
+
+        emit("buyer_complete", "buyer", `${purchasedAssets.length} marketplace asset(s) merged into report (${buyerResult.totalCreditsSpent}cr)`);
+      } else {
+        emit("buyer_complete", "buyer", buyerResult.discovered.length > 0
+          ? `Found ${buyerResult.discovered.length} marketplace assets but none purchased`
+          : "No relevant marketplace assets found — using research data only");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Buyer agent failed";
+      emit("buyer_complete", "buyer", `Marketplace procurement skipped: ${msg}`);
+    }
+
     // ── Complete ────────────────────────────────────────────────────
     const totalCredits = transactions
       .filter((tx) => tx.status === "completed")
       .reduce((sum, tx) => sum + tx.credits, 0);
 
-    emit("complete", "pipeline", `Pipeline complete — ${document.sections.length} sections, ${document.sources.length} sources, ${totalCredits}cr total`);
+    emit("complete", "pipeline", `Pipeline complete — ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} purchases, ${totalCredits}cr total`);
 
     return {
       id: pipelineId,
@@ -303,6 +376,8 @@ export async function runPipeline(
       brief,
       followUpBriefs,
       document,
+      purchasedAssets,
+      buyerResult,
       transactions,
       events,
       totalCredits,
@@ -370,7 +445,8 @@ export async function runResearcherStandalone(
   query: string,
   depth: "quick" | "standard" | "deep" = "standard",
   provider?: AIProvider,
-  onEvent?: EventCallback
+  onEvent?: EventCallback,
+  toolSettings?: ToolSettings
 ) {
   const events: PipelineEvent[] = [];
 
@@ -390,7 +466,7 @@ export async function runResearcherStandalone(
 
   emit("researcher_working", "researcher", `Searching web for: "${query.slice(0, 60)}…"`);
 
-  const document = await runResearch({ query, provider, depth });
+  const document = await runResearch({ query, provider, depth, toolSettings: toolSettings?.researcher });
 
   const txR: AgentTransaction = {
     id: makeTxId(),

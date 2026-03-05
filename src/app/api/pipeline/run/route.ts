@@ -5,6 +5,7 @@ import {
   runResearcherStandalone,
 } from "@/lib/agent/pipeline";
 import type { AIProvider } from "@/lib/ai/providers";
+import type { ToolSettings } from "@/lib/tool-settings";
 
 interface RequestBody {
   input?: string;
@@ -12,6 +13,7 @@ interface RequestBody {
   provider?: AIProvider;
   mode?: "pipeline" | "strategist" | "researcher";
   depth?: "quick" | "standard" | "deep";
+  toolSettings?: ToolSettings;
 }
 
 export async function POST(request: Request) {
@@ -25,6 +27,7 @@ export async function POST(request: Request) {
   const mode = body.mode ?? "pipeline";
   const outputType = body.outputType ?? "general";
   const provider = body.provider;
+  const toolSettings = body.toolSettings;
 
   try {
     if (mode === "strategist") {
@@ -40,7 +43,13 @@ export async function POST(request: Request) {
     }
 
     if (mode === "researcher") {
-      const result = await runResearcherStandalone(input, body.depth ?? "standard", provider);
+      const result = await runResearcherStandalone(
+        input,
+        body.depth ?? "standard",
+        provider,
+        undefined,
+        toolSettings
+      );
       return NextResponse.json({
         mode: "researcher",
         ...result,
@@ -52,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     // Default: full pipeline
-    const result = await runPipeline(input, outputType, provider);
+    const result = await runPipeline(input, outputType, provider, undefined, 2, toolSettings);
     return NextResponse.json({ mode: "pipeline", ...result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Pipeline failed";
