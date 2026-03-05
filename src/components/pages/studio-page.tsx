@@ -388,8 +388,60 @@ function TransactionFeed({ transactions }: { transactions: AgentTransaction[] })
 
 // ─── Brief View ─────────────────────────────────────────────────────
 function BriefView({ brief }: { brief: StructuredBrief }) {
+  const [copied, setCopied] = useState(false);
+
+  const buildText = useCallback(() => [
+    `# ${brief.title}`, "",
+    `**Objective:** ${brief.objective}`, "",
+    brief.scope.length ? `## Scope\n${brief.scope.map((s) => `- ${s}`).join("\n")}` : "",
+    brief.keyQuestions.length ? `## Key Questions\n${brief.keyQuestions.map((q) => `- ${q}`).join("\n")}` : "",
+    brief.deliverables.length ? `## Deliverables\n${brief.deliverables.map((d) => `- ${d}`).join("\n")}` : "",
+    brief.constraints.length ? `## Constraints\n${brief.constraints.map((c) => `- ${c}`).join("\n")}` : "",
+  ].filter(Boolean).join("\n"), [brief]);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(buildText());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [buildText]);
+
+  const handleDownload = useCallback(() => {
+    const blob = new Blob([buildText()], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${brief.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-brief.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [buildText, brief.title]);
+
   return (
-    <div className="space-y-4 px-5 py-4">
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: "var(--border-default)" }}>
+        <div className="flex items-center gap-3">
+          <Sparkles size={16} style={{ color: AGENT_CONFIG.strategist.color }} />
+          <div>
+            <p className="text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>{brief.title}</p>
+            <div className="flex items-center gap-3 mt-0.5">
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{brief.provider}/{brief.model}</span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{brief.creditsUsed}cr</span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{(brief.durationMs / 1000).toFixed(1)}s</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleDownload} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }} title="Download as Markdown">
+            <Download size={12} />.md
+          </button>
+          <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}>
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4 px-5 py-4">
       <div>
         <p className="font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: AGENT_CONFIG.strategist.color }}>
           Structured Brief
@@ -467,10 +519,6 @@ function BriefView({ brief }: { brief: StructuredBrief }) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: "var(--border-default)" }}>
-        <span className="font-mono text-[9px]" style={{ color: AGENT_CONFIG.strategist.color }}>{brief.provider}/{brief.model}</span>
-        <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>{brief.creditsUsed}cr</span>
-        <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>{(brief.durationMs / 1000).toFixed(1)}s</span>
       </div>
     </div>
   );
@@ -1341,9 +1389,7 @@ export function StudioPage() {
                 adsMuted={adsMuted}
               />
             ) : rightTab === "brief" && result.brief ? (
-              <div className="h-full overflow-y-auto">
-                <BriefView brief={result.brief} />
-              </div>
+              <BriefView brief={result.brief} />
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
               <div className="h-full overflow-y-auto p-6">
                 <PurchasedAssetGrid assets={result.purchasedAssets} />
