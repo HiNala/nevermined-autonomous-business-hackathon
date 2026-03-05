@@ -11,6 +11,108 @@ The entire point of this hackathon is agents buying and selling from each other.
 
 ---
 
+## SPEED RUN: TypeScript / Next.js Path (This Codebase)
+
+If you're running the Next.js app in this repo, skip the Python section and follow this path instead. The core difference: **deploy first, register second** — Nevermined requires a live HTTPS URL to register an agent.
+
+### Minute 0–5: Accounts
+
+1. **Nevermined:** [nevermined.app](https://nevermined.app) → sign in → Profile → API Keys → create one → copy it (starts with `sandbox:`)
+2. **OpenAI** (or Gemini/Anthropic): at least one AI provider key for the research agent
+3. **Vercel:** if not already connected, push the repo to GitHub and import in [vercel.com](https://vercel.com)
+
+### Minute 5–15: Initial Deploy (Gets You a Live URL)
+
+Push to `main` (or trigger a Vercel deploy). You don't need any env vars yet — the app runs in **demo mode** without them.
+
+```bash
+git push origin main
+```
+
+Once Vercel finishes, copy your URL: `https://your-app.vercel.app`
+
+### Minute 15–25: Create a Pricing Plan
+
+1. Go to **nevermined.app → My Pricing Plans → Create New Plan**
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| Plan Name | "Research Agent — Sandbox" |
+| Plan Type | Credit-based |
+| Price | 1 USDC |
+| Payment Currency | Fiat (Stripe) AND Crypto (USDC) — create both |
+| Credits in bundle | 100 |
+| Protected endpoint | `POST https://your-app.vercel.app/api/agent/research` |
+
+3. Copy the **Plan DID** → `did:nvm:...`
+
+### Minute 25–35: Register the Agent
+
+1. Go to **nevermined.app → Agents → Register New Agent**
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| Agent Definition URL | `https://your-app.vercel.app/.well-known/agent.json` |
+| Protected Endpoint | `POST https://your-app.vercel.app/api/agent/research` |
+| Agent Name | "Auto Business Research Agent" |
+| Description | "Web research agent that structures information into professional documents." |
+
+3. Link to your plan from the previous step
+4. Copy the **Agent DID** → `did:nvm:...`
+
+### Minute 35–45: Wire Env Vars and Redeploy
+
+In Vercel → your project → Settings → Environment Variables:
+
+```
+NVM_API_KEY           = sandbox:your-key-here
+NVM_ENVIRONMENT       = sandbox
+NVM_PLAN_ID           = did:nvm:...  (from plan creation)
+NVM_AGENT_ID          = did:nvm:...  (from agent registration)
+NVM_SELLER_ENDPOINT   = https://your-app.vercel.app/api/agent/research
+NEXT_PUBLIC_BASE_URL  = https://your-app.vercel.app
+OPENAI_API_KEY        = sk-...
+```
+
+Trigger a redeploy (or push a whitespace commit). Then verify:
+
+```bash
+# Should return { "ready": true, "mode": "live" }
+curl https://your-app.vercel.app/api/payment-status
+
+# Should return 402 with payment-required header
+curl -X POST https://your-app.vercel.app/api/agent/research \
+  -H "Content-Type: application/json" \
+  -d '{"query":"test","depth":"quick"}'
+
+# Should show your planId and agentId
+curl https://your-app.vercel.app/.well-known/agent.json
+```
+
+### Make Your First Cross-Team Transaction
+
+Give another team your agent card URL: `https://your-app.vercel.app/.well-known/agent.json`
+
+Their buyer agent calls `payments.agents.getAgent(your-agent-id)` to discover your plan, then `payments.x402.getX402AccessToken(planId, agentId)` to get a token, then calls your research endpoint with `payment-signature: token`.
+
+You can also call their endpoint as a buyer:
+```typescript
+// Quick buyer-side test (TypeScript)
+const payments = Payments.getInstance({ nvmApiKey: process.env.NVM_API_KEY!, environment: 'sandbox' });
+const { accessToken } = await payments.x402.getX402AccessToken(THEIR_PLAN_ID, THEIR_AGENT_ID);
+
+const response = await fetch('https://their-app.vercel.app/api/agent/research', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'payment-signature': accessToken },
+  body: JSON.stringify({ query: 'test purchase', depth: 'quick' }),
+});
+console.log(await response.json()); // ← first paid transaction
+```
+
+---
+
 ## SPEED RUN: Zero to First Transaction (45 minutes)
 
 ### Minute 0-5: Get Your Accounts
