@@ -246,6 +246,16 @@ body {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
+/* ── Form inputs ── */
+::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+}
+
 /* ── Selection ── */
 ::selection {
   background: rgba(34, 197, 94, 0.20);
