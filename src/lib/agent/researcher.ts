@@ -1,6 +1,12 @@
 import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
+import {
+  isApifyConfigured,
+  apifyGoogleSearch,
+  apifyScrapeUrls,
+  type SearchResult,
+} from "@/lib/apify/client";
 
 export interface ResearchRequest {
   query: string;
@@ -33,29 +39,87 @@ export interface ResearchDocument {
 
 const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
 
-async function fetchAndExtract(url: string): Promise<{ url: string; title: string; text: string } | null> {
+// ─── Apify-powered search ────────────────────────────────────────────
+async function searchWeb(queries: string[]): Promise<SearchResult[]> {
+  if (isApifyConfigured()) {
+    try {
+      return await apifyGoogleSearch(queries, 1);
+    } catch (err) {
+      console.error("[Researcher] Apify search failed, falling back to DuckDuckGo:", err);
+    }
+  }
+  // Fallback: DuckDuckGo HTML scrape (no API key needed)
+  return fallbackSearchDDG(queries);
+}
+
+async function fallbackSearchDDG(queries: string[]): Promise<SearchResult[]> {
+  const results: SearchResult[] = [];
+  const seen = new Set<string>();
+
+  for (const query of queries) {
+    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    try {
+      const response = await fetch(searchUrl, {
+        headers: { "User-Agent": "AutoBusiness-ResearchAgent/1.0", Accept: "text/html" },
+      });
+      const html = await response.text();
+      const linkRegex = /class="result__a"[^>]*href="([^"]+)"/g;
+      let match;
+      while ((match = linkRegex.exec(html)) !== null && results.length < 20) {
+        let href = match[1];
+        if (href.startsWith("//duckduckgo.com/l/?")) {
+          const udMatch = href.match(/uddg=([^&]+)/);
+          if (udMatch) href = decodeURIComponent(udMatch[1]);
+        }
+        if (href.startsWith("http") && !seen.has(href)) {
+          seen.add(href);
+          results.push({ title: "", url: href, description: "" });
+        }
+      }
+    } catch {
+      // silently skip failed DDG searches
+    }
+  }
+  return results;
+}
+
+// ─── Apify-powered scraping ──────────────────────────────────────────
+async function fetchPages(
+  urls: string[]
+): Promise<{ url: string; title: string; text: string }[]> {
+  if (isApifyConfigured()) {
+    try {
+      const pages = await apifyScrapeUrls(urls);
+      return pages.map((p) => ({ url: p.url, title: p.title, text: p.text }));
+    } catch (err) {
+      console.error("[Researcher] Apify scrape failed, falling back to raw fetch:", err);
+    }
+  }
+  // Fallback: raw HTTP fetch with basic HTML stripping
+  const results = await Promise.all(urls.map(fallbackFetchAndExtract));
+  return results.filter(Boolean) as { url: string; title: string; text: string }[];
+}
+
+async function fallbackFetchAndExtract(
+  url: string
+): Promise<{ url: string; title: string; text: string } | null> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
-
     const response = await fetch(url, {
       headers: {
         "User-Agent": "AutoBusiness-ResearchAgent/1.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
       signal: controller.signal,
       redirect: "follow",
     });
     clearTimeout(timeout);
-
     if (!response.ok) return null;
-
     const html = await response.text();
-
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
     const title = titleMatch?.[1]?.trim() ?? url;
-
-    let text = html
+    const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
       .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
@@ -64,52 +128,11 @@ async function fetchAndExtract(url: string): Promise<{ url: string; title: strin
       .replace(/<[^>]+>/g, " ")
       .replace(/&[a-z]+;/gi, " ")
       .replace(/\s+/g, " ")
-      .trim();
-
-    text = text.slice(0, 8000);
-
+      .trim()
+      .slice(0, 8000);
     return { url, title, text };
   } catch {
     return null;
-  }
-}
-
-async function searchWeb(query: string): Promise<string[]> {
-  const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  try {
-    const response = await fetch(searchUrl, {
-      headers: {
-        "User-Agent": "AutoBusiness-ResearchAgent/1.0",
-        "Accept": "text/html",
-      },
-    });
-    const html = await response.text();
-
-    const urls: string[] = [];
-    const linkRegex = /class="result__a"[^>]*href="([^"]+)"/g;
-    let match;
-    while ((match = linkRegex.exec(html)) !== null && urls.length < 6) {
-      let href = match[1];
-      if (href.startsWith("//duckduckgo.com/l/?")) {
-        const udMatch = href.match(/uddg=([^&]+)/);
-        if (udMatch) href = decodeURIComponent(udMatch[1]);
-      }
-      if (href.startsWith("http")) urls.push(href);
-    }
-
-    if (urls.length === 0) {
-      const fallbackRegex = /href="(https?:\/\/[^"]+)"/g;
-      while ((match = fallbackRegex.exec(html)) !== null && urls.length < 6) {
-        const href = match[1];
-        if (!href.includes("duckduckgo.com") && !href.includes("duck.co")) {
-          urls.push(href);
-        }
-      }
-    }
-
-    return urls;
-  } catch {
-    return [];
   }
 }
 
@@ -120,20 +143,18 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
 
   let urlsToFetch = request.urls ?? [];
 
+  // ── Step 1: Search (via Apify Google Search or DuckDuckGo fallback) ──
   if (urlsToFetch.length === 0) {
-    // Use strategist-provided search queries if available, otherwise fall back to query
     const queries = request.searchQueries?.length
       ? request.searchQueries.slice(0, depth === "quick" ? 1 : depth === "deep" ? 4 : 2)
       : [request.query];
 
-    const searchResults = await Promise.all(queries.map(searchWeb));
+    const searchResults = await searchWeb(queries);
     const seen = new Set<string>();
-    for (const urls of searchResults) {
-      for (const url of urls) {
-        if (!seen.has(url)) {
-          seen.add(url);
-          urlsToFetch.push(url);
-        }
+    for (const r of searchResults) {
+      if (!seen.has(r.url)) {
+        seen.add(r.url);
+        urlsToFetch.push(r.url);
       }
     }
   }
@@ -141,8 +162,8 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
   const maxUrls = depth === "quick" ? 3 : depth === "standard" ? 5 : 8;
   urlsToFetch = urlsToFetch.slice(0, maxUrls);
 
-  const fetchResults = await Promise.all(urlsToFetch.map(fetchAndExtract));
-  const successfulFetches = fetchResults.filter(Boolean) as { url: string; title: string; text: string }[];
+  // ── Step 2: Scrape (via Apify Website Content Crawler or raw fetch fallback) ──
+  const successfulFetches = await fetchPages(urlsToFetch);
 
   const sourceMaterial = successfulFetches
     .map((s, i) => `--- SOURCE ${i + 1}: ${s.title} (${s.url}) ---\n${s.text}`)

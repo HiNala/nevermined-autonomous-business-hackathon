@@ -63,21 +63,18 @@ export function ZeroClickAd({ query, muted, signals }: ZeroClickAdProps) {
   const [offer, setOffer] = useState<ZeroClickOffer | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [tracked, setTracked] = useState(false);
   const adRef = useRef<HTMLDivElement>(null);
-  const trackedRef = useRef(false);
-  const prevQueryRef = useRef("");
 
   // Fetch contextually matched offer whenever query changes
   useEffect(() => {
     if (muted || !query.trim()) return;
-    if (prevQueryRef.current === query) return;
 
-    prevQueryRef.current = query;
-    trackedRef.current = false;
     setStatus("loading");
     setOffer(null);
     setDismissed(false);
     setVisible(false);
+    setTracked(false);
 
     const controller = new AbortController();
     const sessionId = getSessionId();
@@ -113,7 +110,8 @@ export function ZeroClickAd({ query, muted, signals }: ZeroClickAdProps) {
       });
 
     return () => controller.abort();
-  }, [query, muted, signals]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, muted]);
 
   // Trigger fade-in one frame after offer is set
   useEffect(() => {
@@ -125,14 +123,14 @@ export function ZeroClickAd({ query, muted, signals }: ZeroClickAdProps) {
 
   // IntersectionObserver: track impression only when 50%+ visible in viewport
   useEffect(() => {
-    if (!offer || trackedRef.current || dismissed || muted) return;
+    if (!offer || tracked || dismissed || muted) return;
 
     const el = adRef.current;
     if (!el) return;
 
     function trackImpression() {
-      if (trackedRef.current || !offer) return;
-      trackedRef.current = true;
+      if (!offer) return;
+      setTracked(true);
       fetch("https://zeroclick.dev/api/v2/impressions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -157,7 +155,7 @@ export function ZeroClickAd({ query, muted, signals }: ZeroClickAdProps) {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [offer, dismissed, muted]);
+  }, [offer, tracked, dismissed, muted]);
 
   // Loading skeleton — subtle shimmer while fetching
   if (!muted && status === "loading") {
