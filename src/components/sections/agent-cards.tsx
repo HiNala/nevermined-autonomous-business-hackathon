@@ -1,141 +1,166 @@
 "use client";
 
-import { GlowingEffect } from "@/components/ui/glowing-effect";
-import type { Agent } from "@/types";
-import { SELLER_AGENT, BUYER_AGENT } from "@/data/mock-transactions";
-import { Bot } from "lucide-react";
+import { motion } from "framer-motion";
+import type { StudioAgent } from "@/types";
+import { STUDIO_AGENTS } from "@/data/mock-transactions";
+import { Zap } from "lucide-react";
 
-function AgentCard({ agent, isPrimary = false }: { agent: Agent; isPrimary?: boolean }) {
-  const isSeller = agent.role === "seller";
-  const borderColor = isPrimary
-    ? "var(--green-600)"
-    : isSeller
-    ? "var(--green-500)"
-    : "#60A5FA";
-
+function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
   return (
-    <GlowingEffect disabled={!isPrimary} glowColor={borderColor}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+    >
       <div
-        className="rounded-xl border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+        className="glass group relative overflow-hidden p-6 transition-all duration-300"
         style={{
-          borderColor: "var(--border-default)",
-          borderLeft: `4px solid ${borderColor}`,
+          borderColor: agent.primary
+            ? `${agent.accentColor}33`
+            : "var(--glass-border)",
+          boxShadow: agent.primary
+            ? `0 0 30px -8px ${agent.accentColor}20`
+            : "none",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = `${agent.accentColor}44`;
+          e.currentTarget.style.boxShadow = `0 0 40px -8px ${agent.accentColor}25`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = agent.primary
+            ? `${agent.accentColor}33`
+            : "var(--glass-border)";
+          e.currentTarget.style.boxShadow = agent.primary
+            ? `0 0 30px -8px ${agent.accentColor}20`
+            : "none";
         }}
       >
+        {/* Top accent line */}
+        <div
+          className="absolute top-0 left-6 right-6 h-px"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${agent.accentColor}40, transparent)`,
+          }}
+        />
+
         {/* Header */}
-        <div className="mb-4 flex items-center gap-3">
-          <div
-            className="flex size-10 items-center justify-center rounded-lg"
-            style={{ background: "var(--green-50)" }}
-          >
-            <Bot size={20} color="var(--green-600)" />
-          </div>
-          <div>
-            <h3
-              className="font-mono text-sm font-bold uppercase tracking-wider"
-              style={{ color: "var(--gray-900)" }}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex size-9 items-center justify-center rounded-lg"
+              style={{ background: `${agent.accentColor}15` }}
             >
-              {agent.name}
-            </h3>
-            <div className="flex items-center gap-2">
-              <span
-                className="text-xs"
-                style={{ color: "var(--gray-600)" }}
+              <Zap size={16} color={agent.accentColor} />
+            </div>
+            <div>
+              <h3
+                className="font-mono text-sm font-bold tracking-wider"
+                style={{ color: "var(--gray-900)" }}
               >
-                {agent.description.split(".")[0]}
-              </span>
+                {agent.name}
+              </h3>
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
-                style={{
-                  background: isSeller ? "var(--green-50)" : "#EFF6FF",
-                  color: isSeller ? "var(--green-700)" : "#1D4ED8",
-                  border: `1px solid ${isSeller ? "var(--green-200)" : "#BFDBFE"}`,
-                }}
+                className="text-[11px]"
+                style={{ color: "var(--gray-400)" }}
               >
-                {agent.role}
+                {agent.specialty}
               </span>
             </div>
           </div>
+          <span
+            className="rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold"
+            style={{
+              background: `${agent.accentColor}12`,
+              color: agent.accentColor,
+              border: `1px solid ${agent.accentColor}25`,
+            }}
+          >
+            from {agent.startingCredits}cr
+          </span>
         </div>
 
-        {/* Description */}
+        {/* Summary */}
         <p
-          className="mb-4 text-sm"
-          style={{ color: "var(--gray-600)" }}
+          className="mb-5 text-[13px] leading-relaxed"
+          style={{ color: "var(--gray-500)" }}
         >
-          &ldquo;{agent.description}&rdquo;
+          {agent.summary}
         </p>
 
-        {/* Pricing tiers */}
-        <div
-          className="mb-4 divide-y rounded-lg border"
-          style={{ borderColor: "var(--border-default)" }}
-        >
-          {agent.tools.map((tool) => (
-            <div
-              key={tool.name}
-              className="flex items-center justify-between px-3 py-2"
+        {/* Outputs */}
+        <div className="mb-5 flex flex-wrap gap-1.5">
+          {agent.outputs.map((output) => (
+            <span
+              key={output}
+              className="rounded-md px-2 py-1 text-[10px] font-medium"
+              style={{
+                background: "var(--gray-100)",
+                color: "var(--gray-500)",
+              }}
             >
-              <span
-                className="font-mono text-xs"
-                style={{ color: "var(--gray-800)" }}
-              >
-                {tool.name}
-              </span>
-              <span
-                className="font-mono text-xs font-bold"
-                style={{ color: "var(--green-600)" }}
-              >
-                {tool.credits === 0 ? "free" : `${tool.credits} credit${tool.credits > 1 ? "s" : ""}`}
-              </span>
-            </div>
+              {output}
+            </span>
           ))}
         </div>
 
-        {/* Stats */}
-        <div className="mb-4 flex items-center gap-4">
-          <span
-            className="font-mono text-xs"
-            style={{ color: "var(--gray-400)" }}
-          >
-            {agent.stats.totalSales} sales
+        {/* Stats row */}
+        <div
+          className="mb-5 flex items-center gap-4 border-t pt-4"
+          style={{ borderColor: "var(--border-default)" }}
+        >
+          <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+            {agent.stats.totalSales} deliveries
           </span>
-          <span
-            className="font-mono text-xs"
-            style={{ color: "var(--gray-400)" }}
-          >
-            {agent.stats.repeatBuyers} repeat buyers
+          <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+            {agent.stats.repeatBuyers} repeat
+          </span>
+          <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+            {agent.stats.totalCreditsEarned}cr earned
           </span>
         </div>
 
         {/* CTA */}
         <button
-          className="w-full rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          className="w-full rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200"
           style={{
-            background: isSeller ? "var(--green-500)" : "transparent",
-            color: isSeller ? "white" : "var(--green-700)",
-            border: isSeller ? "none" : "1px solid var(--green-200)",
+            background: `${agent.accentColor}12`,
+            color: agent.accentColor,
+            border: `1px solid ${agent.accentColor}20`,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `${agent.accentColor}20`;
+            e.currentTarget.style.borderColor = `${agent.accentColor}35`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = `${agent.accentColor}12`;
+            e.currentTarget.style.borderColor = `${agent.accentColor}20`;
           }}
         >
-          {isSeller ? `Buy from ${agent.name} →` : `View ${agent.name} Activity →`}
+          {agent.ctaLabel} →
         </button>
       </div>
-    </GlowingEffect>
+    </motion.div>
   );
 }
 
 export function AgentCards() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <h2
-        className="mb-6 text-xs font-bold uppercase tracking-widest"
-        style={{ color: "var(--gray-400)" }}
-      >
-        Our Agents
-      </h2>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <AgentCard agent={SELLER_AGENT} isPrimary />
-        <AgentCard agent={BUYER_AGENT} />
+      <div className="mb-6 flex items-center justify-between">
+        <h2
+          className="text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--gray-400)" }}
+        >
+          Agent Team
+        </h2>
+        <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
+          {STUDIO_AGENTS.length} specialists
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        {STUDIO_AGENTS.map((agent, i) => (
+          <AgentCard key={agent.id} agent={agent} index={i} />
+        ))}
       </div>
     </section>
   );

@@ -43,3 +43,64 @@ export interface LiveStats {
   volume: number;
   uniqueTeams: number;
 }
+
+export interface StudioService {
+  id: string;
+  name: string;
+  credits: number;
+  turnaround: string;
+  summary: string;
+  outcomes: string[];
+}
+
+export interface StudioAgent {
+  id: string;
+  name: string;
+  specialty: string;
+  summary: string;
+  outputs: string[];
+  accentColor: string;
+  ctaLabel: string;
+  startingCredits: number;
+  stats: AgentStats;
+  primary?: boolean;
+}
+
+export interface PaymentStatus {
+  ready: boolean;
+  environment: string;
+  mode: "live" | "demo";
+  configured: {
+    apiKey: boolean;
+    planId: boolean;
+    agentId: boolean;
+    sellerEndpoint: boolean;
+  };
+  references: {
+    planId: string | null;
+    agentId: string | null;
+    sellerEndpoint: string | null;
+  };
+}
+
+export interface IntakePreview {
+  serviceId: string;
+  title: string;
+  summary: string;
+  highlights: string[];
+  nextSteps: string[];
+}
+
+export interface StudioSellerResponse {
+  ok: boolean;
+  status: number;
+  body: unknown;
+}
+
+export interface StudioRequestResponse {
+  mode: "live" | "demo";
+  paymentStatus: PaymentStatus;
+  preview: IntakePreview;
+  sellerResponse: StudioSellerResponse | null;
+  error?: string;
+}

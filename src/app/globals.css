@@ -1,43 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  /* Backgrounds — warm white, not clinical */
-  --bg-base: #F8FAF7;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #F1F5F0;
-  --bg-overlay: #E8EFE6;
+  /* ── Base surfaces ── */
+  --bg-base: #05080A;
+  --bg-surface: rgba(255, 255, 255, 0.03);
+  --bg-elevated: rgba(255, 255, 255, 0.06);
+  --bg-overlay: rgba(255, 255, 255, 0.08);
 
-  /* Greens — primary brand color family */
-  --green-50: #F0F9F0;
-  --green-100: #DCEFDA;
-  --green-200: #B8DFB4;
-  --green-300: #86C882;
-  --green-400: #52AD4D;
-  --green-500: #3A9435;
-  --green-600: #2D7629;
-  --green-700: #1F5C1C;
-  --green-900: #0D2B0B;
+  /* ── Greens — primary brand ── */
+  --green-50: #0D2B14;
+  --green-100: #14412A;
+  --green-200: #1A6B3A;
+  --green-300: #22C55E;
+  --green-400: #4ADE80;
+  --green-500: #22C55E;
+  --green-600: #16A34A;
+  --green-700: #15803D;
+  --green-900: #052E16;
 
-  /* Neutrals */
-  --gray-50: #F9FAFB;
-  --gray-100: #F3F4F6;
-  --gray-200: #E5E7EB;
-  --gray-400: #9CA3AF;
-  --gray-600: #4B5563;
-  --gray-800: #1F2937;
-  --gray-900: #111827;
+  /* ── Neutrals ── */
+  --gray-50: rgba(255, 255, 255, 0.04);
+  --gray-100: rgba(255, 255, 255, 0.06);
+  --gray-200: rgba(255, 255, 255, 0.10);
+  --gray-300: rgba(255, 255, 255, 0.16);
+  --gray-400: rgba(255, 255, 255, 0.40);
+  --gray-500: rgba(255, 255, 255, 0.50);
+  --gray-600: rgba(255, 255, 255, 0.64);
+  --gray-800: rgba(255, 255, 255, 0.85);
+  --gray-900: rgba(255, 255, 255, 0.95);
 
-  /* Semantic */
-  --tx-success: #3A9435;
-  --tx-pending: #D97706;
-  --tx-credit: #059669;
-  --tx-debit: #DC2626;
+  /* ── Accent palette ── */
+  --accent-blue: #0EA5E9;
+  --accent-violet: #7C3AED;
+  --accent-amber: #F59E0B;
 
-  /* Borders */
-  --border-default: #E2E8DF;
-  --border-strong: #C4D4C0;
+  /* ── Semantic ── */
+  --tx-success: #22C55E;
+  --tx-pending: #F59E0B;
+  --tx-credit: #22C55E;
+  --tx-debit: #EF4444;
 
-  /* Mapped for Tailwind */
+  /* ── Borders ── */
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-glow: rgba(34, 197, 94, 0.20);
+
+  /* ── Glass layers ── */
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg-strong: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-blur: 20px;
+  --glass-blur-heavy: 40px;
+
+  /* ── Mapped for Tailwind ── */
   --background: var(--bg-base);
   --foreground: var(--gray-900);
 }
@@ -50,22 +65,127 @@
   --font-display: var(--font-dm-serif);
 }
 
+/* ── Base styles ── */
 body {
   background: var(--bg-base);
   color: var(--gray-900);
   font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Animation keyframes */
+/* ── Glass card system ── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+}
+
+.glass-nav {
+  background: rgba(5, 8, 10, 0.70);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.glass-pill {
+  background: rgba(34, 197, 94, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  border-radius: 9999px;
+}
+
+/* ── Geometric accent shapes ── */
+.geo-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.geo-dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.geo-radial {
+  background: radial-gradient(
+    ellipse 600px 400px at 50% 0%,
+    rgba(34, 197, 94, 0.08) 0%,
+    transparent 70%
+  );
+}
+
+.geo-radial-hero {
+  background: radial-gradient(
+    ellipse 800px 600px at 30% 20%,
+    rgba(34, 197, 94, 0.06) 0%,
+    transparent 60%
+  ),
+  radial-gradient(
+    ellipse 500px 500px at 70% 50%,
+    rgba(14, 165, 233, 0.04) 0%,
+    transparent 60%
+  );
+}
+
+/* ── Gradient text ── */
+.text-gradient-green {
+  background: linear-gradient(135deg, #22C55E 0%, #4ADE80 50%, #86EFAC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-neutral {
+  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.55) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glow effects ── */
+.glow-green {
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.10),
+    0 0 20px -4px rgba(34, 197, 94, 0.15),
+    0 0 60px -8px rgba(34, 197, 94, 0.08);
+}
+
+.glow-green-subtle {
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.06),
+    0 0 30px -8px rgba(34, 197, 94, 0.10);
+}
+
+.glow-line {
+  position: relative;
+}
+.glow-line::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.30), transparent);
+}
+
+/* ── Animations ── */
 @keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in {
@@ -74,24 +194,66 @@ body {
 }
 
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-in {
-  animation: slide-in 300ms ease-out;
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
 }
 
-.animate-fade-in {
-  animation: fade-in 400ms ease-out;
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2.2); opacity: 0; }
 }
 
-.animate-fade-up {
-  animation: fade-up 400ms ease-out both;
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+}
+
+.animate-slide-in { animation: slide-in 300ms ease-out; }
+.animate-fade-in { animation: fade-in 400ms ease-out; }
+.animate-fade-up { animation: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ── Stagger delays ── */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* ── Selection ── */
+::selection {
+  background: rgba(34, 197, 94, 0.20);
+  color: white;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
 }

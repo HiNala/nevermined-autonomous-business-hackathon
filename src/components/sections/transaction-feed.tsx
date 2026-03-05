@@ -37,10 +37,9 @@ export function TransactionFeed() {
 
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      {/* Section header */}
       <div className="mb-4 flex items-center justify-between">
         <h2
-          className="text-xs font-bold uppercase tracking-widest"
+          className="text-[11px] font-semibold uppercase tracking-widest"
           style={{ color: "var(--gray-400)" }}
         >
           Live Feed
@@ -48,37 +47,30 @@ export function TransactionFeed() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setPaused(!paused)}
-            className="rounded-md p-1 transition-colors hover:bg-gray-100"
+            className="rounded-md p-1 transition-colors"
+            style={{ color: "var(--gray-400)" }}
             aria-label={paused ? "Resume feed" : "Pause feed"}
           >
-            {paused ? (
-              <Play size={14} color="var(--gray-400)" />
-            ) : (
-              <Pause size={14} color="var(--gray-400)" />
-            )}
+            {paused ? <Play size={13} /> : <Pause size={13} />}
           </button>
           <span
-            className="font-mono text-xs"
+            className="font-mono text-[11px]"
             style={{ color: "var(--gray-400)" }}
           >
-            {recentCount} transactions · last 5 min
+            {recentCount} txns · 5 min
           </span>
         </div>
       </div>
 
-      {/* Feed container */}
-      <div
-        className="overflow-hidden rounded-xl border bg-white"
-        style={{ borderColor: "var(--border-default)" }}
-      >
+      <div className="glass overflow-hidden">
         <AnimatePresence initial={false}>
           {transactions.map((tx) => (
             <motion.div
               key={tx.id}
-              initial={{ opacity: 0, height: 0, y: -8 }}
+              initial={{ opacity: 0, height: 0, y: -6 }}
               animate={{ opacity: 1, height: "auto", y: 0 }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             >
               <TransactionRow tx={tx} />
             </motion.div>
@@ -90,60 +82,52 @@ export function TransactionFeed() {
 }
 
 function TransactionRow({ tx }: { tx: Transaction }) {
-  const statusColor =
-    tx.status === "completed" ? "var(--green-500)" : "var(--tx-pending)";
+  const isComplete = tx.status === "completed";
 
   return (
     <div
-      className="flex items-center gap-3 border-b px-4 py-2.5 transition-colors hover:bg-[var(--green-50)]/40"
-      style={{ borderColor: "var(--gray-100)" }}
+      className="flex items-center gap-3 border-b px-4 py-2.5 transition-colors duration-150"
+      style={{
+        borderColor: "var(--border-default)",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(34, 197, 94, 0.03)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
-      {/* Status dot */}
       <span
-        className="size-2 flex-shrink-0 rounded-full"
-        style={{ background: statusColor }}
+        className="size-1.5 shrink-0 rounded-full"
+        style={{ background: isComplete ? "var(--green-400)" : "var(--tx-pending)" }}
       />
 
-      {/* Time */}
       <span
-        className="w-14 flex-shrink-0 font-mono text-[11px]"
+        className="w-10 shrink-0 font-mono text-[10px]"
         style={{ color: "var(--gray-400)" }}
       >
         {formatTimeAgo(tx.timestamp)}
       </span>
 
-      {/* Agents */}
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span
-          className="truncate font-mono text-xs font-medium"
-          style={{ color: "var(--gray-800)" }}
-        >
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <span className="truncate font-mono text-[11px] font-medium" style={{ color: "var(--gray-800)" }}>
           {tx.buyer}
         </span>
-        <span style={{ color: "var(--gray-300)" }}>→</span>
-        <span
-          className="truncate font-mono text-xs font-medium"
-          style={{ color: "var(--green-700)" }}
-        >
+        <span className="text-[10px]" style={{ color: "var(--gray-300)" }}>→</span>
+        <span className="truncate font-mono text-[11px] font-medium" style={{ color: "var(--green-400)" }}>
           {tx.seller}
         </span>
       </div>
 
-      {/* Tool */}
       <span
-        className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
+        className="shrink-0 rounded-md px-2 py-0.5 font-mono text-[9px] font-medium"
         style={{
           background: "var(--gray-100)",
-          color: "var(--gray-600)",
+          color: "var(--gray-500)",
         }}
       >
         {tx.tool}
       </span>
 
-      {/* Credits */}
       <span
-        className="flex-shrink-0 font-mono text-xs font-bold"
-        style={{ color: "var(--green-600)" }}
+        className="shrink-0 font-mono text-[11px] font-bold"
+        style={{ color: "var(--green-400)" }}
       >
         +{tx.credits}cr
       </span>

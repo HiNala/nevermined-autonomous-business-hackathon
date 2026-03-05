@@ -7,8 +7,9 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { StatsBar } from "@/components/sections/stats-bar";
 import { TransactionFeed } from "@/components/sections/transaction-feed";
 import { AgentCards } from "@/components/sections/agent-cards";
-import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
+import { ServicesSection } from "@/components/sections/services-section";
 import { DecisionLogic } from "@/components/sections/decision-logic";
+import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
 import { STAT_UPDATE_INTERVAL_MS } from "@/lib/constants";
 import { INITIAL_STATS } from "@/data/mock-transactions";
 import type { LiveStats } from "@/types";
@@ -34,10 +35,11 @@ export function HomePage() {
       <main>
         <HeroSection />
         <StatsBar stats={stats} />
-        <TransactionFeed />
+        <ServicesSection />
         <AgentCards />
-        <MarketplaceConnections />
         <DecisionLogic />
+        <TransactionFeed />
+        <MarketplaceConnections />
       </main>
       <Footer />
     </div>
