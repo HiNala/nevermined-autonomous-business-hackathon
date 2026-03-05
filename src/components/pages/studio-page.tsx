@@ -214,7 +214,7 @@ function AgentCard({
   return (
     <button
       onClick={onClick}
-      className="group relative flex items-start gap-3 rounded-xl p-3.5 text-left transition-all duration-200"
+      className="group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all duration-200"
       style={{
         background: isSelected ? agent.bgColor : "var(--glass-bg)",
         border: `1px solid ${isSelected ? agent.borderColor : "var(--border-default)"}`,
@@ -222,7 +222,7 @@ function AgentCard({
     >
       {/* Avatar */}
       <div
-        className="flex size-10 shrink-0 items-center justify-center rounded-lg text-lg font-bold"
+        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
         style={{ background: agent.bgColor, color: agent.color }}
       >
         {agent.avatar}
@@ -231,41 +231,22 @@ function AgentCard({
       {/* Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>
+          <span className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>
             {agent.name}
           </span>
           {isActive && (
-            <span className="flex items-center gap-1">
-              <span className="relative flex size-1.5">
-                <span
-                  className="absolute inline-flex size-full animate-ping rounded-full opacity-50"
-                  style={{ background: agent.color }}
-                />
-                <span
-                  className="relative inline-flex size-1.5 rounded-full"
-                  style={{ background: agent.color }}
-                />
-              </span>
-              <span className="font-mono text-[9px]" style={{ color: agent.color }}>
-                active
-              </span>
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full opacity-50" style={{ background: agent.color }} />
+              <span className="relative inline-flex size-1.5 rounded-full" style={{ background: agent.color }} />
             </span>
           )}
+          <span className="ml-auto font-mono text-[9px]" style={{ color: isActive ? agent.color : "var(--gray-400)" }}>
+            {isActive ? "working" : `${stats.handled}t`}
+          </span>
         </div>
-        <p className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+        <p className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
           {agent.role}
         </p>
-        <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-          {agent.description}
-        </p>
-        <div className="mt-2 flex items-center gap-3">
-          <span className="font-mono text-[9px]" style={{ color: agent.color }}>
-            {stats.earned}cr earned
-          </span>
-          <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-            {stats.handled} tasks
-          </span>
-        </div>
       </div>
     </button>
   );
@@ -1201,7 +1182,16 @@ export function StudioPage() {
                   {isLoading ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
                 </button>
               </div>
-              {error && <p className="mt-2 text-[12px]" style={{ color: "#EF4444" }}>{error}</p>}
+              {error && (
+                <div className="mt-2 rounded-lg px-3 py-2" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
+                  <p className="text-[12px] font-medium" style={{ color: "#EF4444" }}>{error}</p>
+                  {apiMode === "demo" && (
+                    <p className="mt-0.5 text-[11px]" style={{ color: "var(--gray-400)" }}>
+                      Running in Demo Mode — add an OpenAI or Gemini key in environment variables to get real results.
+                    </p>
+                  )}
+                </div>
+              )}
             </form>
           </div>
 
