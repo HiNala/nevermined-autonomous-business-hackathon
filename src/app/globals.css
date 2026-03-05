@@ -246,7 +246,7 @@ body {
 }
 
 .dark .text-gradient-accent {
-  background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%);
+  background: linear-gradient(135deg, #9a5530 0%, #c97d4e 50%, #e09468 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -261,7 +261,7 @@ body {
 }
 
 .dark .text-gradient-green {
-  background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%);
+  background: linear-gradient(135deg, #9a5530 0%, #c97d4e 50%, #e09468 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

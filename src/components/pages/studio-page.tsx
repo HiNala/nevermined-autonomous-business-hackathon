@@ -1283,7 +1283,7 @@ export function StudioPage() {
                     <button
                       onClick={handleSubmit as unknown as React.MouseEventHandler}
                       className="shrink-0 flex items-center gap-1 rounded-md px-2.5 py-1 font-mono text-[10px] transition-all hover:opacity-80"
-                      style={{ background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.20)", color: "var(--accent-400)" }}
+                      style={{ background: "rgba(201,125,78,0.10)", border: "1px solid rgba(201,125,78,0.22)", color: "var(--accent-400)" }}
                     >
                       <RefreshCw size={10} /> Retry
                     </button>

@@ -149,7 +149,7 @@ export function ToolSettingsPanel({ open, onClose, onSettingsChange }: ToolSetti
                 className="flex size-6 items-center justify-center rounded-md"
                 style={{ background: "rgba(201, 125, 78, 0.1)", border: "1px solid rgba(201, 125, 78, 0.2)" }}
               >
-                <Bot size={12} style={{ color: "rgb(99, 102, 241)" }} />
+                <Bot size={12} style={{ color: "var(--accent-400)" }} />
               </div>
               <span className="text-[13px] font-semibold" style={{ color: "var(--gray-600)" }}>
                 Strategist Agent
