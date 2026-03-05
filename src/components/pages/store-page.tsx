@@ -104,17 +104,25 @@ function ProductCard({
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative flex flex-col rounded-xl border p-5 transition-all hover:shadow-lg"
+      className="group relative flex flex-col rounded-xl border p-5 transition-all duration-200"
       style={{
-        background: "var(--glass-bg)",
+        background: "var(--bg-elevated)",
         borderColor: "var(--border-default)",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px -4px rgba(201,125,78,0.12)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,125,78,0.25)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.boxShadow = "none";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
       }}
     >
       {/* Category badge */}
       <div className="mb-3 flex items-center justify-between">
         <div
           className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[10px] font-semibold uppercase"
-          style={{ background: "rgba(239, 68, 68, 0.08)", color: "#EF4444" }}
+          style={{ background: "rgba(201, 125, 78, 0.08)", color: "var(--accent-400)" }}
         >
           <Icon size={10} />
           {CATEGORY_LABELS[product.category] ?? product.category}
@@ -168,8 +176,9 @@ function ProductCard({
         disabled={isOrdering}
         className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider transition-all disabled:opacity-50"
         style={{
-          background: "linear-gradient(135deg, #EF4444, #DC2626)",
+          background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
           color: "white",
+          boxShadow: "0 2px 12px -4px rgba(201,125,78,0.30)",
         }}
       >
         {isOrdering ? (
@@ -216,7 +225,7 @@ function OrderModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         className="w-full max-w-lg rounded-2xl border p-6"
-        style={{ background: "var(--bg-primary)", borderColor: "var(--border-default)" }}
+        style={{ background: "var(--bg-base)", borderColor: "var(--border-default)" }}
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold" style={{ color: "var(--gray-900)" }}>
@@ -244,8 +253,16 @@ function OrderModal({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="E.g. 'Research the AI agent marketplace landscape and key players in 2025'"
           rows={4}
-          className="mb-4 w-full resize-none rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none"
-          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+          className="mb-4 w-full resize-none rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-all"
+          style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "var(--border-default)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
         />
 
         <div className="flex gap-3">
@@ -260,7 +277,7 @@ function OrderModal({
             onClick={() => query.trim() && onSubmit(query.trim())}
             disabled={!query.trim() || isSubmitting}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-white transition-all disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #EF4444, #DC2626)" }}
+            style={{ background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
           >
             {isSubmitting ? (
               <>
@@ -296,7 +313,7 @@ function OrderResultView({ result, onClose }: { result: OrderResult; onClose: ()
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border p-6"
-        style={{ background: "var(--bg-primary)", borderColor: "var(--border-default)" }}
+        style={{ background: "var(--bg-base)", borderColor: "var(--border-default)" }}
       >
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
@@ -492,7 +509,7 @@ export function StorePage() {
   return (
     <>
     <Nav />
-    <main className="min-h-screen pt-20 pb-24">
+    <main className="min-h-screen pt-20 pb-24" style={{ background: "var(--bg-base)" }}>
       <div className="mx-auto max-w-6xl px-6">
         {/* Header */}
         <motion.div
@@ -542,8 +559,16 @@ export function StorePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products, tags, categories..."
-                className="w-full rounded-xl py-2.5 pl-10 pr-4 text-[13px] transition-all"
-                style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+                className="w-full rounded-xl py-2.5 pl-10 pr-4 text-[13px] outline-none transition-all"
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--border-default)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               />
             </div>
           </motion.div>

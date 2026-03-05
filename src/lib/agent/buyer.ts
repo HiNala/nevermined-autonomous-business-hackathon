@@ -60,19 +60,29 @@ async function discoverAssets(
 
   try {
     // List available plans from the NVM marketplace
-    const searchResult = await payments.plans.getPlans(1, 0);
+    const searchResult = await payments.plans.getPlans(20, 0);
 
     if (!searchResult || !Array.isArray(searchResult)) return [];
 
-    // Filter results by query relevance
-    const queryLower = query.toLowerCase();
-    const relevant = (searchResult as Record<string, unknown>[])
-      .filter((plan) => {
-        const name = String(plan.name ?? "").toLowerCase();
-        const desc = String(plan.description ?? "").toLowerCase();
-        return name.includes(queryLower) || desc.includes(queryLower) || queryLower.includes(name);
-      })
-      .slice(0, 5);
+    // Score results by query relevance (word-level fuzzy matching)
+    const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
+    const scored = (searchResult as Record<string, unknown>[]).map((plan) => {
+      const name = String(plan.name ?? "").toLowerCase();
+      const desc = String(plan.description ?? "").toLowerCase();
+      const text = `${name} ${desc}`;
+      let score = 0;
+      for (const word of queryWords) {
+        if (text.includes(word)) score += 2;
+      }
+      if (name.includes(query.toLowerCase())) score += 5;
+      return { plan, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    // Return top matches; if nothing scored, return first few anyway (any marketplace asset can be useful)
+    const relevant = scored
+      .filter((s) => s.score > 0 || scored.every((x) => x.score === 0))
+      .slice(0, 5)
+      .map((s) => s.plan);
 
     return relevant.map((plan) => ({
       did: String(plan.did ?? plan.planDid ?? ""),

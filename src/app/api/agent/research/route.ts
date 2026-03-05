@@ -133,12 +133,15 @@ export async function POST(request: Request) {
 
       agentEvents.push({
         id: generateEventId(),
-        type: "payment_verified",
+        type: "transaction",
         timestamp: new Date().toISOString(),
         data: {
+          agent: "researcher",
           caller,
           query,
           credits: settlement.creditsRedeemed ?? credits,
+          settled: settlement.settled,
+          mode: "live",
         },
       });
     }

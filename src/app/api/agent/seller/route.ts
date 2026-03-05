@@ -149,8 +149,14 @@ export async function POST(request: Request) {
     data: { agent: "seller", caller, query, productId: body.productId },
   });
 
-  // ── Check if seller is enabled via toolSettings ────────────────────
-  if (body.toolSettings?.trading?.sellerEnabled === false) {
+  // ── Check if seller is enabled ──────────────────────────────────────
+  // For external callers, use server-side default (always enabled).
+  // For internal UI requests, respect the client toolSettings toggle.
+  const sellerEnabled = isInternalRequest
+    ? (body.toolSettings?.trading?.sellerEnabled ?? true)
+    : true;
+
+  if (!sellerEnabled) {
     return NextResponse.json(
       { error: "Seller agent is currently disabled in settings" },
       { status: 503 }

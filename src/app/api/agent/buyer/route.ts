@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runBuyer, type BuyerRequest } from "@/lib/agent/buyer";
 import { agentEvents } from "@/lib/agent/event-store";
+import { ledger, AGENT_PROFILES } from "@/lib/agent/transactions";
 import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
 import type { ToolSettings } from "@/lib/tool-settings";
 
@@ -50,9 +51,25 @@ export async function POST(request: Request) {
 
     const result = await runBuyer(buyerRequest);
 
+    // Record each successful purchase in the global transaction ledger
+    const buyer = AGENT_PROFILES.buyer;
+    for (const asset of result.purchased.filter((p) => p.status === "success")) {
+      ledger.record({
+        id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: asset.purchasedAt,
+        from: { id: buyer.id, name: buyer.name },
+        to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
+        credits: asset.creditsPaid,
+        purpose: `Standalone purchase: "${asset.name}"`,
+        artifactId: asset.id,
+        status: "completed",
+        durationMs: asset.durationMs,
+      });
+    }
+
     agentEvents.push({
       id: generateEventId(),
-      type: "research_complete",
+      type: "buyer_complete",
       timestamp: new Date().toISOString(),
       data: {
         caller: "internal-ui",

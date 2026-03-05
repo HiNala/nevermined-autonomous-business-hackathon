@@ -833,12 +833,14 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
               border: "1px solid var(--border-default)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(34, 197, 94, 0.25)";
+              e.currentTarget.style.borderColor = "rgba(201, 125, 78, 0.30)";
               e.currentTarget.style.color = "var(--gray-700)";
+              e.currentTarget.style.background = "rgba(201, 125, 78, 0.04)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = "var(--border-default)";
               e.currentTarget.style.color = "var(--gray-500)";
+              e.currentTarget.style.background = "var(--glass-bg)";
             }}
           >
             {ex}
@@ -1392,8 +1394,16 @@ export function StudioPage() {
                       : "Describe what you need…"
                   }
                   rows={3}
-                  className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none"
-                  style={{ background: "var(--glass-bg-strong)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+                  className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none transition-all"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-default)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
                 />
                 <button
                   type="submit"

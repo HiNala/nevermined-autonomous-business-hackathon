@@ -66,7 +66,7 @@ export function StudioEntry() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="e.g. Research the top AI agent frameworks and compare their strengths for a production use case..."
                 rows={5}
-                className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+                className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(201,125,78,0.35)]"
                 style={{
                   background: "var(--bg-surface)",
                   border: "1px solid var(--border-default)",

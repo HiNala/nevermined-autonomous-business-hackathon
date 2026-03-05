@@ -364,11 +364,19 @@ export function ResearchPage() {
               <select
                 value={provider}
                 onChange={(e) => setProvider(e.target.value as AIProvider | "auto")}
-                className="rounded-lg px-3 py-2 text-[12px] outline-none"
+                className="rounded-lg px-3 py-2 text-[12px] outline-none transition-all"
                 style={{
-                  background: "var(--bg-surface)",
+                  background: "var(--bg-elevated)",
                   border: "1px solid var(--border-default)",
                   color: "var(--gray-600)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--border-default)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
                 <option value="auto">Auto (best available)</option>
@@ -396,11 +404,19 @@ export function ResearchPage() {
                   }}
                   placeholder="What would you like to research?"
                   rows={3}
-                  className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none"
+                  className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none transition-all"
                   style={{
-                    background: "var(--bg-surface)",
+                    background: "var(--bg-elevated)",
                     border: "1px solid var(--border-default)",
                     color: "var(--gray-800)",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-default)";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 />
                 <button
