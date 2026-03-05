@@ -126,8 +126,8 @@ export function ServicesPage() {
               Service <span className="text-gradient-green">Catalog</span>
             </h1>
             <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-              Three structured deliverables — research, planning, and design —
-              powered by Nevermined credit-based payments.
+              Six structured deliverables — research, analysis, strategy, and more —
+              powered by four specialist agents and Nevermined credit-based payments.
             </p>
           </motion.div>
 

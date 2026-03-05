@@ -32,14 +32,15 @@ export function StudioEntry() {
   return (
     <section id="try-studio" className="mx-auto max-w-6xl px-6 pb-20">
       <div className="mb-8">
-        <h2
-          className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--gray-400)" }}
-        >
-          Try the Studio
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>008 / TRY THE STUDIO</span>
+        </div>
+        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+          Describe what you need.
         </h2>
-        <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-          Describe what you need. The agents research, plan, and design for you.
+        <p className="mt-1 max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+          The agents research, plan, and design for you.
         </p>
       </div>
 
@@ -95,7 +96,7 @@ export function StudioEntry() {
                     border: "1px solid var(--border-default)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(34, 197, 94, 0.22)";
+                    e.currentTarget.style.borderColor = "rgba(99, 102, 241, 0.25)";
                     e.currentTarget.style.color = "var(--gray-700)";
                   }}
                   onMouseLeave={(e) => {
@@ -117,8 +118,8 @@ export function StudioEntry() {
                 disabled={!query.trim()}
                 className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40"
                 style={{
-                  background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-                  boxShadow: query.trim() ? "0 0 20px -4px rgba(34, 197, 94, 0.30)" : "none",
+                  background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+                  boxShadow: query.trim() ? "0 0 20px -4px rgba(99, 102, 241, 0.35)" : "none",
                 }}
               >
                 Open in Studio
@@ -152,13 +153,13 @@ export function StudioEntry() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: 0.15 + i * 0.07 }}
                 className="flex items-center gap-3 rounded-xl p-3.5"
-                style={{ background: "rgba(34, 197, 94, 0.04)", border: "1px solid rgba(34, 197, 94, 0.10)" }}
+                style={{ background: "rgba(99, 102, 241, 0.04)", border: "1px solid rgba(99, 102, 241, 0.12)" }}
               >
                 <div
                   className="flex size-8 shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: "rgba(34, 197, 94, 0.10)" }}
+                  style={{ background: "rgba(99, 102, 241, 0.10)" }}
                 >
-                  <Zap size={14} style={{ color: "var(--green-400)" }} />
+                  <Zap size={14} style={{ color: "var(--accent-400)" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-medium" style={{ color: "var(--gray-800)" }}>
@@ -171,9 +172,9 @@ export function StudioEntry() {
                 <span
                   className="shrink-0 rounded-md px-2 py-0.5 font-mono text-[11px] font-bold"
                   style={{
-                    background: "rgba(34, 197, 94, 0.10)",
-                    color: "var(--green-400)",
-                    border: "1px solid rgba(34, 197, 94, 0.18)",
+                    background: "rgba(99, 102, 241, 0.10)",
+                    color: "var(--accent-400)",
+                    border: "1px solid rgba(99, 102, 241, 0.20)",
                   }}
                 >
                   {o.credits}
@@ -192,7 +193,7 @@ export function StudioEntry() {
             <Link
               href="/services"
               className="font-mono text-[10px] transition-colors duration-150"
-              style={{ color: "var(--green-400)" }}
+              style={{ color: "var(--accent-400)" }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >

@@ -33,7 +33,7 @@ function FooterLink({ label, href, external }: { label: string; href: string; ex
         rel="noopener noreferrer"
         className={cls}
         style={style}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--green-400)")}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-400)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--gray-400)")}
       >
         {label}
@@ -46,7 +46,7 @@ function FooterLink({ label, href, external }: { label: string; href: string; ex
       href={href}
       className={cls}
       style={style}
-      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--green-400)")}
+      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-400)")}
       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--gray-400)")}
     >
       {label}
@@ -60,7 +60,7 @@ export function Footer() {
       {/* Top glow line */}
       <div
         className="absolute top-0 left-[15%] right-[15%] h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.18), transparent)" }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.18), transparent)" }}
       />
 
       <div className="mx-auto max-w-6xl">
@@ -71,7 +71,7 @@ export function Footer() {
             <div className="mb-4 flex items-center gap-2.5">
               <div className="relative flex size-5 items-center justify-center">
                 <span className="absolute size-5 rounded border border-white/10 rotate-45" />
-                <span className="size-1 rounded-full" style={{ background: "var(--green-500)" }} />
+                <span className="size-1 rounded-full" style={{ background: "var(--accent-400)" }} />
               </div>
               <span className="font-mono text-[12px] font-semibold tracking-widest" style={{ color: "var(--gray-800)" }}>
                 {SITE_NAME}

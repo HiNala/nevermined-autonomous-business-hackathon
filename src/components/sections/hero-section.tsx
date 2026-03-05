@@ -117,7 +117,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Three specialist agents — Strategist, Researcher, Buyer — collaborate to deliver structured research, plans, and design specs in minutes.
+            Describe what you need. Four specialist agents research, plan, procure, and build it. Get a structured deliverable in minutes.
           </motion.p>
 
           {/* Primary CTA — input */}

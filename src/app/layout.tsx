@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   openGraph: {
     title: "Auto Business — AI Agent Studio",
-    description: "Three specialist AI agents — research, planning, and design — that deliver structured work in minutes. Pay only for what you use.",
+    description: "Four specialist AI agents — strategy, research, procurement, and sales — that deliver structured work in minutes. Pay only for what you use.",
     url: BASE_URL,
     siteName: "Auto Business",
     type: "website",

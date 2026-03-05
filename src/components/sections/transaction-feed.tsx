@@ -43,15 +43,13 @@ export function TransactionFeed() {
     <section className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2
-            className="mb-0.5 text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--gray-400)" }}
-          >
-            Live Feed
-          </h2>
-          <p className="text-[18px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+          <div className="mb-2 flex items-center gap-3">
+            <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>005 / LIVE FEED</span>
+          </div>
+          <h2 className="text-[22px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
             Transactions happening now.
-          </p>
+          </h2>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -99,12 +97,12 @@ function TransactionRow({ tx }: { tx: Transaction }) {
       style={{
         borderColor: "var(--border-default)",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(34, 197, 94, 0.03)")}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99, 102, 241, 0.04)")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       <span
         className="size-1.5 shrink-0 rounded-full"
-        style={{ background: isComplete ? "var(--green-400)" : "var(--tx-pending)" }}
+        style={{ background: isComplete ? "var(--accent-400)" : "var(--tx-pending)" }}
       />
 
       <span
@@ -119,7 +117,7 @@ function TransactionRow({ tx }: { tx: Transaction }) {
           {tx.buyer}
         </span>
         <span className="text-[10px]" style={{ color: "var(--gray-300)" }}>→</span>
-        <span className="truncate font-mono text-[11px] font-medium" style={{ color: "var(--green-400)" }}>
+        <span className="truncate font-mono text-[11px] font-medium" style={{ color: "var(--accent-400)" }}>
           {tx.seller}
         </span>
       </div>
@@ -136,7 +134,7 @@ function TransactionRow({ tx }: { tx: Transaction }) {
 
       <span
         className="shrink-0 font-mono text-[11px] font-bold"
-        style={{ color: "var(--green-400)" }}
+        style={{ color: "var(--accent-400)" }}
       >
         +{tx.credits}cr
       </span>

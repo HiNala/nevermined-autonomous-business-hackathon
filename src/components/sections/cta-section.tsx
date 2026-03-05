@@ -12,7 +12,7 @@ export function CtaSection() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(34, 197, 94, 0.06), transparent)",
+            "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(99, 102, 241, 0.07), transparent)",
         }}
       />
 
@@ -28,7 +28,7 @@ export function CtaSection() {
           style={{ color: "var(--gray-900)" }}
         >
           Stop researching.
-          <span className="text-gradient-green"> Start shipping.</span>
+          <span className="text-gradient-accent"> Start shipping.</span>
         </h2>
 
         <p
@@ -44,8 +44,8 @@ export function CtaSection() {
             href="/studio"
             className="group flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium text-white transition-all duration-200"
             style={{
-              background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-              boxShadow: "0 0 24px -4px rgba(34, 197, 94, 0.3)",
+              background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+              boxShadow: "0 0 24px -4px rgba(99, 102, 241, 0.35)",
             }}
           >
             Open Studio &mdash; it&apos;s free
@@ -64,13 +64,14 @@ export function CtaSection() {
               border: "1px solid var(--border-default)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(34, 197, 94, 0.20)";
+              e.currentTarget.style.borderColor = "rgba(99, 102, 241, 0.25)";
               e.currentTarget.style.color = "var(--gray-800)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = "var(--border-default)";
               e.currentTarget.style.color = "var(--gray-600)";
-            }}
+            }
+          }
           >
             Meet the agents
           </Link>

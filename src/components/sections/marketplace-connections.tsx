@@ -13,7 +13,7 @@ function PartnerCard({ partner, index }: { partner: MarketplacePartner; index: n
       className="glass p-4 transition-all duration-200"
       style={{ borderColor: "var(--glass-border)" }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(34, 197, 94, 0.18)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(99, 102, 241, 0.22)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
@@ -25,7 +25,7 @@ function PartnerCard({ partner, index }: { partner: MarketplacePartner; index: n
         </span>
         <span
           className="font-mono text-[10px] font-bold tracking-wider"
-          style={{ color: "var(--green-400)" }}
+          style={{ color: "var(--accent-400)" }}
         >
           {partner.agentName}
         </span>
@@ -39,7 +39,7 @@ function PartnerCard({ partner, index }: { partner: MarketplacePartner; index: n
         <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
           {partner.purchaseCount}× purchased
         </span>
-        <span className="font-mono text-[11px] font-bold" style={{ color: "var(--green-400)" }}>
+        <span className="font-mono text-[11px] font-bold" style={{ color: "var(--accent-400)" }}>
           {partner.creditsSpent}cr
         </span>
       </div>
@@ -52,19 +52,17 @@ export function MarketplaceConnections() {
     <section className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-8">
         <div className="mb-2 flex items-center justify-between">
-          <h2
-            className="text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--gray-400)" }}
-          >
-            Network
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>006 / NETWORK</span>
+          </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5">
               {MARKETPLACE_PARTNERS.map((p) => (
                 <span
                   key={p.id}
                   className="size-1.5 rounded-full"
-                  style={{ background: "var(--green-500)", opacity: 0.6 }}
+                  style={{ background: "var(--accent-400)", opacity: 0.5 }}
                 />
               ))}
             </div>

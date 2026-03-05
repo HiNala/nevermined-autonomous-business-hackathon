@@ -49,29 +49,41 @@ const FAQS = [
 
 function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(false);
+  const num = String(index + 1).padStart(2, "0");
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
       className="border-b"
       style={{ borderColor: "var(--border-default)" }}
     >
       <button
-        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors duration-150"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-all duration-150"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
-        <span className="text-[14px] font-medium" style={{ color: "var(--gray-800)" }}>
-          {q}
-        </span>
+        <div className="flex items-baseline gap-3 min-w-0">
+          <span
+            className="shrink-0 font-mono text-[9px] tracking-wider"
+            style={{ color: open ? "var(--accent-400)" : "var(--gray-300)" }}
+          >
+            {num}
+          </span>
+          <span
+            className="text-[14px] font-medium transition-colors duration-150"
+            style={{ color: open ? "var(--gray-900)" : "var(--gray-700)" }}
+          >
+            {q}
+          </span>
+        </div>
         <ChevronDown
-          size={15}
+          size={14}
           className="shrink-0 transition-transform duration-200"
           style={{
-            color: "var(--gray-400)",
+            color: open ? "var(--accent-400)" : "var(--gray-400)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
           }}
         />
@@ -87,12 +99,17 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <p
-              className="pb-4 text-[13px] leading-relaxed"
-              style={{ color: "var(--gray-500)" }}
+            <div
+              className="mb-4 ml-6 border-l-2 pl-4"
+              style={{ borderColor: "rgba(99,102,241,0.30)" }}
             >
-              {a}
-            </p>
+              <p
+                className="text-[13px] leading-relaxed"
+                style={{ color: "var(--gray-500)" }}
+              >
+                {a}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -104,21 +121,21 @@ export function FaqSection() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-8">
-        <h2
-          className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--gray-400)" }}
-        >
-          FAQ
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>007 / FAQ</span>
+        </div>
+        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+          Common questions.
         </h2>
-        <p className="text-[13px]" style={{ color: "var(--gray-500)" }}>
-          Common questions about how the Studio works.
-        </p>
       </div>
 
-      <div className="glass overflow-hidden p-6">
-        {FAQS.map((faq, i) => (
-          <FaqItem key={i} q={faq.q} a={faq.a} index={i} />
-        ))}
+      <div className="glass overflow-hidden">
+        <div className="px-6">
+          {FAQS.map((faq, i) => (
+            <FaqItem key={i} q={faq.q} a={faq.a} index={i} />
+          ))}
+        </div>
       </div>
     </section>
   );

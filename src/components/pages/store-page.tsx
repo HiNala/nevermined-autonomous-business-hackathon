@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
+import { Nav } from "@/components/layout/nav";
+import { Footer } from "@/components/layout/footer";
 import {
   Store,
   Package,
@@ -479,6 +481,8 @@ export function StorePage() {
   }
 
   return (
+    <>
+    <Nav />
     <main className="min-h-screen pt-20 pb-24">
       <div className="mx-auto max-w-6xl px-6">
         {/* Header */}
@@ -666,5 +670,7 @@ export function StorePage() {
         )}
       </AnimatePresence>
     </main>
+    <Footer />
+    </>
   );
 }

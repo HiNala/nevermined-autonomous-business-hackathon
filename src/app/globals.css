@@ -141,7 +141,7 @@ body {
   background: var(--glass-bg-strong);
   backdrop-filter: blur(var(--glass-blur-heavy));
   -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
 }
 
@@ -170,6 +170,12 @@ body {
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 64px 64px;
+}
+
+.light .geo-grid {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
 }
 
 .geo-dot-grid {
@@ -327,7 +333,7 @@ body {
 
 /* ── Form inputs ── */
 ::placeholder {
-  color: rgba(255, 255, 255, 0.28);
+  color: var(--gray-400);
 }
 
 input:focus,
@@ -337,8 +343,13 @@ textarea:focus {
 
 /* ── Selection ── */
 ::selection {
-  background: rgba(34, 197, 94, 0.20);
+  background: rgba(99, 102, 241, 0.25);
   color: white;
+}
+
+.light ::selection {
+  background: rgba(79, 70, 229, 0.18);
+  color: var(--gray-900);
 }
 
 /* ── Scrollbar ── */
@@ -350,4 +361,11 @@ textarea:focus {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.18);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.20);
 }

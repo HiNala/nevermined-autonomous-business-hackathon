@@ -14,8 +14,8 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
       className="glass group relative overflow-hidden p-6 transition-all duration-300"
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(34, 197, 94, 0.20)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 30px -8px rgba(34, 197, 94, 0.12)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(99, 102, 241, 0.22)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 30px -8px rgba(99, 102, 241, 0.12)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
@@ -25,7 +25,7 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
       {/* Top accent */}
       <div
         className="absolute top-0 left-6 right-6 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.25), transparent)" }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.25), transparent)" }}
       />
 
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -43,9 +43,9 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
         <span
           className="rounded-lg px-2.5 py-1 font-mono text-[12px] font-bold"
           style={{
-            background: "rgba(34, 197, 94, 0.10)",
-            color: "var(--green-400)",
-            border: "1px solid rgba(34, 197, 94, 0.18)",
+            background: "rgba(99, 102, 241, 0.10)",
+            color: "var(--accent-400)",
+            border: "1px solid rgba(99, 102, 241, 0.20)",
           }}
         >
           {formatCredits(service.credits)}
@@ -61,7 +61,7 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
           <div key={outcome} className="flex items-start gap-2">
             <span
               className="mt-1.5 size-1 rounded-full"
-              style={{ background: "var(--green-400)", opacity: 0.7 }}
+              style={{ background: "var(--accent-400)", opacity: 0.7 }}
             />
             <span className="text-[12px]" style={{ color: "var(--gray-500)" }}>
               {outcome}
@@ -78,11 +78,12 @@ export function StudioServices() {
     <section id="services" className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2
-            className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--gray-400)" }}
-          >
-            Studio Services
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>004 / STUDIO SERVICES</span>
+          </div>
+          <h2 className="mb-1 text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+            What you get back.
           </h2>
           <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
             Three deliverables for teams that need fast research, planning, and front-end direction.
@@ -91,7 +92,7 @@ export function StudioServices() {
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <div className="glass-pill px-3 py-1.5">
-            <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+            <span className="font-mono text-[10px]" style={{ color: "var(--accent-400)" }}>
               1 credit ≈ $0.10 USDC
             </span>
           </div>

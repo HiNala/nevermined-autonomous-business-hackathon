@@ -125,7 +125,7 @@ interface PipelineResult {
   transaction?: AgentTransaction;
 }
 
-type ViewMode = "pipeline" | "strategist" | "researcher";
+type ViewMode = "pipeline" | "strategist" | "researcher" | "seller";
 type OutputType = "research" | "prd" | "plan" | "analysis" | "general";
 
 const OUTPUT_TYPES: { value: OutputType; label: string; icon: typeof FileText }[] = [
@@ -684,7 +684,7 @@ function DocumentView({
 }
 
 // ─── Loading Skeleton ────────────────────────────────────────────────
-function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEvent[] }) {
+function LoadingSkeleton({ mode, events, elapsed, onCancel }: { mode: ViewMode; events: PipelineEvent[]; elapsed?: number; onCancel?: () => void }) {
   const lastEvent = events[events.length - 1];
   const stageLabels: Record<string, string> = {
     strategist_working: "Strategist is analyzing your input…",
@@ -730,6 +730,8 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
         />
         {mode === "pipeline" ? (
           <Bot size={28} style={{ color }} />
+        ) : mode === "seller" ? (
+          <Package size={28} style={{ color }} />
         ) : agentWorking === "strategist" ? (
           <Sparkles size={28} style={{ color }} />
         ) : (
@@ -740,13 +742,14 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
       {/* Status */}
       <div className="text-center">
         <p className="mb-1 text-[14px] font-semibold" style={{ color: "var(--gray-700)" }}>
-          {mode === "pipeline" ? "Pipeline Running" : agentWorking === "strategist" ? "Strategist Working" : "Researcher Working"}
+          {mode === "pipeline" ? "Pipeline Running" : mode === "seller" ? "Seller Fulfilling" : agentWorking === "strategist" ? "Strategist Working" : "Researcher Working"}
         </p>
         <p className="max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
           {currentLabel}
         </p>
         <p className="mt-2 font-mono text-[10px]" style={{ color: "var(--gray-300)" }}>
-          {mode === "pipeline" ? "Usually 3–7 min" : mode === "researcher" ? "Usually 1–3 min" : "Usually 30–60 sec"}
+          {elapsed != null && elapsed > 0 ? `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")} elapsed · ` : ""}
+          {mode === "pipeline" ? "Usually 3–7 min" : mode === "seller" ? "Usually 3–5 min" : mode === "researcher" ? "Usually 1–3 min" : "Usually 30–60 sec"}
           {events.length > 0 && ` · ${events.length} stage${events.length !== 1 ? "s" : ""} complete`}
         </p>
       </div>
@@ -765,6 +768,17 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
         ))}
         <div className="size-2 animate-pulse rounded-full" style={{ background: color }} />
       </div>
+
+      {/* Cancel button */}
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          className="mt-2 flex items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] transition-all hover:opacity-80"
+          style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.20)", color: "#EF4444" }}
+        >
+          <RotateCcw size={11} /> Cancel
+        </button>
+      )}
     </div>
   );
 }
@@ -790,6 +804,12 @@ const EXAMPLE_PROMPTS: Record<ViewMode, string[]> = {
     "Compare Exa, Perplexity, and Tavily for AI search",
     "What are developers building with the Apify platform?",
   ],
+  seller: [
+    "Generate a deep research report on AI agent frameworks",
+    "Produce a competitive intelligence brief on no-code tools",
+    "Create a market analysis for autonomous payment systems",
+    "Write a strategic plan for entering the developer tools market",
+  ],
 };
 
 function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string) => void }) {
@@ -808,6 +828,11 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
       icon: Search,
       title: "Researcher Agent",
       desc: "Enter a research query. The agent searches and scrapes the web, then returns a structured report with citations.",
+    },
+    seller: {
+      icon: Package,
+      title: "Seller Agent",
+      desc: "Describe what a buyer needs. The Seller matches it to a product, plans fulfillment, and generates the output using the internal pipeline.",
     },
   };
   const c = config[mode];
@@ -899,13 +924,17 @@ export function StudioPage() {
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [pipelineEvents, setPipelineEvents] = useState<PipelineEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases">("document");
   const [bottomTab, setBottomTab] = useState<"stages" | "transactions">("stages");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number }; buyer: { earned: number; handled: number } }>({
+  const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number }; buyer: { earned: number; handled: number }; seller: { earned: number; handled: number } }>({
     strategist: { earned: 0, handled: 0 },
     researcher: { earned: 0, handled: 0 },
     buyer: { earned: 0, handled: 0 },
+    seller: { earned: 0, handled: 0 },
   });
   const transactions = useTransactionStream();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -938,7 +967,7 @@ export function StudioPage() {
       setInput(decodeURIComponent(q));
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-    if (m === "strategist" || m === "researcher") setMode(m);
+    if (m === "strategist" || m === "researcher" || m === "seller") setMode(m);
   }, []);
 
   function toggleAdsMuted() {
@@ -961,6 +990,7 @@ export function StudioPage() {
             strategist: { earned: data.agents.strategist?.creditsEarned ?? 0, handled: data.agents.strategist?.requestsHandled ?? 0 },
             researcher: { earned: data.agents.researcher?.creditsEarned ?? 0, handled: data.agents.researcher?.requestsHandled ?? 0 },
             buyer: { earned: data.agents.buyer?.creditsEarned ?? 0, handled: data.agents.buyer?.requestsHandled ?? 0 },
+            seller: { earned: data.agents.seller?.creditsEarned ?? 0, handled: data.agents.seller?.requestsHandled ?? 0 },
           });
         }
       })
@@ -981,6 +1011,10 @@ export function StudioPage() {
       earned: initialStats.buyer.earned + transactions.filter((t) => t.to.id === "buyer" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
       handled: initialStats.buyer.handled + transactions.filter((t) => t.to.id === "buyer" && t.status === "completed").length,
     },
+    seller: {
+      earned: initialStats.seller.earned + transactions.filter((t) => t.to.id === "seller" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
+      handled: initialStats.seller.handled + transactions.filter((t) => t.to.id === "seller" && t.status === "completed").length,
+    },
   };
 
   function handleNewRequest() {
@@ -991,14 +1025,46 @@ export function StudioPage() {
     inputRef.current?.focus();
   }
 
+  function handleCancel() {
+    abortRef.current?.abort();
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIsLoading(false);
+    setError("Request cancelled");
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setIsLoading(true);
     setError(null);
     setResult(null);
     setPipelineEvents([]);
+    setElapsed(0);
+
+    // Start elapsed timer
+    const start = Date.now();
+    timerRef.current = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+
+    // Open SSE stream to receive real-time pipeline events while the POST runs
+    const eventSource = new EventSource("/api/agent/events");
+    eventSource.onmessage = (ev) => {
+      try {
+        const raw = JSON.parse(ev.data) as { id: string; type: string; timestamp: string; data: Record<string, unknown> };
+        const mapped: PipelineEvent = {
+          id: raw.id,
+          timestamp: raw.timestamp,
+          stage: String(raw.data?.stage ?? raw.type ?? "unknown"),
+          agent: String(raw.data?.agent ?? "pipeline"),
+          message: String(raw.data?.message ?? raw.type?.replace(/_/g, " ") ?? ""),
+          data: raw.data,
+        };
+        setPipelineEvents((prev) => [...prev.slice(-49), mapped]);
+      } catch { /* ignore parse errors */ }
+    };
 
     try {
       const response = await fetch("/api/pipeline/run", {
@@ -1010,6 +1076,7 @@ export function StudioPage() {
           mode,
           toolSettings,
         }),
+        signal: controller.signal,
       });
 
       const data = await response.json();
@@ -1020,12 +1087,17 @@ export function StudioPage() {
 
       setResult(data);
       if (data.events) setPipelineEvents(data.events);
-      // Auto-switch to best tab
       if (data.document) setRightTab("document");
       else if (data.brief) setRightTab("brief");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        // already handled by handleCancel
+      } else {
+        setError(err instanceof Error ? err.message : "Request failed");
+      }
     } finally {
+      eventSource.close();
+      if (timerRef.current) clearInterval(timerRef.current);
       setIsLoading(false);
     }
   }
@@ -1128,6 +1200,22 @@ export function StudioPage() {
               onClick={() => {}}
               stats={agentStats.buyer}
             />
+            {mode === "pipeline" && (
+              <div className="flex items-center justify-center py-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
+                  <ArrowRight size={12} style={{ color: "var(--gray-300)" }} />
+                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
+                </div>
+              </div>
+            )}
+            <AgentCard
+              agent={AGENT_CONFIG.seller}
+              isActive={isLoading && (mode === "pipeline" || mode === "seller")}
+              isSelected={mode === "seller"}
+              onClick={() => setMode(mode === "seller" ? "pipeline" : "seller")}
+              stats={agentStats.seller}
+            />
           </div>
 
           {/* Mode indicator */}
@@ -1137,14 +1225,14 @@ export function StudioPage() {
                 className="rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase"
                 style={{
                   background: mode === "pipeline" ? "rgba(34, 197, 94, 0.10)" :
-                    mode === "strategist" ? AGENT_CONFIG.strategist.bgColor : AGENT_CONFIG.researcher.bgColor,
+                    AGENT_CONFIG[mode]?.bgColor ?? AGENT_CONFIG.researcher.bgColor,
                   color: mode === "pipeline" ? "var(--green-400)" :
-                    mode === "strategist" ? AGENT_CONFIG.strategist.color : AGENT_CONFIG.researcher.color,
+                    AGENT_CONFIG[mode]?.color ?? AGENT_CONFIG.researcher.color,
                   border: `1px solid ${mode === "pipeline" ? "rgba(34, 197, 94, 0.20)" :
-                    mode === "strategist" ? AGENT_CONFIG.strategist.borderColor : AGENT_CONFIG.researcher.borderColor}`,
+                    AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
                 }}
               >
-                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Strategist Only" : "◈ Researcher Only"}
+                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Strategist Only" : mode === "researcher" ? "◈ Researcher Only" : "◇ Seller Only"}
               </span>
               {mode !== "pipeline" && (
                 <button
@@ -1169,10 +1257,12 @@ export function StudioPage() {
             </div>
             <p className="mt-1 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
               {mode === "pipeline"
-                ? "Strategist → Researcher → Buyer. Full research + planning deliverable."
+                ? "Strategist → Researcher → Buyer → Seller. Full research + planning deliverable."
                 : mode === "strategist"
                 ? "Structured brief only. Fast strategy output, no web research."
-                : "Web research only. SCOUT searches and synthesizes from live sources."}
+                : mode === "researcher"
+                ? "Web research only. Searches and synthesizes from live sources."
+                : "Seller fulfillment mode. Matches to a product and generates output via internal pipeline."}
             </p>
           </div>
 
@@ -1378,7 +1468,7 @@ export function StudioPage() {
           {/* Content */}
           <div className="flex-1 overflow-hidden">
             {isLoading ? (
-              <LoadingSkeleton mode={mode} events={pipelineEvents} />
+              <LoadingSkeleton mode={mode} events={pipelineEvents} elapsed={elapsed} onCancel={handleCancel} />
             ) : !result ? (
               <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />
             ) : rightTab === "document" && result.document ? (

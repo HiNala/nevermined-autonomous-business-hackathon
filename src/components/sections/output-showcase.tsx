@@ -50,12 +50,13 @@ export function OutputShowcase() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20">
       <div className="mb-8">
-        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
-          Sample Output
-        </h2>
-        <p className="text-[22px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>004 / SAMPLE OUTPUT</span>
+        </div>
+        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
           This is what a Research Sprint looks like.
-        </p>
+        </h2>
       </div>
 
       <motion.div
@@ -83,7 +84,7 @@ export function OutputShowcase() {
               </p>
               <div className="flex items-center gap-3 mt-0.5">
                 <span className="flex items-center gap-1 font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                  <Zap size={9} style={{ color: "var(--green-400)" }} /> {MOCK_DOC.meta.credits}cr
+                  <Zap size={9} style={{ color: "var(--accent-400)" }} /> {MOCK_DOC.meta.credits}cr
                 </span>
                 <span className="flex items-center gap-1 font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
                   <Clock size={9} /> {MOCK_DOC.meta.duration}
@@ -91,7 +92,7 @@ export function OutputShowcase() {
                 <span className="flex items-center gap-1 font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
                   <Globe size={9} /> {MOCK_DOC.meta.sources} sources
                 </span>
-                <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+                <span className="font-mono text-[10px]" style={{ color: "var(--accent-400)" }}>
                   {MOCK_DOC.meta.agent}
                 </span>
               </div>
@@ -102,9 +103,9 @@ export function OutputShowcase() {
           <span
             className="rounded-md px-2 py-1 font-mono text-[9px] font-semibold uppercase"
             style={{
-              background: "rgba(34, 197, 94, 0.07)",
-              color: "var(--green-400)",
-              border: "1px solid rgba(34, 197, 94, 0.14)",
+              background: "rgba(99, 102, 241, 0.08)",
+              color: "var(--accent-400)",
+              border: "1px solid rgba(99, 102, 241, 0.16)",
             }}
           >
             Example output
@@ -145,7 +146,7 @@ export function OutputShowcase() {
                       <li key={j} className="flex items-start gap-2.5 text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
                         <span
                           className="mt-[7px] size-1.5 shrink-0 rounded-full"
-                          style={{ background: "var(--green-400)", opacity: 0.55 }}
+                          style={{ background: "var(--accent-400)", opacity: 0.55 }}
                         />
                         {item}
                       </li>
@@ -187,8 +188,8 @@ export function OutputShowcase() {
                 href="/studio?q=Research the AI agent market in 2025"
                 className="group flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
                 style={{
-                  background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-                  boxShadow: "0 0 16px -4px rgba(34, 197, 94, 0.25)",
+                  background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+                  boxShadow: "0 0 16px -4px rgba(99, 102, 241, 0.28)",
                 }}
               >
                 Run this research

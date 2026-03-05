@@ -5,10 +5,10 @@ export async function GET() {
   const providers = listAvailableProviders();
 
   return NextResponse.json({
-    agent: "Auto Business Research Agent",
+    agent: "Auto Business Agent Studio",
     version: "1.0.0",
     description:
-      "Web research agent that scrapes, analyzes, and structures information into professional documents. Powered by multi-provider AI (OpenAI, Gemini, Anthropic).",
+      "Four specialist AI agents — Strategist plans, Researcher discovers, Buyer procures, Seller fulfills — delivering structured work in minutes. Powered by multi-provider AI (OpenAI, Gemini, Anthropic) and Nevermined payments.",
     pricing: {
       quick: {
         credits: 1,

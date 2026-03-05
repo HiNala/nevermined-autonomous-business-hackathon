@@ -155,22 +155,20 @@ export function AgentCards() {
   return (
     <section id="agents" className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-8">
-        <div className="mb-2 flex items-center justify-between">
-          <h2
-            className="text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--gray-400)" }}
-          >
-            Specialist Agents
-          </h2>
-          <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>003 / SPECIALIST AGENTS</span>
+          </div>
+          <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
             {STUDIO_AGENTS.length} active
           </span>
         </div>
-        <p className="text-[22px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
           Your specialist team.
-        </p>
+        </h2>
       </div>
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
         {STUDIO_AGENTS.map((agent, i) => (
           <AgentCard key={agent.id} agent={agent} index={i} />
         ))}

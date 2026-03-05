@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { runBuyer, type BuyerRequest } from "@/lib/agent/buyer";
 import { agentEvents } from "@/lib/agent/event-store";
 import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
+import type { ToolSettings } from "@/lib/tool-settings";
 
 interface RequestBody {
   query?: string;
   maxCredits?: number;
   preferredTypes?: ("dataset" | "report" | "model" | "service" | "other")[];
   targetDids?: string[];
+  toolSettings?: ToolSettings;
 }
 
 function generateEventId() {

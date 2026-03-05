@@ -67,7 +67,7 @@ export function TryStudio() {
         </div>
         {selectedService ? (
           <div className="glass-pill px-3 py-1.5">
-            <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+            <span className="font-mono text-[10px]" style={{ color: "var(--accent-400)" }}>
               {selectedService.name} · {formatCredits(selectedService.credits)}
             </span>
           </div>
@@ -83,7 +83,7 @@ export function TryStudio() {
               <select
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
-                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(99,102,241,0.35)]"
                 style={inputStyle}
               >
                 {STUDIO_SERVICES.map((s) => (
@@ -98,7 +98,7 @@ export function TryStudio() {
                 value={contextUrl}
                 onChange={(e) => setContextUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(99,102,241,0.35)]"
                 style={inputStyle}
               />
             </label>
@@ -111,7 +111,7 @@ export function TryStudio() {
               onChange={(e) => setBrief(e.target.value)}
               placeholder="Describe what you need — research, a plan, or a design spec…"
               rows={6}
-              className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+              className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(99,102,241,0.35)]"
               style={inputStyle}
               required
             />
@@ -126,8 +126,8 @@ export function TryStudio() {
               disabled={isSubmitting || !serviceId || !brief.trim()}
               className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40"
               style={{
-                background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-                boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
+                background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+                boxShadow: "0 0 20px -4px rgba(99, 102, 241, 0.30)",
               }}
             >
               {isSubmitting ? "Routing…" : "Run request"}
@@ -156,9 +156,9 @@ export function TryStudio() {
                   <span
                     className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest"
                     style={{
-                      background: response.mode === "live" ? "rgba(34, 197, 94, 0.10)" : "var(--glass-bg)",
-                      border: `1px solid ${response.mode === "live" ? "rgba(34, 197, 94, 0.18)" : "var(--border-default)"}`,
-                      color: response.mode === "live" ? "var(--green-400)" : "var(--gray-500)",
+                      background: response.mode === "live" ? "rgba(99, 102, 241, 0.10)" : "var(--glass-bg)",
+                      border: `1px solid ${response.mode === "live" ? "rgba(99, 102, 241, 0.20)" : "var(--border-default)"}`,
+                      color: response.mode === "live" ? "var(--accent-400)" : "var(--gray-500)",
                     }}
                   >
                     {response.mode}
@@ -211,7 +211,7 @@ function OutputList({ label, items }: { label: string; items: string[] }) {
       <div className="space-y-1.5">
         {items.map((item) => (
           <div key={item} className="flex items-start gap-2">
-            <span className="mt-1.5 size-1 rounded-full" style={{ background: "var(--green-400)", opacity: 0.6 }} />
+            <span className="mt-1.5 size-1 rounded-full" style={{ background: "var(--accent-400)", opacity: 0.6 }} />
             <span className="text-[12px] leading-relaxed" style={{ color: "var(--gray-500)" }}>{item}</span>
           </div>
         ))}
