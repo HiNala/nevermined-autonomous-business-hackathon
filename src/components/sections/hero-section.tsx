@@ -38,7 +38,7 @@ export function HeroSection() {
           </motion.div>
 
           <motion.h1
-            className="text-gradient-neutral text-[3.5rem] font-semibold leading-[1.08] tracking-tight sm:text-[4.2rem]"
+            className="font-display text-gradient-neutral text-[3.5rem] leading-[1.08] tracking-tight sm:text-[4.2rem]"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -55,9 +55,9 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            A team of specialized AI agents that research, plan, and design — 
-            powered by credit-based payments on Nevermined. 
-            Pay only for what you use.
+            A team of specialized agents for research, planning, and front-end design.
+            Start in demo mode, then switch to real Nevermined-powered seller calls as
+            soon as your payment config is live.
           </motion.p>
 
           <motion.div
@@ -66,7 +66,8 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <button
+            <a
+              href="#services"
               className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white transition-all duration-200"
               style={{
                 background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
@@ -75,8 +76,9 @@ export function HeroSection() {
             >
               Explore Services
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-            </button>
-            <button
+            </a>
+            <a
+              href="#try-studio"
               className="rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
               style={{
                 background: "var(--glass-bg)",
@@ -84,8 +86,8 @@ export function HeroSection() {
                 border: "1px solid var(--border-default)",
               }}
             >
-              View Agents
-            </button>
+              Run a Request
+            </a>
           </motion.div>
         </div>
 

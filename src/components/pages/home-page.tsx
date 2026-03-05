@@ -5,11 +5,15 @@ import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
 import { HeroSection } from "@/components/sections/hero-section";
 import { StatsBar } from "@/components/sections/stats-bar";
-import { TransactionFeed } from "@/components/sections/transaction-feed";
-import { AgentCards } from "@/components/sections/agent-cards";
-import { ServicesSection } from "@/components/sections/services-section";
 import { DecisionLogic } from "@/components/sections/decision-logic";
+import { StudioServices } from "@/components/sections/studio-services";
+import { AgentCards } from "@/components/sections/agent-cards";
+import { TryStudio } from "@/components/sections/try-studio";
+import { TransactionFeed } from "@/components/sections/transaction-feed";
 import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
+import { PaymentReadiness } from "@/components/sections/payment-readiness";
+import { CtaSection } from "@/components/sections/cta-section";
+import { SectionDivider } from "@/components/ui/section-divider";
 import { STAT_UPDATE_INTERVAL_MS } from "@/lib/constants";
 import { INITIAL_STATS } from "@/data/mock-transactions";
 import type { LiveStats } from "@/types";
@@ -35,11 +39,21 @@ export function HomePage() {
       <main>
         <HeroSection />
         <StatsBar stats={stats} />
-        <ServicesSection />
-        <AgentCards />
+        <SectionDivider />
         <DecisionLogic />
+        <SectionDivider />
+        <StudioServices />
+        <SectionDivider />
+        <AgentCards />
+        <SectionDivider />
+        <TryStudio />
+        <SectionDivider />
         <TransactionFeed />
+        <SectionDivider />
         <MarketplaceConnections />
+        <SectionDivider />
+        <PaymentReadiness />
+        <CtaSection />
       </main>
       <Footer />
     </div>

@@ -26,6 +26,7 @@
   --gray-400: rgba(255, 255, 255, 0.40);
   --gray-500: rgba(255, 255, 255, 0.50);
   --gray-600: rgba(255, 255, 255, 0.64);
+  --gray-700: rgba(255, 255, 255, 0.74);
   --gray-800: rgba(255, 255, 255, 0.85);
   --gray-900: rgba(255, 255, 255, 0.95);
 
@@ -63,6 +64,10 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-dm-serif);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 /* ── Base styles ── */

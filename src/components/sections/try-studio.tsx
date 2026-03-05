@@ -3,7 +3,14 @@
 import { FormEvent, useMemo, useState } from "react";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
 import { formatCredits } from "@/lib/utils";
+import { Send, Terminal } from "lucide-react";
 import type { StudioRequestResponse } from "@/types";
+
+const inputStyle: React.CSSProperties = {
+  background: "rgba(255, 255, 255, 0.04)",
+  border: "1px solid var(--border-default)",
+  color: "var(--gray-800)",
+};
 
 export function TryStudio() {
   const [serviceId, setServiceId] = useState(STUDIO_SERVICES[0]?.id ?? "");
@@ -14,7 +21,7 @@ export function TryStudio() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedService = useMemo(
-    () => STUDIO_SERVICES.find((service) => service.id === serviceId) ?? STUDIO_SERVICES[0],
+    () => STUDIO_SERVICES.find((s) => s.id === serviceId) ?? STUDIO_SERVICES[0],
     [serviceId]
   );
 
@@ -22,30 +29,26 @@ export function TryStudio() {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
-
     try {
       const apiResponse = await fetch("/api/studio-request", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          serviceId,
-          brief,
-          contextUrl,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId, brief, contextUrl }),
       });
-
       const data = (await apiResponse.json()) as StudioRequestResponse | { error?: string };
 
-      if (!apiResponse.ok || !("preview" in data)) {
-        throw new Error(data.error ?? "Failed to submit studio request.");
+      if (!("preview" in data)) {
+        throw new Error(data.error ?? "Request failed.");
       }
 
       setResponse(data);
+
+      if (!apiResponse.ok) {
+        setError(data.error ?? "Seller call failed, but the request preview was generated.");
+      }
     } catch (submitError) {
       setResponse(null);
-      setError(submitError instanceof Error ? submitError.message : "Unexpected request failure.");
+      setError(submitError instanceof Error ? submitError.message : "Unexpected failure.");
     } finally {
       setIsSubmitting(false);
     }
@@ -55,182 +58,140 @@ export function TryStudio() {
     <section id="try-studio" className="mx-auto max-w-6xl px-6 pb-20">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2
-            className="mb-3 text-xs font-bold uppercase tracking-widest"
-            style={{ color: "var(--gray-400)" }}
-          >
+          <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
             Try The Studio
           </h2>
-          <p className="max-w-2xl text-sm" style={{ color: "var(--gray-600)" }}>
-            Submit a brief, choose the specialist, and route it through the paid studio flow.
+          <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            Submit a brief, choose a specialist, and route through the paid studio flow.
           </p>
         </div>
         {selectedService ? (
-          <div
-            className="rounded-full border px-3 py-1 font-mono text-xs"
-            style={{
-              borderColor: "var(--green-200)",
-              background: "var(--green-50)",
-              color: "var(--green-700)",
-            }}
-          >
-            {selectedService.name} · {formatCredits(selectedService.credits)}
+          <div className="glass-pill px-3 py-1.5">
+            <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+              {selectedService.name} · {formatCredits(selectedService.credits)}
+            </span>
           </div>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.95fr]">
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-xl border bg-white p-6 shadow-sm"
-          style={{ borderColor: "var(--border-default)" }}
-        >
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_0.95fr]">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="glass p-6">
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="space-y-2">
-              <span className="text-sm font-medium" style={{ color: "var(--gray-800)" }}>
-                Service
-              </span>
+            <label className="space-y-1.5">
+              <span className="text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>Service</span>
               <select
                 value={serviceId}
-                onChange={(event) => setServiceId(event.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                style={{ borderColor: "var(--border-default)", color: "var(--gray-800)" }}
+                onChange={(e) => setServiceId(e.target.value)}
+                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+                style={inputStyle}
               >
-                {STUDIO_SERVICES.map((service) => (
-                  <option key={service.id} value={service.id}>
-                    {service.name}
-                  </option>
+                {STUDIO_SERVICES.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
             </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium" style={{ color: "var(--gray-800)" }}>
-                Context URL
-              </span>
+            <label className="space-y-1.5">
+              <span className="text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>Context URL</span>
               <input
                 type="url"
                 value={contextUrl}
-                onChange={(event) => setContextUrl(event.target.value)}
+                onChange={(e) => setContextUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                style={{ borderColor: "var(--border-default)", color: "var(--gray-800)" }}
+                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+                style={inputStyle}
               />
             </label>
           </div>
 
-          <label className="mb-4 block space-y-2">
-            <span className="text-sm font-medium" style={{ color: "var(--gray-800)" }}>
-              Brief
-            </span>
+          <label className="mb-4 block space-y-1.5">
+            <span className="text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>Brief</span>
             <textarea
               value={brief}
-              onChange={(event) => setBrief(event.target.value)}
-              placeholder="Need a landing page plan and UI direction for a hackathon agent marketplace with working payments today."
-              rows={8}
-              className="w-full rounded-xl border px-4 py-3 text-sm outline-none"
-              style={{ borderColor: "var(--border-default)", color: "var(--gray-800)" }}
+              onChange={(e) => setBrief(e.target.value)}
+              placeholder="Describe what you need — research, a plan, or a design spec…"
+              rows={6}
+              className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
+              style={inputStyle}
               required
             />
           </label>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs" style={{ color: "var(--gray-400)" }}>
-              Demo mode returns a structured preview. Live mode also pays and calls your seller.
+            <p className="text-[11px]" style={{ color: "var(--gray-400)" }}>
+              Demo returns a preview. Live pays and calls your seller.
             </p>
             <button
               type="submit"
               disabled={isSubmitting || !serviceId || !brief.trim()}
-              className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-              style={{ background: "var(--green-500)" }}
+              className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40"
+              style={{
+                background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
+                boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
+              }}
             >
-              {isSubmitting ? "Routing request..." : "Run studio request"}
+              {isSubmitting ? "Routing…" : "Run request"}
+              <Send size={13} className="transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>
         </form>
 
-        <div
-          className="rounded-xl border bg-white p-6 shadow-sm"
-          style={{ borderColor: "var(--border-default)" }}
-        >
-          <p className="mb-4 font-mono text-xs uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>
-            Request output
-          </p>
+        {/* Output */}
+        <div className="glass p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Terminal size={13} style={{ color: "var(--gray-400)" }} />
+            <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+              Output
+            </p>
+          </div>
 
           {error ? (
-            <p className="text-sm" style={{ color: "var(--tx-debit)" }}>
-              {error}
-            </p>
+            <p className="text-[13px]" style={{ color: "var(--tx-debit)" }}>{error}</p>
           ) : response ? (
             <div className="space-y-5">
               <div>
                 <div className="mb-2 flex items-center gap-2">
                   <span
-                    className="rounded-full px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-widest"
+                    className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest"
                     style={{
-                      background: response.mode === "live" ? "var(--green-50)" : "var(--bg-elevated)",
-                      border: `1px solid ${response.mode === "live" ? "var(--green-200)" : "var(--gray-200)"}`,
-                      color: response.mode === "live" ? "var(--green-700)" : "var(--gray-600)",
+                      background: response.mode === "live" ? "rgba(34, 197, 94, 0.10)" : "var(--glass-bg)",
+                      border: `1px solid ${response.mode === "live" ? "rgba(34, 197, 94, 0.18)" : "var(--border-default)"}`,
+                      color: response.mode === "live" ? "var(--green-400)" : "var(--gray-500)",
                     }}
                   >
-                    {response.mode} mode
+                    {response.mode}
                   </span>
                   {response.sellerResponse ? (
-                    <span className="font-mono text-xs" style={{ color: "var(--gray-400)" }}>
-                      Seller status {response.sellerResponse.status}
+                    <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                      status {response.sellerResponse.status}
                     </span>
                   ) : null}
                 </div>
-                <h3 className="text-lg font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+                <h3 className="text-base font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
                   {response.preview.title}
                 </h3>
-                <p className="mt-2 text-sm" style={{ color: "var(--gray-600)" }}>
+                <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
                   {response.preview.summary}
                 </p>
               </div>
 
-              <div>
-                <p className="mb-2 font-mono text-[11px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>
-                  Highlights
-                </p>
-                <div className="space-y-2">
-                  {response.preview.highlights.map((item) => (
-                    <PreviewItem key={item} text={item} />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 font-mono text-[11px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>
-                  Next steps
-                </p>
-                <div className="space-y-2">
-                  {response.preview.nextSteps.map((item) => (
-                    <PreviewItem key={item} text={item} />
-                  ))}
-                </div>
-              </div>
+              <OutputList label="Highlights" items={response.preview.highlights} />
+              <OutputList label="Next Steps" items={response.preview.nextSteps} />
 
               {response.sellerResponse ? (
-                <div
-                  className="rounded-xl border p-4"
-                  style={{
-                    borderColor: "var(--border-default)",
-                    background: "var(--bg-elevated)",
-                  }}
-                >
-                  <p className="mb-2 font-mono text-[11px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>
-                    Seller response
+                <div className="glass p-4" style={{ borderRadius: 12 }}>
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+                    Seller Response
                   </p>
-                  <pre className="overflow-x-auto whitespace-pre-wrap text-xs" style={{ color: "var(--gray-700)" }}>
+                  <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[11px]" style={{ color: "var(--gray-500)" }}>
                     {JSON.stringify(response.sellerResponse.body, null, 2)}
                   </pre>
                 </div>
               ) : null}
             </div>
           ) : (
-            <p className="text-sm" style={{ color: "var(--gray-600)" }}>
-              Submit a brief to preview the delivery structure and verify the live payment path.
+            <p className="text-[13px]" style={{ color: "var(--gray-500)" }}>
+              Submit a brief to preview the delivery structure and verify the payment path.
             </p>
           )}
         </div>
@@ -239,11 +200,20 @@ export function TryStudio() {
   );
 }
 
-function PreviewItem({ text }: { text: string }) {
+function OutputList({ label, items }: { label: string; items: string[] }) {
   return (
-    <div className="flex items-start gap-2 text-sm" style={{ color: "var(--gray-700)" }}>
-      <span className="mt-1 size-1.5 rounded-full" style={{ background: "var(--green-500)" }} />
-      <span>{text}</span>
+    <div>
+      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+        {label}
+      </p>
+      <div className="space-y-1.5">
+        {items.map((item) => (
+          <div key={item} className="flex items-start gap-2">
+            <span className="mt-1.5 size-1 rounded-full" style={{ background: "var(--green-400)", opacity: 0.6 }} />
+            <span className="text-[12px] leading-relaxed" style={{ color: "var(--gray-500)" }}>{item}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

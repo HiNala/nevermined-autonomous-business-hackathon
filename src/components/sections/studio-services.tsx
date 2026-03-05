@@ -1,5 +1,77 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
 import { formatCredits } from "@/lib/utils";
+import { Clock } from "lucide-react";
+import type { StudioService } from "@/types";
+
+function ServiceCard({ service, index }: { service: StudioService; index: number }) {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      className="glass group relative overflow-hidden p-6 transition-all duration-300"
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(34, 197, 94, 0.20)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 30px -8px rgba(34, 197, 94, 0.12)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "none";
+      }}
+    >
+      {/* Top accent */}
+      <div
+        className="absolute top-0 left-6 right-6 h-px"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.25), transparent)" }}
+      />
+
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+            {service.name}
+          </h3>
+          <div className="mt-1 flex items-center gap-1.5">
+            <Clock size={11} style={{ color: "var(--gray-400)" }} />
+            <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+              {service.turnaround}
+            </span>
+          </div>
+        </div>
+        <span
+          className="rounded-lg px-2.5 py-1 font-mono text-[12px] font-bold"
+          style={{
+            background: "rgba(34, 197, 94, 0.10)",
+            color: "var(--green-400)",
+            border: "1px solid rgba(34, 197, 94, 0.18)",
+          }}
+        >
+          {formatCredits(service.credits)}
+        </span>
+      </div>
+
+      <p className="mb-5 text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+        {service.summary}
+      </p>
+
+      <div className="space-y-2">
+        {service.outcomes.map((outcome) => (
+          <div key={outcome} className="flex items-start gap-2">
+            <span
+              className="mt-1.5 size-1 rounded-full"
+              style={{ background: "var(--green-400)", opacity: 0.7 }}
+            />
+            <span className="text-[12px]" style={{ color: "var(--gray-500)" }}>
+              {outcome}
+            </span>
+          </div>
+        ))}
+      </div>
+    </motion.article>
+  );
+}
 
 export function StudioServices() {
   return (
@@ -7,83 +79,26 @@ export function StudioServices() {
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <h2
-            className="mb-3 text-xs font-bold uppercase tracking-widest"
+            className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
             style={{ color: "var(--gray-400)" }}
           >
             Studio Services
           </h2>
-          <p
-            className="max-w-2xl text-sm"
-            style={{ color: "var(--gray-600)" }}
-          >
-            Three paid deliverables designed for teams that need fast research,
-            planning, and front-end direction today.
+          <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            Three paid deliverables for teams that need fast research,
+            planning, and front-end direction.
           </p>
         </div>
-        <div
-          className="rounded-full border px-3 py-1 font-mono text-xs"
-          style={{
-            borderColor: "var(--green-200)",
-            background: "var(--green-50)",
-            color: "var(--green-700)",
-          }}
-        >
-          Nevermined-ready pricing
+        <div className="glass-pill px-3 py-1.5">
+          <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+            Nevermined-ready
+          </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {STUDIO_SERVICES.map((service) => (
-          <article
-            key={service.id}
-            className="rounded-xl border bg-white p-6 shadow-sm"
-            style={{ borderColor: "var(--border-default)" }}
-          >
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h3
-                  className="text-lg font-semibold tracking-tight"
-                  style={{ color: "var(--gray-900)" }}
-                >
-                  {service.name}
-                </h3>
-                <p
-                  className="mt-1 font-mono text-xs uppercase tracking-wider"
-                  style={{ color: "var(--gray-400)" }}
-                >
-                  Delivery {service.turnaround}
-                </p>
-              </div>
-              <div
-                className="rounded-full px-3 py-1 font-mono text-sm font-bold"
-                style={{
-                  background: "var(--green-50)",
-                  color: "var(--green-700)",
-                  border: "1px solid var(--green-200)",
-                }}
-              >
-                {formatCredits(service.credits)}
-              </div>
-            </div>
-
-            <p className="mb-5 text-sm" style={{ color: "var(--gray-600)" }}>
-              {service.summary}
-            </p>
-
-            <div className="space-y-2">
-              {service.outcomes.map((outcome) => (
-                <div key={outcome} className="flex items-start gap-2">
-                  <span
-                    className="mt-1 size-1.5 rounded-full"
-                    style={{ background: "var(--green-500)" }}
-                  />
-                  <span className="text-sm" style={{ color: "var(--gray-800)" }}>
-                    {outcome}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </article>
+        {STUDIO_SERVICES.map((service, i) => (
+          <ServiceCard key={service.id} service={service} index={i} />
         ))}
       </div>
     </section>

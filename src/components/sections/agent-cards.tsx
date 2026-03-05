@@ -135,6 +135,9 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
             e.currentTarget.style.background = `${agent.accentColor}12`;
             e.currentTarget.style.borderColor = `${agent.accentColor}20`;
           }}
+          onClick={() => {
+            window.location.hash = "try-studio";
+          }}
         >
           {agent.ctaLabel} →
         </button>
@@ -145,13 +148,13 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
 
 export function AgentCards() {
   return (
-    <section className="mx-auto max-w-6xl px-6 pb-16">
+    <section id="agents" className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-6 flex items-center justify-between">
         <h2
           className="text-[11px] font-semibold uppercase tracking-widest"
           style={{ color: "var(--gray-400)" }}
         >
-          Agent Team
+          Specialist Agents
         </h2>
         <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
           {STUDIO_AGENTS.length} specialists

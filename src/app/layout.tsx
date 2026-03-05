@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Serif_Display } from "next/font/google";
+import { SITE_DESCRIPTION } from "@/lib/constants";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,9 +20,8 @@ const dmSerif = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: "NVM Market — Autonomous Agent Marketplace",
-  description:
-    "A live agent economy running on Nevermined. Watch your agents transact — or build something that trades with ours.",
+  title: "Auto Business — Specialized Agent Studio",
+  description: SITE_DESCRIPTION,
 };
 
 export default function RootLayout({
