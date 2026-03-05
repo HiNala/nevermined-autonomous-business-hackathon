@@ -107,16 +107,27 @@ async function completeWithAnthropic(options: AICompletionOptions): Promise<AICo
   };
 }
 
+const AI_TIMEOUT_MS = 120_000; // 2 minute timeout per AI call
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`AI call timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
+
 export async function complete(options: AICompletionOptions): Promise<AICompletionResult> {
   const provider = options.provider ?? getAvailableProvider();
 
   switch (provider) {
     case "openai":
-      return completeWithOpenAI(options);
+      return withTimeout(completeWithOpenAI(options), AI_TIMEOUT_MS);
     case "gemini":
-      return completeWithGemini(options);
+      return withTimeout(completeWithGemini(options), AI_TIMEOUT_MS);
     case "anthropic":
-      return completeWithAnthropic(options);
+      return withTimeout(completeWithAnthropic(options), AI_TIMEOUT_MS);
     default:
       throw new Error(`Unknown AI provider: ${provider}`);
   }

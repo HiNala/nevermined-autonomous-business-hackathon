@@ -31,99 +31,16 @@ import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad"
 import { SettingsPanel } from "@/components/ui/settings-panel";
 import { loadToolSettings, saveToolSettings, type ToolSettings } from "@/lib/tool-settings";
 import { PurchasedAssetGrid } from "@/components/ui/purchased-asset-card";
-
-// ─── Types ──────────────────────────────────────────────────────────
-interface ResearchSource {
-  url: string;
-  title: string;
-  excerpt: string;
-  fetchedAt: string;
-}
-
-interface ResearchDocument {
-  id: string;
-  query: string;
-  title: string;
-  summary: string;
-  sections: { heading: string; content: string }[];
-  sources: ResearchSource[];
-  provider: string;
-  model: string;
-  creditsUsed: number;
-  createdAt: string;
-  durationMs: number;
-}
-
-interface StructuredBrief {
-  id: string;
-  originalInput: string;
-  outputType: string;
-  title: string;
-  objective: string;
-  scope: string[];
-  searchQueries: string[];
-  keyQuestions: string[];
-  deliverables: string[];
-  constraints: string[];
-  context: string;
-  provider: string;
-  model: string;
-  creditsUsed: number;
-  createdAt: string;
-  durationMs: number;
-}
-
-interface AgentTransaction {
-  id: string;
-  timestamp: string;
-  from: { id: string; name: string };
-  to: { id: string; name: string };
-  credits: number;
-  purpose: string;
-  artifactId: string;
-  status: string;
-  durationMs?: number;
-}
-
-interface PipelineEvent {
-  id: string;
-  timestamp: string;
-  stage: string;
-  agent: string;
-  message: string;
-  data?: Record<string, unknown>;
-}
-
-interface PurchasedAsset {
-  id: string;
-  did: string;
-  name: string;
-  description: string;
-  provider: string;
-  type: "dataset" | "report" | "model" | "service" | "other";
-  content: string;
-  contentType: "text" | "json" | "markdown" | "html" | "binary";
-  creditsPaid: number;
-  purchasedAt: string;
-  durationMs: number;
-  status: "success" | "failed";
-  error?: string;
-}
-
-interface PipelineResult {
-  mode: string;
-  id?: string;
-  brief?: StructuredBrief;
-  document?: ResearchDocument;
-  purchasedAssets?: PurchasedAsset[];
-  transactions?: AgentTransaction[];
-  events?: PipelineEvent[];
-  totalCredits?: number;
-  totalDurationMs?: number;
-  iterations?: number;
-  followUpBriefs?: StructuredBrief[];
-  transaction?: AgentTransaction;
-}
+import type {
+  ResearchSource,
+  ResearchDocument,
+  StructuredBrief,
+  AgentTransaction,
+  PipelineEvent,
+  PurchasedAsset,
+  PipelineResult,
+} from "@/types/pipeline";
+import { AGENT_CONFIG } from "@/lib/agent/config";
 
 type ViewMode = "pipeline" | "strategist" | "researcher" | "seller";
 type OutputType = "research" | "prd" | "plan" | "analysis" | "general";
@@ -135,49 +52,6 @@ const OUTPUT_TYPES: { value: OutputType; label: string; icon: typeof FileText }[
   { value: "analysis", label: "Analysis", icon: Sparkles },
   { value: "general", label: "General", icon: Globe },
 ];
-
-const AGENT_CONFIG = {
-  strategist: {
-    id: "strategist",
-    name: "Strategist",
-    role: "Planning & Structuring",
-    description: "Expands raw input into comprehensive structured briefs with search queries, scope, and deliverables.",
-    avatar: "◆",
-    color: "#7C3AED",
-    bgColor: "rgba(124, 58, 237, 0.08)",
-    borderColor: "rgba(124, 58, 237, 0.20)",
-  },
-  researcher: {
-    id: "researcher",
-    name: "Researcher",
-    role: "Web Research & Reporting",
-    description: "Searches and scrapes the web, analyzes sources, and produces detailed reports with citations.",
-    avatar: "◈",
-    color: "#0EA5E9",
-    bgColor: "rgba(14, 165, 233, 0.08)",
-    borderColor: "rgba(14, 165, 233, 0.20)",
-  },
-  buyer: {
-    id: "buyer",
-    name: "Buyer",
-    role: "Marketplace Procurement",
-    description: "Discovers and purchases outputs from third-party agents on the Nevermined marketplace.",
-    avatar: "◎",
-    color: "#F59E0B",
-    bgColor: "rgba(245, 158, 11, 0.08)",
-    borderColor: "rgba(245, 158, 11, 0.20)",
-  },
-  seller: {
-    id: "seller",
-    name: "Seller",
-    role: "Marketplace Sales",
-    description: "Receives external orders, plans fulfillment, and delivers generated outputs to the marketplace.",
-    avatar: "◇",
-    color: "#EF4444",
-    bgColor: "rgba(239, 68, 68, 0.08)",
-    borderColor: "rgba(239, 68, 68, 0.20)",
-  },
-};
 
 // ─── Transaction stream hook ────────────────────────────────────────
 function useTransactionStream() {
@@ -968,6 +842,19 @@ export function StudioPage() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
     if (m === "strategist" || m === "researcher" || m === "seller") setMode(m);
+
+    // Restore last result from localStorage
+    try {
+      const saved = localStorage.getItem("ab_last_result");
+      if (saved && !q) {
+        const parsed = JSON.parse(saved) as { result: PipelineResult; input: string; mode: ViewMode };
+        setResult(parsed.result);
+        setInput(parsed.input);
+        if (parsed.mode) setMode(parsed.mode);
+        if (parsed.result.document) setRightTab("document");
+        else if (parsed.result.brief) setRightTab("brief");
+      }
+    } catch { /* ignore corrupt data */ }
   }, []);
 
   function toggleAdsMuted() {
@@ -1089,6 +976,9 @@ export function StudioPage() {
       if (data.events) setPipelineEvents(data.events);
       if (data.document) setRightTab("document");
       else if (data.brief) setRightTab("brief");
+
+      // Persist last result to localStorage
+      try { localStorage.setItem("ab_last_result", JSON.stringify({ result: data, input: input.trim(), mode })); } catch { /* quota exceeded */ }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         // already handled by handleCancel
@@ -1101,6 +991,29 @@ export function StudioPage() {
       setIsLoading(false);
     }
   }
+
+  // Keyboard shortcuts: Escape to cancel, Cmd/Ctrl+K to open settings
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Escape: cancel running pipeline
+      if (e.key === "Escape" && isLoading) {
+        e.preventDefault();
+        handleCancel();
+      }
+      // Cmd/Ctrl+K: toggle settings
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSettingsOpen((v) => !v);
+      }
+      // Cmd/Ctrl+N: new request (when not loading)
+      if ((e.metaKey || e.ctrlKey) && e.key === "n" && !isLoading) {
+        e.preventDefault();
+        handleNewRequest();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLoading]);
 
   return (
     <>

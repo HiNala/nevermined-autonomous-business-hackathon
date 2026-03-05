@@ -6,27 +6,7 @@ import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink,
 import type { AIProvider } from "@/lib/ai/providers";
 import { ToolSettingsButton } from "@/components/ui/tool-settings-panel";
 import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
-
-interface ResearchSource {
-  url: string;
-  title: string;
-  excerpt: string;
-  fetchedAt: string;
-}
-
-interface ResearchDocument {
-  id: string;
-  query: string;
-  title: string;
-  summary: string;
-  sections: { heading: string; content: string }[];
-  sources: ResearchSource[];
-  provider: string;
-  model: string;
-  creditsUsed: number;
-  createdAt: string;
-  durationMs: number;
-}
+import type { ResearchSource, ResearchDocument } from "@/types/pipeline";
 
 interface AgentEvent {
   id: string;
@@ -71,9 +51,9 @@ function EmptyState() {
     <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
       <div
         className="flex size-16 items-center justify-center rounded-2xl"
-        style={{ background: "rgba(34, 197, 94, 0.08)" }}
+        style={{ background: "rgba(99, 102, 241, 0.08)" }}
       >
-        <FileText size={28} style={{ color: "var(--green-400)" }} />
+        <FileText size={28} style={{ color: "var(--accent-400)" }} />
       </div>
       <div>
         <h3 className="mb-1 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>
@@ -118,7 +98,7 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
       {/* Document header */}
       <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: "var(--border-default)" }}>
         <div className="flex items-center gap-3">
-          <FileText size={16} style={{ color: "var(--green-400)" }} />
+          <FileText size={16} style={{ color: "var(--accent-400)" }} />
           <div>
             <p className="text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>
               {doc.title}
@@ -366,9 +346,9 @@ export function ResearchPage() {
                     onClick={() => setDepth(key)}
                     className="flex-1 rounded-lg px-2 py-1.5 text-center transition-all duration-150"
                     style={{
-                      background: depth === key ? "rgba(34, 197, 94, 0.10)" : "transparent",
-                      border: `1px solid ${depth === key ? "rgba(34, 197, 94, 0.20)" : "var(--border-default)"}`,
-                      color: depth === key ? "var(--green-400)" : "var(--gray-400)",
+                      background: depth === key ? "rgba(99, 102, 241, 0.10)" : "transparent",
+                      border: `1px solid ${depth === key ? "rgba(99, 102, 241, 0.20)" : "var(--border-default)"}`,
+                      color: depth === key ? "var(--accent-400)" : "var(--gray-400)",
                     }}
                   >
                     <span className="block text-[12px] font-medium">{cfg.label}</span>
@@ -425,7 +405,7 @@ export function ResearchPage() {
                   disabled={!query.trim() || isLoading}
                   className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
                   style={{
-                    background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
+                    background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
                   }}
                 >
                   {isLoading ? (
@@ -445,8 +425,8 @@ export function ResearchPage() {
           {/* Status bar */}
           {isLoading && (
             <div className="flex items-center gap-2 border-b px-4 py-2" style={{ borderColor: "var(--border-default)" }}>
-              <Loader2 size={12} className="animate-spin" style={{ color: "var(--green-400)" }} />
-              <span className="text-[12px]" style={{ color: "var(--green-400)" }}>
+              <Loader2 size={12} className="animate-spin" style={{ color: "var(--accent-400)" }} />
+              <span className="text-[12px]" style={{ color: "var(--accent-400)" }}>
                 Researching… scraping sources and generating document
               </span>
             </div>

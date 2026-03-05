@@ -120,7 +120,7 @@ function ProductCard({
         </div>
         <div
           className="rounded-md px-2 py-1 font-mono text-[11px] font-bold"
-          style={{ background: "rgba(16, 185, 129, 0.08)", color: "var(--green-500)" }}
+          style={{ background: "rgba(99, 102, 241, 0.08)", color: "var(--accent-400)" }}
         >
           {product.price} cr
         </div>
@@ -506,7 +506,7 @@ export function StorePage() {
                 className="text-3xl font-semibold tracking-tight sm:text-4xl"
                 style={{ color: "var(--gray-900)" }}
               >
-                Agent <span className="text-gradient-green">Store</span>
+                Agent <span className="text-gradient-accent">Store</span>
               </h1>
             </div>
           </div>
@@ -552,7 +552,7 @@ export function StorePage() {
             style={{ background: "var(--glass-bg)", borderColor: "var(--border-default)" }}
           >
             <div className="flex items-center gap-2">
-              <Package size={14} style={{ color: "var(--green-500)" }} />
+              <Package size={14} style={{ color: "var(--accent-400)" }} />
               <span className="font-mono text-[11px]" style={{ color: "var(--gray-600)" }}>
                 {inventory.counts.products} products
               </span>
@@ -614,7 +614,7 @@ export function StorePage() {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Search size={28} style={{ color: "var(--gray-300)" }} />
               <p className="mt-3 text-[14px] font-medium" style={{ color: "var(--gray-500)" }}>No products match &ldquo;{searchQuery}&rdquo;</p>
-              <button onClick={() => setSearchQuery("")} className="mt-2 text-[12px] underline" style={{ color: "var(--green-400)" }}>Clear search</button>
+              <button onClick={() => setSearchQuery("")} className="mt-2 text-[12px] underline" style={{ color: "var(--accent-400)" }}>Clear search</button>
             </div>
           );
         })()}

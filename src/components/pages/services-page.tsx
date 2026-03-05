@@ -38,9 +38,9 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           <div className="flex items-center gap-3">
             <div
               className="flex size-10 items-center justify-center rounded-xl"
-              style={{ background: "rgba(34, 197, 94, 0.08)" }}
+              style={{ background: "rgba(99, 102, 241, 0.08)" }}
             >
-              <Sparkles size={18} style={{ color: "var(--green-400)" }} />
+              <Sparkles size={18} style={{ color: "var(--accent-400)" }} />
             </div>
             <div>
               <h2 className="text-lg font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
@@ -58,9 +58,9 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           <span
             className="w-fit rounded-lg px-3 py-1.5 font-mono text-lg font-bold"
             style={{
-              background: "rgba(34, 197, 94, 0.08)",
-              color: "var(--green-400)",
-              border: "1px solid rgba(34, 197, 94, 0.15)",
+              background: "rgba(99, 102, 241, 0.08)",
+              color: "var(--accent-400)",
+              border: "1px solid rgba(99, 102, 241, 0.18)",
             }}
           >
             {formatCredits(service.credits)}
@@ -82,7 +82,7 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
                 <div key={outcome} className="flex items-start gap-2.5">
                   <span
                     className="mt-1.5 size-1.5 rounded-full"
-                    style={{ background: "var(--green-400)", opacity: 0.7 }}
+                    style={{ background: "var(--accent-400)", opacity: 0.7 }}
                   />
                   <span className="text-[13px]" style={{ color: "var(--gray-500)" }}>
                     {outcome}
@@ -96,8 +96,8 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
             href={`/studio?q=${encodeURIComponent(`I need a ${service.name}: ${service.summary.split(".")[0]}`)}`}
             className="group mt-2 flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
             style={{
-              background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-              boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
+              background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+              boxShadow: "0 0 20px -4px rgba(99, 102, 241, 0.28)",
             }}
           >
             Start {service.name} in Studio
@@ -123,7 +123,7 @@ export function ServicesPage() {
             className="mb-12"
           >
             <h1 className="mb-3 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
-              Service <span className="text-gradient-green">Catalog</span>
+              Service <span className="text-gradient-accent">Catalog</span>
             </h1>
             <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
               Six structured deliverables — research, analysis, strategy, and more —
@@ -141,9 +141,9 @@ export function ServicesPage() {
             <div className="flex items-center gap-6">
               {STUDIO_SERVICES.map((s) => (
                 <div key={s.id} className="flex items-center gap-2">
-                  <span className="size-1.5 rounded-full" style={{ background: "var(--green-400)" }} />
+                  <span className="size-1.5 rounded-full" style={{ background: "var(--accent-400)" }} />
                   <span className="text-[13px]" style={{ color: "var(--gray-600)" }}>{s.name}</span>
-                  <span className="font-mono text-[12px] font-bold" style={{ color: "var(--green-400)" }}>
+                  <span className="font-mono text-[12px] font-bold" style={{ color: "var(--accent-400)" }}>
                     {formatCredits(s.credits)}
                   </span>
                 </div>
@@ -153,7 +153,7 @@ export function ServicesPage() {
               <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
                 Pay per deliverable · No subscription
               </span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+              <span className="font-mono text-[10px]" style={{ color: "var(--accent-400)" }}>
                 1 credit ≈ $0.10 USDC
               </span>
             </div>
