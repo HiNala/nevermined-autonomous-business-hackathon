@@ -8,7 +8,7 @@ import { StatsBar } from "@/components/sections/stats-bar";
 import { DecisionLogic } from "@/components/sections/decision-logic";
 import { StudioServices } from "@/components/sections/studio-services";
 import { AgentCards } from "@/components/sections/agent-cards";
-import { TryStudio } from "@/components/sections/try-studio";
+import { StudioEntry } from "@/components/sections/studio-entry";
 import { TransactionFeed } from "@/components/sections/transaction-feed";
 import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
 import { FaqSection } from "@/components/sections/faq-section";
@@ -66,7 +66,7 @@ export function HomePage() {
         <SectionDivider />
         <StudioServices />
         <SectionDivider />
-        <TryStudio />
+        <StudioEntry />
         <SectionDivider />
         <TransactionFeed />
         <SectionDivider />

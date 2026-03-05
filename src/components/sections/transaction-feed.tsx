@@ -42,12 +42,17 @@ export function TransactionFeed() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-4 flex items-center justify-between">
-        <h2
-          className="text-[11px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--gray-400)" }}
-        >
-          Live Feed
-        </h2>
+        <div>
+          <h2
+            className="mb-0.5 text-[11px] font-semibold uppercase tracking-widest"
+            style={{ color: "var(--gray-400)" }}
+          >
+            Live Feed
+          </h2>
+          <p className="text-[18px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+            Transactions happening now.
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setPaused(!paused)}

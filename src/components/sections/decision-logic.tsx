@@ -1,90 +1,110 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { MessageSquare, Cpu, FileCheck } from "lucide-react";
 
-interface StepProps {
-  number: number;
-  title: string;
-  description: string;
-  index: number;
-}
-
-function Step({ number, title, description, index }: StepProps) {
-  return (
-    <motion.div
-      className="flex flex-col items-center text-center"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <div
-        className="mb-4 flex size-10 items-center justify-center rounded-lg font-mono text-sm font-bold"
-        style={{
-          background: "rgba(34, 197, 94, 0.08)",
-          color: "var(--green-400)",
-          border: "1px solid rgba(34, 197, 94, 0.15)",
-        }}
-      >
-        {number}
-      </div>
-      <h3 className="mb-1.5 text-sm font-semibold" style={{ color: "var(--gray-900)" }}>
-        {title}
-      </h3>
-      <p className="max-w-[220px] text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-        {description}
-      </p>
-    </motion.div>
-  );
-}
+const STEPS = [
+  {
+    icon: MessageSquare,
+    number: "01",
+    title: "Describe what you need",
+    description: "Type a brief in plain English — a market question, product problem, or design task. No templates, no forms.",
+    tag: "Free to try",
+  },
+  {
+    icon: Cpu,
+    number: "02",
+    title: "Agents execute it",
+    description: "The Strategist structures your brief. The Researcher searches the live web. CANVAS drafts the spec. All automatic.",
+    tag: "2–8 minutes",
+  },
+  {
+    icon: FileCheck,
+    number: "03",
+    title: "Get a structured deliverable",
+    description: "A real document — research findings with citations, a planning doc with milestones, or a UI spec with copy. Ready to act on.",
+    tag: "1–10 credits",
+  },
+];
 
 export function DecisionLogic() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <h2
-        className="mb-8 text-[11px] font-semibold uppercase tracking-widest"
-        style={{ color: "var(--gray-400)" }}
-      >
-        How It Works
-      </h2>
+      <div className="mb-8">
+        <h2
+          className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--gray-400)" }}
+        >
+          How it works
+        </h2>
+        <p className="text-[22px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+          Three steps. Real output.
+        </p>
+      </div>
 
-      <div className="glass p-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-          <Step
-            number={1}
-            title="Describe"
-            description="Tell us what you need — a research brief, product plan, or design spec."
-            index={0}
-          />
-          <Step
-            number={2}
-            title="Agents Execute"
-            description="SCOUT, ORBIT, or CANVAS runs your request. Credits deducted per service."
-            index={1}
-          />
-          <Step
-            number={3}
-            title="Receive Deliverable"
-            description="Get a structured artifact: findings, plan, or spec — ready to act on."
-            index={2}
-          />
-        </div>
+      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Connector line — desktop only */}
+        <div
+          className="absolute top-[52px] left-[33%] right-[33%] hidden h-px sm:block"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.25), transparent)" }}
+        />
 
-        {/* Connector lines */}
-        <div className="mt-6 hidden items-center justify-center gap-2 sm:flex">
-          {[0, 1].map((i) => (
-            <div key={i} className="flex items-center gap-1">
+        {STEPS.map((step, index) => (
+          <motion.div
+            key={step.number}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="glass relative overflow-hidden p-6"
+          >
+            {/* Top accent */}
+            <div
+              className="absolute top-0 left-6 right-6 h-px"
+              style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.30), transparent)" }}
+            />
+
+            {/* Number + Icon row */}
+            <div className="mb-5 flex items-center justify-between">
               <div
-                className="h-px w-20"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.20))" }}
-              />
-              <span className="text-[10px]" style={{ color: "var(--green-400)", opacity: 0.5 }}>→</span>
-              <div
-                className="h-px w-20"
-                style={{ background: "linear-gradient(90deg, rgba(34, 197, 94, 0.20), transparent)" }}
-              />
+                className="flex size-11 items-center justify-center rounded-xl"
+                style={{ background: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.14)" }}
+              >
+                <step.icon size={20} style={{ color: "var(--green-400)" }} />
+              </div>
+              <span
+                className="font-mono text-[28px] font-bold leading-none"
+                style={{ color: "rgba(34, 197, 94, 0.12)" }}
+              >
+                {step.number}
+              </span>
             </div>
-          ))}
-        </div>
+
+            <h3
+              className="mb-2 text-[15px] font-semibold tracking-tight"
+              style={{ color: "var(--gray-900)" }}
+            >
+              {step.title}
+            </h3>
+            <p
+              className="mb-5 text-[13px] leading-relaxed"
+              style={{ color: "var(--gray-500)" }}
+            >
+              {step.description}
+            </p>
+
+            <span
+              className="inline-flex rounded-md px-2.5 py-1 font-mono text-[10px] font-semibold"
+              style={{
+                background: "rgba(34, 197, 94, 0.07)",
+                color: "var(--green-400)",
+                border: "1px solid rgba(34, 197, 94, 0.14)",
+              }}
+            >
+              {step.tag}
+            </span>
+          </motion.div>
+        ))}
       </div>
     </section>
   );

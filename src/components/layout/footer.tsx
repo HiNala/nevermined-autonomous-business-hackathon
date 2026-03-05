@@ -78,7 +78,7 @@ export function Footer() {
               </span>
             </div>
             <p className="max-w-[200px] text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-              A specialized agent studio for research, planning, and front-end design.
+              A multi-agent studio for strategy, research, and marketplace procurement.
             </p>
           </div>
 

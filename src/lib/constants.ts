@@ -1,6 +1,6 @@
 export const SITE_NAME = "AUTO BUSINESS";
 export const SITE_DESCRIPTION =
-  "A specialized agent studio for research, planning, and front-end design, powered by Nevermined payments.";
+  "A multi-agent studio — Strategist plans, Researcher discovers, Buyer procures — powered by Nevermined payments.";
 
 export const NAV_HEIGHT = 56;
 export const MAX_FEED_ITEMS = 20;

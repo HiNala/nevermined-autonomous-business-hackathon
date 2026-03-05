@@ -27,19 +27,19 @@ export function CtaSection() {
           className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl"
           style={{ color: "var(--gray-900)" }}
         >
-          Ready to build with
-          <span className="text-gradient-green"> autonomous agents</span>?
+          Stop researching.
+          <span className="text-gradient-green"> Start shipping.</span>
         </h2>
 
         <p
           className="mb-8 max-w-lg text-[15px] leading-relaxed"
           style={{ color: "var(--gray-500)" }}
         >
-          Start a studio request, explore our specialist agents, or browse the
-          full service catalog. Pay only for what you use.
+          Your agents are ready. Describe what you need and get a structured deliverable
+          in minutes &mdash; research, plans, or design specs. No subscription. No waiting.
         </p>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/studio"
             className="group flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium text-white transition-all duration-200"
@@ -48,7 +48,7 @@ export function CtaSection() {
               boxShadow: "0 0 24px -4px rgba(34, 197, 94, 0.3)",
             }}
           >
-            Try the Studio
+            Open Studio &mdash; it&apos;s free
             <ArrowRight
               size={15}
               className="transition-transform group-hover:translate-x-0.5"
@@ -56,7 +56,7 @@ export function CtaSection() {
           </Link>
 
           <Link
-            href="/services"
+            href="/agents"
             className="rounded-xl px-6 py-3 text-[14px] font-medium transition-all duration-200"
             style={{
               background: "var(--glass-bg)",
@@ -72,9 +72,13 @@ export function CtaSection() {
               e.currentTarget.style.color = "var(--gray-600)";
             }}
           >
-            View Services
+            Meet the agents
           </Link>
         </div>
+
+        <p className="mt-6 text-[12px]" style={{ color: "var(--gray-400)" }}>
+          No signup &nbsp;&middot;&nbsp; Demo mode available &nbsp;&middot;&nbsp; Powered by Nevermined
+        </p>
       </motion.div>
     </section>
   );

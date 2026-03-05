@@ -277,6 +277,9 @@ function PipelineStages({ events, isRunning }: { events: PipelineEvent[]; isRunn
     researcher_working: AGENT_CONFIG.researcher.color,
     researcher_evaluating: "#F59E0B",
     researcher_followup: "#EF4444",
+    buyer_discovering: AGENT_CONFIG.buyer.color,
+    buyer_purchasing: AGENT_CONFIG.buyer.color,
+    buyer_complete: AGENT_CONFIG.buyer.color,
     complete: "var(--green-400)",
     error: "#EF4444",
   };
@@ -309,10 +312,8 @@ function PipelineStages({ events, isRunning }: { events: PipelineEvent[]; isRunn
               <span
                 className="rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase"
                 style={{
-                  background: event.agent === "strategist" ? AGENT_CONFIG.strategist.bgColor :
-                    event.agent === "researcher" ? AGENT_CONFIG.researcher.bgColor : "var(--glass-bg)",
-                  color: event.agent === "strategist" ? AGENT_CONFIG.strategist.color :
-                    event.agent === "researcher" ? AGENT_CONFIG.researcher.color : "var(--gray-400)",
+                  background: AGENT_CONFIG[event.agent as keyof typeof AGENT_CONFIG]?.bgColor ?? "var(--glass-bg)",
+                  color: AGENT_CONFIG[event.agent as keyof typeof AGENT_CONFIG]?.color ?? "var(--gray-400)",
                 }}
               >
                 {event.agent}
@@ -574,13 +575,14 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
     researcher_working: "Researcher searching and scraping the web…",
     researcher_evaluating: "Evaluating document completeness…",
     researcher_followup: "Requesting additional context…",
+    buyer_discovering: "Buyer scanning the marketplace for assets…",
+    buyer_purchasing: "Buyer purchasing marketplace assets…",
+    buyer_complete: "Marketplace procurement complete",
   };
   const currentLabel = lastEvent ? (stageLabels[lastEvent.stage] ?? lastEvent.message) : "Initializing pipeline…";
 
   const agentWorking = lastEvent?.agent ?? "pipeline";
-  const color = agentWorking === "strategist" ? AGENT_CONFIG.strategist.color
-    : agentWorking === "researcher" ? AGENT_CONFIG.researcher.color
-    : "var(--green-400)";
+  const color = AGENT_CONFIG[agentWorking as keyof typeof AGENT_CONFIG]?.color ?? "var(--green-400)";
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 px-8">
@@ -669,7 +671,7 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
     pipeline: {
       icon: Bot,
       title: "Agent Pipeline",
-      desc: "Describe what you need. The Strategist structures your brief, the Researcher searches the web and delivers a full report.",
+      desc: "Describe what you need. The Strategist structures your brief, the Researcher searches the web, and the Buyer procures marketplace assets.",
     },
     strategist: {
       icon: Sparkles,
@@ -788,6 +790,15 @@ export function StudioPage() {
   useEffect(() => {
     const stored = localStorage.getItem("zc_ads_muted");
     if (stored === "true") setAdsMuted(true);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q) {
+      setInput(decodeURIComponent(q));
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
   }, []);
 
   function toggleAdsMuted() {
@@ -1041,6 +1052,7 @@ export function StudioPage() {
                   disabled={!input.trim() || isLoading}
                   className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
                   style={{ background: "linear-gradient(135deg, var(--green-600), var(--green-500))" }}
+                  title="Send (Enter ↵)"
                 >
                   {isLoading ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
                 </button>
@@ -1099,6 +1111,12 @@ export function StudioPage() {
               <Globe size={11} style={{ color: "var(--gray-400)" }} />
               <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
                 {result?.document?.sources.length ?? 0} sources
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Package size={11} style={{ color: "var(--gray-400)" }} />
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                {result?.purchasedAssets?.length ?? 0} purchases
               </span>
             </div>
             <button
