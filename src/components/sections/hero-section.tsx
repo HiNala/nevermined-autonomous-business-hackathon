@@ -33,7 +33,7 @@ export function HeroSection() {
               <span className="relative inline-flex size-1.5 rounded-full bg-[var(--green-500)]" />
             </span>
             <span className="font-mono text-[11px] tracking-wider" style={{ color: "var(--green-400)" }}>
-              Autonomous Agent Studio · Live
+              Agent Studio &middot; No signup required
             </span>
           </motion.div>
 
@@ -43,9 +43,9 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Research. Plan.
+            Describe the work.
             <br />
-            <span className="text-gradient-green">Design. Ship.</span>
+            <span className="text-gradient-green">Agents build it.</span>
           </motion.h1>
 
           <motion.p
@@ -55,13 +55,13 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            A team of specialized agents for research, planning, and front-end design.
-            Start in demo mode, then switch to real Nevermined-powered seller calls as
-            soon as your payment config is live.
+            Three specialist AI agents &mdash; SCOUT researches, ORBIT plans, CANVAS designs.
+            Tell them what you need. Get a structured deliverable back in minutes.
+            Pay only for what you use.
           </motion.p>
 
           <motion.div
-            className="flex items-center gap-3 pt-2"
+            className="flex flex-wrap items-center gap-3 pt-2"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -74,11 +74,11 @@ export function HeroSection() {
                 boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
               }}
             >
-              Open Studio
+              Try the Studio &mdash; free
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
             </a>
             <a
-              href="/services"
+              href="#agents"
               className="rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
               style={{
                 background: "var(--glass-bg)",
@@ -86,8 +86,31 @@ export function HeroSection() {
                 border: "1px solid var(--border-default)",
               }}
             >
-              View Services
+              Meet the agents
             </a>
+          </motion.div>
+
+          {/* Trust signals */}
+          <motion.div
+            className="flex flex-wrap items-center gap-4 pt-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+          >
+            {[
+              "Research Sprint from 1cr",
+              "No subscription",
+              "Powered by Nevermined",
+            ].map((t) => (
+              <span
+                key={t}
+                className="flex items-center gap-1.5 font-mono text-[10px]"
+                style={{ color: "var(--gray-400)" }}
+              >
+                <span className="size-1 rounded-full" style={{ background: "var(--green-500)", opacity: 0.6 }} />
+                {t}
+              </span>
+            ))}
           </motion.div>
         </div>
 

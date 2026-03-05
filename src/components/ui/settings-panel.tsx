@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type {
   ToolSettings,
+  TradingSettings,
   SearchProvider,
   ScrapeProvider,
   AgentToolSettings,
@@ -260,6 +261,102 @@ function AgentSection({
   );
 }
 
+// ─── Trading Toggles ─────────────────────────────────────────────────────────
+
+function TradingToggle({
+  label,
+  description,
+  enabled,
+  onChange,
+  accentColor,
+}: {
+  label: string;
+  description: string;
+  enabled: boolean;
+  onChange: (v: boolean) => void;
+  accentColor: string;
+}) {
+  return (
+    <button
+      onClick={() => onChange(!enabled)}
+      className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition-all"
+      style={{
+        background: enabled ? "rgba(34, 197, 94, 0.05)" : "rgba(255,255,255,0.02)",
+        border: `1px solid ${enabled ? "rgba(34, 197, 94, 0.18)" : "var(--border-default)"}`,
+      }}
+    >
+      <div className="min-w-0 flex-1 pr-3">
+        <p
+          className="text-[12px] font-medium leading-tight"
+          style={{ color: enabled ? "var(--gray-700)" : "var(--gray-500)" }}
+        >
+          {label}
+        </p>
+        <p className="mt-0.5 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
+          {description}
+        </p>
+      </div>
+      <div
+        className="relative flex h-[20px] w-[36px] shrink-0 items-center rounded-full transition-colors"
+        style={{
+          background: enabled ? accentColor : "var(--gray-300)",
+        }}
+      >
+        <div
+          className="absolute size-[16px] rounded-full bg-white shadow-sm transition-all"
+          style={{ left: enabled ? "17px" : "2px" }}
+        />
+      </div>
+    </button>
+  );
+}
+
+function TradingSection({
+  trading,
+  onChange,
+}: {
+  trading: TradingSettings;
+  onChange: (t: TradingSettings) => void;
+}) {
+  return (
+    <div
+      className="rounded-xl p-4"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid var(--border-default)",
+      }}
+    >
+      <div className="mb-4">
+        <div className="mb-0.5 flex items-center gap-2">
+          <div className="size-2 rounded-full" style={{ background: "#F59E0B" }} />
+          <p className="text-[13px] font-semibold" style={{ color: "var(--gray-700)" }}>
+            Agent Trading
+          </p>
+        </div>
+        <p className="text-[11px]" style={{ color: "var(--gray-400)" }}>
+          Control how agents buy and sell outputs from each other
+        </p>
+      </div>
+      <div className="space-y-2">
+        <TradingToggle
+          label="Internal Trading"
+          description="Agents charge credits between each other (Strategist ↔ Researcher). Turn off to let your agents collaborate for free."
+          enabled={trading.internalTrading}
+          onChange={(v) => onChange({ ...trading, internalTrading: v })}
+          accentColor="#22C55E"
+        />
+        <TradingToggle
+          label="External Marketplace"
+          description="Buyer agent discovers and purchases outputs from third-party agents on the Nevermined marketplace."
+          enabled={trading.externalTrading}
+          onChange={(v) => onChange({ ...trading, externalTrading: v })}
+          accentColor="#F59E0B"
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Settings Panel ───────────────────────────────────────────────────────────
 
 export function SettingsPanel({
@@ -361,6 +458,11 @@ export function SettingsPanel({
             tools={settings.strategist}
             onChange={(t) => onChange({ ...settings, strategist: t })}
             status={status}
+          />
+
+          <TradingSection
+            trading={settings.trading}
+            onChange={(t) => onChange({ ...settings, trading: t })}
           />
 
           {/* API Key Status */}

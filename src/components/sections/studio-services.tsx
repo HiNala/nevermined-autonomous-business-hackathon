@@ -85,14 +85,17 @@ export function StudioServices() {
             Studio Services
           </h2>
           <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-            Three paid deliverables for teams that need fast research,
-            planning, and front-end direction.
+            Three deliverables for teams that need fast research, planning, and front-end direction.
+            Pay only for what you use &mdash; no subscription.
           </p>
         </div>
-        <div className="glass-pill px-3 py-1.5">
-          <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
-            Nevermined-ready
-          </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="glass-pill px-3 py-1.5">
+            <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+              1 credit ≈ $0.10 USDC
+            </span>
+          </div>
+          <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>Nevermined-powered</span>
         </div>
       </div>
 

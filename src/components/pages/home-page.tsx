@@ -11,7 +11,7 @@ import { AgentCards } from "@/components/sections/agent-cards";
 import { TryStudio } from "@/components/sections/try-studio";
 import { TransactionFeed } from "@/components/sections/transaction-feed";
 import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
-import { PaymentReadiness } from "@/components/sections/payment-readiness";
+import { FaqSection } from "@/components/sections/faq-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { STAT_UPDATE_INTERVAL_MS } from "@/lib/constants";
@@ -62,9 +62,9 @@ export function HomePage() {
         <SectionDivider />
         <DecisionLogic />
         <SectionDivider />
-        <StudioServices />
-        <SectionDivider />
         <AgentCards />
+        <SectionDivider />
+        <StudioServices />
         <SectionDivider />
         <TryStudio />
         <SectionDivider />
@@ -72,7 +72,7 @@ export function HomePage() {
         <SectionDivider />
         <MarketplaceConnections />
         <SectionDivider />
-        <PaymentReadiness />
+        <FaqSection />
         <CtaSection />
       </main>
       <Footer />

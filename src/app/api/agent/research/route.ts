@@ -3,6 +3,7 @@ import { runResearch, type ResearchRequest } from "@/lib/agent/researcher";
 import { agentEvents } from "@/lib/agent/event-store";
 import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
 import type { SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
+import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
 
 interface RequestBody {
   query?: string;
@@ -21,12 +22,21 @@ function generateEventId() {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as RequestBody;
-  const query = body.query?.trim();
-
-  if (!query) {
-    return NextResponse.json({ error: "query is required" }, { status: 400 });
+  const clientId = getClientId(request);
+  const rateCheck = checkRateLimit(`research:${clientId}`, 20, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
   }
+
+  const body = (await request.json()) as RequestBody;
+  const validation = validateQuery(body.query);
+  if (!validation.valid) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+  const query = validation.sanitized!;
 
   const depth = body.depth ?? "standard";
   const credits = CREDIT_COSTS[depth];
@@ -154,7 +164,7 @@ export async function POST(request: Request) {
       document,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Research failed";
+    const errorMessage = sanitizeError(error);
 
     agentEvents.push({
       id: generateEventId(),

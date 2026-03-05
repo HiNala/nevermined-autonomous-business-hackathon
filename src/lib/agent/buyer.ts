@@ -48,17 +48,12 @@ export interface BuyerResult {
 
 // ─── Nevermined marketplace interaction ──────────────────────────────
 
-function isNvmConfigured(): boolean {
-  return Boolean(process.env.NVM_API_KEY?.trim());
-}
-
 /**
  * Discover available assets on the Nevermined marketplace.
  * Uses the Payments SDK to search for relevant agent outputs.
  */
 async function discoverAssets(
-  query: string,
-  _preferredTypes?: MarketplaceAsset["type"][]
+  query: string
 ): Promise<MarketplaceAsset[]> {
   const payments = getPaymentsClient();
   if (!payments) return [];
@@ -230,7 +225,7 @@ export async function runBuyer(request: BuyerRequest): Promise<BuyerResult> {
       type: "other" as const,
     }));
   } else {
-    discovered = await discoverAssets(request.query, request.preferredTypes);
+    discovered = await discoverAssets(request.query);
   }
 
   if (discovered.length === 0) {

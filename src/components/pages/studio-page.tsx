@@ -23,11 +23,13 @@ import {
   PanelLeftOpen,
   Volume2,
   VolumeX,
+  Package,
   Settings,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
 import { loadToolSettings, saveToolSettings, type ToolSettings } from "@/lib/tool-settings";
+import { PurchasedAssetGrid } from "@/components/ui/purchased-asset-card";
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface ResearchSource {
@@ -91,11 +93,28 @@ interface PipelineEvent {
   data?: Record<string, unknown>;
 }
 
+interface PurchasedAsset {
+  id: string;
+  did: string;
+  name: string;
+  description: string;
+  provider: string;
+  type: "dataset" | "report" | "model" | "service" | "other";
+  content: string;
+  contentType: "text" | "json" | "markdown" | "html" | "binary";
+  creditsPaid: number;
+  purchasedAt: string;
+  durationMs: number;
+  status: "success" | "failed";
+  error?: string;
+}
+
 interface PipelineResult {
   mode: string;
   id?: string;
   brief?: StructuredBrief;
   document?: ResearchDocument;
+  purchasedAssets?: PurchasedAsset[];
   transactions?: AgentTransaction[];
   events?: PipelineEvent[];
   totalCredits?: number;
@@ -136,6 +155,16 @@ const AGENT_CONFIG = {
     color: "#0EA5E9",
     bgColor: "rgba(14, 165, 233, 0.08)",
     borderColor: "rgba(14, 165, 233, 0.20)",
+  },
+  buyer: {
+    id: "buyer",
+    name: "Buyer",
+    role: "Marketplace Procurement",
+    description: "Discovers and purchases outputs from third-party agents on the Nevermined marketplace.",
+    avatar: "◎",
+    color: "#F59E0B",
+    bgColor: "rgba(245, 158, 11, 0.08)",
+    borderColor: "rgba(245, 158, 11, 0.20)",
   },
 };
 
@@ -613,34 +642,81 @@ function LoadingSkeleton({ mode, events }: { mode: ViewMode; events: PipelineEve
 }
 
 // ─── Empty State ────────────────────────────────────────────────────
-function EmptyState({ mode }: { mode: ViewMode }) {
+const EXAMPLE_PROMPTS: Record<ViewMode, string[]> = {
+  pipeline: [
+    "What are the best AI agent frameworks in 2025?",
+    "Research the market for no-code automation tools",
+    "Analyze competitors to Notion for team knowledge bases",
+    "Write a product plan for a SaaS invoice tool",
+    "Research emerging trends in autonomous AI payments",
+  ],
+  strategist: [
+    "Build a go-to-market brief for a developer API product",
+    "Structure a launch plan for a B2B SaaS tool",
+    "Outline key questions for a market entry into healthcare AI",
+    "Define scope and deliverables for a mobile app MVP",
+  ],
+  researcher: [
+    "What are the top Nevermined use cases in 2025?",
+    "Find recent research on LLM agent architectures",
+    "Compare Exa, Perplexity, and Tavily for AI search",
+    "What are developers building with the Apify platform?",
+  ],
+};
+
+function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string) => void }) {
   const config = {
     pipeline: {
       icon: Bot,
       title: "Agent Pipeline",
-      desc: "Enter a request below. The Strategist will structure your brief, then the Researcher will search the web and produce a full report.",
+      desc: "Describe what you need. The Strategist structures your brief, the Researcher searches the web and delivers a full report.",
     },
     strategist: {
       icon: Sparkles,
       title: "Strategist Agent",
-      desc: "Enter a topic or idea. The Strategist will expand it into a comprehensive structured brief with search queries, scope, and deliverables.",
+      desc: "Enter a topic or idea. Get a structured brief with search queries, scope, and deliverables.",
     },
     researcher: {
       icon: Search,
       title: "Researcher Agent",
-      desc: "Enter a research query. The Researcher will search and scrape the web, then produce a structured report with citations.",
+      desc: "Enter a research query. The agent searches and scrapes the web, then returns a structured report with citations.",
     },
   };
   const c = config[mode];
+  const examples = EXAMPLE_PROMPTS[mode];
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center">
       <div className="flex size-16 items-center justify-center rounded-2xl" style={{ background: "rgba(34, 197, 94, 0.08)" }}>
         <c.icon size={28} style={{ color: "var(--green-400)" }} />
       </div>
       <div>
         <h3 className="mb-1 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>{c.title}</h3>
         <p className="max-w-md text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>{c.desc}</p>
+      </div>
+      <div className="flex max-w-lg flex-wrap justify-center gap-2">
+        {examples.map((ex) => (
+          <button
+            key={ex}
+            onClick={() => onExample(ex)}
+            className="rounded-lg px-3 py-1.5 text-left text-[11px] leading-snug transition-all duration-150"
+            style={{
+              background: "var(--glass-bg)",
+              color: "var(--gray-500)",
+              border: "1px solid var(--border-default)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "rgba(34, 197, 94, 0.25)";
+              e.currentTarget.style.color = "var(--gray-700)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-default)";
+              e.currentTarget.style.color = "var(--gray-500)";
+            }}
+          >
+            {ex}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -695,12 +771,13 @@ export function StudioPage() {
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [pipelineEvents, setPipelineEvents] = useState<PipelineEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [rightTab, setRightTab] = useState<"document" | "brief">("document");
+  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases">("document");
   const [bottomTab, setBottomTab] = useState<"stages" | "transactions">("stages");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number } }>({
+  const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number }; buyer: { earned: number; handled: number } }>({
     strategist: { earned: 0, handled: 0 },
     researcher: { earned: 0, handled: 0 },
+    buyer: { earned: 0, handled: 0 },
   });
   const transactions = useTransactionStream();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -732,6 +809,7 @@ export function StudioPage() {
           setInitialStats({
             strategist: { earned: data.agents.strategist?.creditsEarned ?? 0, handled: data.agents.strategist?.requestsHandled ?? 0 },
             researcher: { earned: data.agents.researcher?.creditsEarned ?? 0, handled: data.agents.researcher?.requestsHandled ?? 0 },
+            buyer: { earned: data.agents.buyer?.creditsEarned ?? 0, handled: data.agents.buyer?.requestsHandled ?? 0 },
           });
         }
       })
@@ -747,6 +825,10 @@ export function StudioPage() {
     researcher: {
       earned: initialStats.researcher.earned + transactions.filter((t) => t.to.id === "researcher" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
       handled: initialStats.researcher.handled + transactions.filter((t) => t.to.id === "researcher" && t.status === "completed").length,
+    },
+    buyer: {
+      earned: initialStats.buyer.earned + transactions.filter((t) => t.to.id === "buyer" && t.status === "completed").reduce((s, t) => s + t.credits, 0),
+      handled: initialStats.buyer.handled + transactions.filter((t) => t.to.id === "buyer" && t.status === "completed").length,
     },
   };
 
@@ -854,6 +936,22 @@ export function StudioPage() {
               isSelected={mode === "researcher"}
               onClick={() => setMode(mode === "researcher" ? "pipeline" : "researcher")}
               stats={agentStats.researcher}
+            />
+            {mode === "pipeline" && (
+              <div className="flex items-center justify-center py-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
+                  <ArrowRight size={12} style={{ color: "var(--gray-300)" }} />
+                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
+                </div>
+              </div>
+            )}
+            <AgentCard
+              agent={AGENT_CONFIG.buyer}
+              isActive={isLoading && mode === "pipeline"}
+              isSelected={false}
+              onClick={() => {}}
+              stats={agentStats.buyer}
             />
           </div>
 
@@ -1047,6 +1145,18 @@ export function StudioPage() {
                 <Sparkles size={12} /> Brief
               </button>
             )}
+            {(result?.purchasedAssets?.length ?? 0) > 0 && (
+              <button
+                onClick={() => setRightTab("purchases")}
+                className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
+                style={{
+                  color: rightTab === "purchases" ? AGENT_CONFIG.buyer.color : "var(--gray-400)",
+                  borderBottom: rightTab === "purchases" ? `2px solid ${AGENT_CONFIG.buyer.color}` : "2px solid transparent",
+                }}
+              >
+                <Package size={12} /> Purchases ({result?.purchasedAssets?.length})
+              </button>
+            )}
 
             {/* New Request button */}
             {(result || isLoading) && (
@@ -1066,7 +1176,7 @@ export function StudioPage() {
             {isLoading ? (
               <LoadingSkeleton mode={mode} events={pipelineEvents} />
             ) : !result ? (
-              <EmptyState mode={mode} />
+              <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />
             ) : rightTab === "document" && result.document ? (
               <DocumentView
                 doc={result.document}
@@ -1078,8 +1188,12 @@ export function StudioPage() {
               <div className="h-full overflow-y-auto">
                 <BriefView brief={result.brief} />
               </div>
+            ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
+              <div className="h-full overflow-y-auto p-6">
+                <PurchasedAssetGrid assets={result.purchasedAssets} />
+              </div>
             ) : (
-              <EmptyState mode={mode} />
+              <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />
             )}
           </div>
         </div>

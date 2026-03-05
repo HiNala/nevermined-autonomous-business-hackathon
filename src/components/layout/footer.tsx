@@ -15,9 +15,10 @@ const RESOURCE_LINKS = [
   { label: "GitHub", href: "https://github.com/HiNala/nevermined-autonomous-business-hackathon", external: true },
 ];
 
-const LEGAL_LINKS = [
-  { label: "Privacy", href: "#" },
-  { label: "Terms", href: "#" },
+const STATUS_LINKS = [
+  { label: "Open Studio", href: "/studio", external: false },
+  { label: "Agent API", href: "/.well-known/agent.json", external: true },
+  { label: "GitHub", href: "https://github.com/HiNala/nevermined-autonomous-business-hackathon", external: true },
 ];
 
 function FooterLink({ label, href, external }: { label: string; href: string; external?: boolean }) {
@@ -105,14 +106,14 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Legal */}
+          {/* Status */}
           <div>
             <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-500)" }}>
-              Legal
+              Quick Links
             </p>
             <div className="flex flex-col gap-2.5">
-              {LEGAL_LINKS.map((l) => (
-                <FooterLink key={l.label} label={l.label} href={l.href} />
+              {STATUS_LINKS.map((l) => (
+                <FooterLink key={l.label} label={l.label} href={l.href} external={l.external} />
               ))}
             </div>
           </div>

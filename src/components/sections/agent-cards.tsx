@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import type { StudioAgent } from "@/types";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
-import { Zap } from "lucide-react";
+import { Zap, ArrowRight } from "lucide-react";
 
 function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
   return (
@@ -120,8 +121,9 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
         </div>
 
         {/* CTA */}
-        <button
-          className="w-full rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200"
+        <Link
+          href="/studio"
+          className="group flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200"
           style={{
             background: `${agent.accentColor}12`,
             color: agent.accentColor,
@@ -135,12 +137,10 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
             e.currentTarget.style.background = `${agent.accentColor}12`;
             e.currentTarget.style.borderColor = `${agent.accentColor}20`;
           }}
-          onClick={() => {
-            window.location.hash = "try-studio";
-          }}
         >
-          {agent.ctaLabel} →
-        </button>
+          {agent.ctaLabel}
+          <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </div>
     </motion.div>
   );

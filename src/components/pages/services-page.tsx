@@ -149,9 +149,14 @@ export function ServicesPage() {
                 </div>
               ))}
             </div>
-            <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
-              Pay per deliverable · No subscriptions
-            </span>
+            <div className="flex flex-col items-end gap-1">
+              <span className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
+                Pay per deliverable · No subscription
+              </span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--green-400)" }}>
+                1 credit ≈ $0.10 USDC
+              </span>
+            </div>
           </motion.div>
 
           {/* Service cards */}

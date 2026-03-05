@@ -133,6 +133,18 @@ export async function runPipeline(
   const transactions: AgentTransaction[] = [];
   const followUpBriefs: StructuredBrief[] = [];
 
+  // Trading toggles (both default to true)
+  const internalTrading = toolSettings?.trading?.internalTrading ?? true;
+  const externalTrading = toolSettings?.trading?.externalTrading ?? true;
+
+  /** Record a transaction only when internal trading is enabled */
+  function recordInternal(tx: AgentTransaction) {
+    transactions.push(tx);
+    if (internalTrading) {
+      ledger.record(tx);
+    }
+  }
+
   function emit(stage: PipelineStage, agent: PipelineEvent["agent"], message: string, data?: Record<string, unknown>) {
     const event: PipelineEvent = {
       id: makeEventId(),
@@ -163,14 +175,13 @@ export async function runPipeline(
       timestamp: new Date().toISOString(),
       from: { id: "user", name: "User" },
       to: { id: strategist.id, name: strategist.name },
-      credits: brief.creditsUsed,
+      credits: internalTrading ? brief.creditsUsed : 0,
       purpose: `Structure brief: "${userInput.slice(0, 50)}…"`,
       artifactId: brief.id,
       status: "completed",
       durationMs: brief.durationMs,
     };
-    transactions.push(tx1);
-    ledger.record(tx1);
+    recordInternal(tx1);
 
     emit("strategist_complete", "strategist", `Brief produced: "${brief.title}"`, {
       briefId: brief.id,
@@ -178,21 +189,24 @@ export async function runPipeline(
       keyQuestions: brief.keyQuestions.length,
     });
 
-    // ── Stage 2: Researcher buys brief and starts research ─────────
-    emit("researcher_buying", "researcher", `Purchasing structured brief from Strategist (${brief.creditsUsed}cr)…`);
+    // ── Stage 2: Researcher receives brief and starts research ──────
+    if (internalTrading) {
+      emit("researcher_buying", "researcher", `Purchasing structured brief from Strategist (${brief.creditsUsed}cr)…`);
 
-    const tx2: AgentTransaction = {
-      id: makeTxId(),
-      timestamp: new Date().toISOString(),
-      from: { id: researcher.id, name: researcher.name },
-      to: { id: strategist.id, name: strategist.name },
-      credits: brief.creditsUsed,
-      purpose: `Buy brief: "${brief.title}"`,
-      artifactId: brief.id,
-      status: "completed",
-    };
-    transactions.push(tx2);
-    ledger.record(tx2);
+      const tx2: AgentTransaction = {
+        id: makeTxId(),
+        timestamp: new Date().toISOString(),
+        from: { id: researcher.id, name: researcher.name },
+        to: { id: strategist.id, name: strategist.name },
+        credits: brief.creditsUsed,
+        purpose: `Buy brief: "${brief.title}"`,
+        artifactId: brief.id,
+        status: "completed",
+      };
+      recordInternal(tx2);
+    } else {
+      emit("researcher_buying", "researcher", `Received brief from Strategist (internal trading off)`);
+    }
 
     emit("researcher_working", "researcher", `Searching web with ${brief.searchQueries.length} queries…`);
 
@@ -211,14 +225,13 @@ export async function runPipeline(
       timestamp: new Date().toISOString(),
       from: { id: "pipeline", name: "Pipeline" },
       to: { id: researcher.id, name: researcher.name },
-      credits: document.creditsUsed,
+      credits: internalTrading ? document.creditsUsed : 0,
       purpose: `Research: "${brief.title}"`,
       artifactId: document.id,
       status: "completed",
       durationMs: document.durationMs,
     };
-    transactions.push(tx3);
-    ledger.record(tx3);
+    recordInternal(tx3);
 
     // ── Stage 3: Evaluate completeness + optional back-loop ────────
     let iterations = 1;
@@ -239,19 +252,20 @@ export async function runPipeline(
       const followUpBrief = await runFollowUp(brief, followUp, provider);
       followUpBriefs.push(followUpBrief);
 
-      const tx4: AgentTransaction = {
-        id: makeTxId(),
-        timestamp: new Date().toISOString(),
-        from: { id: researcher.id, name: researcher.name },
-        to: { id: strategist.id, name: strategist.name },
-        credits: followUpBrief.creditsUsed,
-        purpose: `Follow-up brief: "${followUp.slice(0, 50)}…"`,
-        artifactId: followUpBrief.id,
-        status: "completed",
-        durationMs: followUpBrief.durationMs,
-      };
-      transactions.push(tx4);
-      ledger.record(tx4);
+      if (internalTrading) {
+        const tx4: AgentTransaction = {
+          id: makeTxId(),
+          timestamp: new Date().toISOString(),
+          from: { id: researcher.id, name: researcher.name },
+          to: { id: strategist.id, name: strategist.name },
+          credits: followUpBrief.creditsUsed,
+          purpose: `Follow-up brief: "${followUp.slice(0, 50)}…"`,
+          artifactId: followUpBrief.id,
+          status: "completed",
+          durationMs: followUpBrief.durationMs,
+        };
+        recordInternal(tx4);
+      }
 
       emit("researcher_working", "researcher", `Running follow-up research with ${followUpBrief.searchQueries.length} new queries…`);
 
@@ -288,14 +302,13 @@ export async function runPipeline(
         timestamp: new Date().toISOString(),
         from: { id: "pipeline", name: "Pipeline" },
         to: { id: researcher.id, name: researcher.name },
-        credits: additionalDoc.creditsUsed,
+        credits: internalTrading ? additionalDoc.creditsUsed : 0,
         purpose: `Follow-up research: "${followUp.slice(0, 50)}…"`,
         artifactId: additionalDoc.id,
         status: "completed",
         durationMs: additionalDoc.durationMs,
       };
-      transactions.push(tx5);
-      ledger.record(tx5);
+      recordInternal(tx5);
 
       iterations++;
     }
@@ -304,62 +317,66 @@ export async function runPipeline(
     let buyerResult: BuyerResult | undefined;
     let purchasedAssets: PurchasedAsset[] = [];
 
-    emit("buyer_discovering", "buyer", `Searching marketplace for assets related to: "${brief.title.slice(0, 60)}…"`);
+    if (externalTrading) {
+      emit("buyer_discovering", "buyer", `Searching marketplace for assets related to: "${brief.title.slice(0, 60)}…"`);
 
-    try {
-      buyerResult = await runBuyer({
-        query: brief.objective,
-        maxCredits: 20,
-        preferredTypes: ["report", "dataset", "service"],
-      });
+      try {
+        buyerResult = await runBuyer({
+          query: brief.objective,
+          maxCredits: 20,
+          preferredTypes: ["report", "dataset", "service"],
+        });
 
-      purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
+        purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
 
-      if (purchasedAssets.length > 0) {
-        emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) from marketplace`);
+        if (purchasedAssets.length > 0) {
+          emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) from marketplace`);
 
-        // Record buyer transactions
-        for (const asset of purchasedAssets) {
-          const txBuy: AgentTransaction = {
-            id: makeTxId(),
-            timestamp: new Date().toISOString(),
-            from: { id: buyer.id, name: buyer.name },
-            to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
-            credits: asset.creditsPaid,
-            purpose: `Purchase: "${asset.name}"`,
-            artifactId: asset.id,
-            status: "completed",
-            durationMs: asset.durationMs,
-          };
-          transactions.push(txBuy);
-          ledger.record(txBuy);
+          // Record buyer transactions (external → always recorded to ledger)
+          for (const asset of purchasedAssets) {
+            const txBuy: AgentTransaction = {
+              id: makeTxId(),
+              timestamp: new Date().toISOString(),
+              from: { id: buyer.id, name: buyer.name },
+              to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
+              credits: asset.creditsPaid,
+              purpose: `Purchase: "${asset.name}"`,
+              artifactId: asset.id,
+              status: "completed",
+              durationMs: asset.durationMs,
+            };
+            transactions.push(txBuy);
+            ledger.record(txBuy);
+          }
+
+          // Merge purchased content into the research document as additional sections
+          const purchasedSections = purchasedAssets
+            .filter((a) => a.content)
+            .map((a) => ({
+              heading: `Marketplace: ${a.name}`,
+              content: a.content.slice(0, 4000),
+            }));
+
+          if (purchasedSections.length > 0) {
+            document = {
+              ...document,
+              sections: [...document.sections, ...purchasedSections],
+              creditsUsed: document.creditsUsed + buyerResult.totalCreditsSpent,
+            };
+          }
+
+          emit("buyer_complete", "buyer", `${purchasedAssets.length} marketplace asset(s) merged into report (${buyerResult.totalCreditsSpent}cr)`);
+        } else {
+          emit("buyer_complete", "buyer", buyerResult.discovered.length > 0
+            ? `Found ${buyerResult.discovered.length} marketplace assets but none purchased`
+            : "No relevant marketplace assets found — using research data only");
         }
-
-        // Merge purchased content into the research document as additional sections
-        const purchasedSections = purchasedAssets
-          .filter((a) => a.content)
-          .map((a) => ({
-            heading: `Marketplace: ${a.name}`,
-            content: a.content.slice(0, 4000),
-          }));
-
-        if (purchasedSections.length > 0) {
-          document = {
-            ...document,
-            sections: [...document.sections, ...purchasedSections],
-            creditsUsed: document.creditsUsed + buyerResult.totalCreditsSpent,
-          };
-        }
-
-        emit("buyer_complete", "buyer", `${purchasedAssets.length} marketplace asset(s) merged into report (${buyerResult.totalCreditsSpent}cr)`);
-      } else {
-        emit("buyer_complete", "buyer", buyerResult.discovered.length > 0
-          ? `Found ${buyerResult.discovered.length} marketplace assets but none purchased`
-          : "No relevant marketplace assets found — using research data only");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Buyer agent failed";
+        emit("buyer_complete", "buyer", `Marketplace procurement skipped: ${msg}`);
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Buyer agent failed";
-      emit("buyer_complete", "buyer", `Marketplace procurement skipped: ${msg}`);
+    } else {
+      emit("buyer_complete", "buyer", "External marketplace trading is disabled — skipping buyer agent");
     }
 
     // ── Complete ────────────────────────────────────────────────────
