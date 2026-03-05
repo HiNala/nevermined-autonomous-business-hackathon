@@ -58,92 +58,68 @@ export function HeroSection() {
           </motion.h1>
 
           <motion.p
-            className="max-w-md text-base leading-relaxed"
+            className="max-w-sm text-[15px] leading-relaxed"
             style={{ color: "var(--gray-500)" }}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Four specialist AI agents &mdash; Strategist plans, Researcher discovers, Buyer procures, Seller fulfills.
-            Tell them what you need. Get a structured deliverable back in minutes.
-            Pay only for what you use.
+            Describe what you need. Three specialist agents research, plan, and
+            build it. Get a structured deliverable in minutes.
           </motion.p>
 
-          <motion.div
-            className="flex flex-wrap items-center gap-3 pt-2"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <a
-              href="/studio"
-              className="group flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white transition-all duration-200"
-              style={{
-                background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-                boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
-              }}
-            >
-              Try the Studio &mdash; free
-              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-            </a>
-            <a
-              href="#agents"
-              className="rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
-              style={{
-                background: "var(--glass-bg)",
-                color: "var(--gray-600)",
-                border: "1px solid var(--border-default)",
-              }}
-            >
-              Meet the agents
-            </a>
-          </motion.div>
-
-          {/* Hero search input */}
+          {/* Primary CTA — the input IS the action */}
           <motion.form
             onSubmit={handleSearch}
             className="flex gap-2"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.42 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
           >
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="What do you need? e.g. Research the AI agent market..."
-              className="flex-1 rounded-xl px-4 py-3 text-[13px] outline-none transition-colors"
+              placeholder="e.g. Research the AI agent market in 2025..."
+              className="flex-1 rounded-xl px-4 py-3.5 text-[14px] outline-none transition-all"
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid var(--border-default)",
                 color: "var(--gray-800)",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34,197,94,0.30)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-default)")}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "rgba(34,197,94,0.35)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--border-default)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+              }}
             />
             <button
               type="submit"
               disabled={!q.trim()}
-              className="flex items-center gap-1.5 rounded-xl px-4 py-3 text-[13px] font-medium text-white transition-all duration-200 disabled:opacity-40"
+              className="flex items-center gap-2 rounded-xl px-5 py-3.5 text-[14px] font-medium text-white transition-all duration-200 disabled:opacity-35"
               style={{
                 background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-                boxShadow: q.trim() ? "0 0 16px -4px rgba(34,197,94,0.35)" : "none",
+                boxShadow: q.trim() ? "0 0 20px -4px rgba(34,197,94,0.4)" : "none",
               }}
             >
               <Send size={14} />
+              <span className="hidden sm:inline">Go</span>
             </button>
           </motion.form>
 
-          {/* Trust signals */}
+          {/* Trust signals + secondary nav */}
           <motion.div
-            className="flex flex-wrap items-center gap-4"
+            className="flex flex-wrap items-center gap-x-5 gap-y-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.52 }}
+            transition={{ duration: 0.5, delay: 0.42 }}
           >
             {[
               "Research Sprint from 1cr",
               "No subscription",
-              "Powered by Nevermined",
+              "No signup required",
             ].map((t) => (
               <span
                 key={t}
@@ -154,6 +130,13 @@ export function HeroSection() {
                 {t}
               </span>
             ))}
+            <a
+              href="#agents"
+              className="flex items-center gap-1 font-mono text-[10px] transition-colors hover:opacity-80"
+              style={{ color: "var(--gray-400)" }}
+            >
+              Meet the agents <ArrowRight size={10} />
+            </a>
           </motion.div>
         </div>
 

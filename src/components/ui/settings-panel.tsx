@@ -352,6 +352,13 @@ function TradingSection({
           onChange={(v) => onChange({ ...trading, externalTrading: v })}
           accentColor="#F59E0B"
         />
+        <TradingToggle
+          label="Seller Agent"
+          description="Accept and fulfill incoming orders from external buyers via the Seller agent reverse pipeline."
+          enabled={trading.sellerEnabled}
+          onChange={(v) => onChange({ ...trading, sellerEnabled: v })}
+          accentColor="#EF4444"
+        />
       </div>
     </div>
   );
@@ -427,7 +434,7 @@ export function SettingsPanel({
               className="mt-0.5 text-[11px]"
               style={{ color: "var(--gray-400)" }}
             >
-              Configure search &amp; scrape providers per agent
+              Configure tools &amp; capabilities for all four agents
             </p>
           </div>
           <button
@@ -443,6 +450,15 @@ export function SettingsPanel({
         {/* Scrollable body */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           <AgentSection
+            title="Strategist Agent"
+            subtitle="How Agent 1 enriches briefs with web context"
+            accentColor="#A78BFA"
+            tools={settings.strategist}
+            onChange={(t) => onChange({ ...settings, strategist: t })}
+            status={status}
+          />
+
+          <AgentSection
             title="Researcher Agent"
             subtitle="How Agent 2 discovers and extracts web content"
             accentColor="#22C55E"
@@ -452,11 +468,20 @@ export function SettingsPanel({
           />
 
           <AgentSection
-            title="Strategist Agent"
-            subtitle="How Agent 1 enriches briefs with web context"
-            accentColor="#A78BFA"
-            tools={settings.strategist}
-            onChange={(t) => onChange({ ...settings, strategist: t })}
+            title="Buyer Agent"
+            subtitle="How Agent 3 discovers marketplace assets"
+            accentColor="#F59E0B"
+            tools={settings.buyer}
+            onChange={(t) => onChange({ ...settings, buyer: t })}
+            status={status}
+          />
+
+          <AgentSection
+            title="Seller Agent"
+            subtitle="How Agent 4 generates outputs for external buyers"
+            accentColor="#EF4444"
+            tools={settings.seller}
+            onChange={(t) => onChange({ ...settings, seller: t })}
             status={status}
           />
 

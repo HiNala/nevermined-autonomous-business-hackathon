@@ -16,11 +16,15 @@ export interface TradingSettings {
   internalTrading: boolean;
   /** Allow external marketplace purchases from third-party agents via Nevermined. Default: true */
   externalTrading: boolean;
+  /** Allow the Seller agent to accept and fulfill external orders. Default: true */
+  sellerEnabled: boolean;
 }
 
 export interface ToolSettings {
   strategist: AgentToolSettings;
   researcher: AgentToolSettings;
+  buyer: AgentToolSettings;
+  seller: AgentToolSettings;
   trading: TradingSettings;
 }
 
@@ -29,7 +33,9 @@ const STORAGE_KEY = "auto_business_tool_settings";
 export const DEFAULT_TOOL_SETTINGS: ToolSettings = {
   strategist: { search: "exa", scrape: "exa" },
   researcher: { search: "apify", scrape: "apify" },
-  trading: { internalTrading: true, externalTrading: true },
+  buyer: { search: "apify", scrape: "apify" },
+  seller: { search: "apify", scrape: "apify" },
+  trading: { internalTrading: true, externalTrading: true, sellerEnabled: true },
 };
 
 /** Load tool settings from localStorage (client-only). */
@@ -42,6 +48,8 @@ export function loadToolSettings(): ToolSettings {
     return {
       strategist: { ...DEFAULT_TOOL_SETTINGS.strategist, ...parsed.strategist },
       researcher: { ...DEFAULT_TOOL_SETTINGS.researcher, ...parsed.researcher },
+      buyer: { ...DEFAULT_TOOL_SETTINGS.buyer, ...parsed.buyer },
+      seller: { ...DEFAULT_TOOL_SETTINGS.seller, ...parsed.seller },
       trading: { ...DEFAULT_TOOL_SETTINGS.trading, ...parsed.trading },
     };
   } catch {

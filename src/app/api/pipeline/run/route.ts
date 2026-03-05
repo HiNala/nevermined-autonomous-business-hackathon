@@ -3,6 +3,7 @@ import {
   runPipeline,
   runStrategistStandalone,
   runResearcherStandalone,
+  fulfillSellerOrder,
 } from "@/lib/agent/pipeline";
 import type { AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
@@ -12,7 +13,7 @@ interface RequestBody {
   input?: string;
   outputType?: string;
   provider?: AIProvider;
-  mode?: "pipeline" | "strategist" | "researcher";
+  mode?: "pipeline" | "strategist" | "researcher" | "seller";
   depth?: "quick" | "standard" | "deep";
   toolSettings?: ToolSettings;
 }
@@ -68,6 +69,22 @@ export async function POST(request: Request) {
         totalDurationMs: result.document.durationMs,
         iterations: 1,
         transactions: [result.transaction],
+      });
+    }
+
+    if (mode === "seller") {
+      const orderId = `order-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const result = await fulfillSellerOrder(
+        { id: orderId, query: input, maxCredits: 50 },
+        provider,
+        undefined,
+        toolSettings
+      );
+      return NextResponse.json({
+        mode: "seller",
+        ...result,
+        totalCredits: result.totalCredits,
+        totalDurationMs: result.totalDurationMs,
       });
     }
 

@@ -4,7 +4,6 @@ import { runStrategist, runFollowUp, type StrategistRequest, type StructuredBrie
 import { runResearch, type ResearchDocument } from "./researcher";
 import { runBuyer, type BuyerResult, type PurchasedAsset } from "./buyer";
 import { planSellerOrder, type SellerOrder, type SellerResult } from "./seller";
-import { catalog } from "./inventory";
 import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
@@ -77,6 +76,7 @@ function broadcastEvent(event: PipelineEvent) {
 const strategist = AGENT_PROFILES.strategist;
 const researcher = AGENT_PROFILES.researcher;
 const buyer = AGENT_PROFILES.buyer;
+const seller = AGENT_PROFILES.seller;
 
 /**
  * Evaluate whether the research document is sufficient or needs more context.
@@ -536,7 +536,6 @@ export async function fulfillSellerOrder(
   const startTime = Date.now();
   const events: PipelineEvent[] = [];
   const transactions: AgentTransaction[] = [];
-  const seller = AGENT_PROFILES.seller;
 
   function emit(stage: PipelineStage, agent: PipelineEvent["agent"], message: string, data?: Record<string, unknown>) {
     const event: PipelineEvent = {
@@ -553,7 +552,7 @@ export async function fulfillSellerOrder(
   }
 
   try {
-    // ── Stage 1: Seller receives order and plans fulfillment ──────────
+    // ── Stage 1: Seller receives order and plans fulfillment ────────────
     emit("seller_received", "seller", `Order received: "${order.query.slice(0, 80)}…"`);
     emit("seller_planning", "seller", "Running decision engine — matching product and planning fulfillment…");
 

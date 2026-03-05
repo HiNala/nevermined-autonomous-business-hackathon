@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
 import {
   Store,
   Package,
@@ -419,6 +420,11 @@ export function StorePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
   const [orderingProductId, setOrderingProductId] = useState<string | null>(null);
+  const [toolSettings, setToolSettings] = useState<ToolSettings | null>(null);
+
+  useEffect(() => {
+    setToolSettings(loadToolSettings());
+  }, []);
 
   async function fetchInventory() {
     setLoading(true);
@@ -452,6 +458,7 @@ export function StorePage() {
           query,
           productId: selectedProduct.id,
           maxCredits: 50,
+          ...(toolSettings ? { toolSettings } : {}),
         }),
       });
 

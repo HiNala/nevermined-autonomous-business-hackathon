@@ -5,11 +5,13 @@ import { agentEvents } from "@/lib/agent/event-store";
 import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
 import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
 import type { SellerOrder } from "@/lib/agent/seller";
+import type { ToolSettings } from "@/lib/tool-settings";
 
 interface RequestBody {
   query?: string;
   productId?: string;
   maxCredits?: number;
+  toolSettings?: ToolSettings;
 }
 
 const ENDPOINT = "/api/agent/seller";
@@ -147,6 +149,14 @@ export async function POST(request: Request) {
     data: { agent: "seller", caller, query, productId: body.productId },
   });
 
+  // ── Check if seller is enabled via toolSettings ────────────────────
+  if (body.toolSettings?.trading?.sellerEnabled === false) {
+    return NextResponse.json(
+      { error: "Seller agent is currently disabled in settings" },
+      { status: 503 }
+    );
+  }
+
   // ── Execute: run the reverse pipeline ─────────────────────────────
   try {
     const orderId = `order-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -159,7 +169,7 @@ export async function POST(request: Request) {
       caller,
     };
 
-    const result = await fulfillSellerOrder(order);
+    const result = await fulfillSellerOrder(order, undefined, undefined, body.toolSettings);
 
     // Settle credits after successful execution
     if (!isInternalRequest && paymentSignature) {

@@ -750,7 +750,7 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
     pipeline: {
       icon: Bot,
       title: "Agent Pipeline",
-      desc: "Describe what you need. The Strategist structures your brief, the Researcher searches the web, and the Buyer procures marketplace assets.",
+      desc: "Describe what you need. The Strategist structures your brief, the Researcher searches the web, the Buyer procures marketplace assets, and the Seller fulfills external orders.",
     },
     strategist: {
       icon: Sparkles,
@@ -864,11 +864,23 @@ export function StudioPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [adsMuted, setAdsMuted] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [apiMode, setApiMode] = useState<"demo" | "live" | "checking">("checking");
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
 
   useEffect(() => {
     const stored = localStorage.getItem("zc_ads_muted");
     if (stored === "true") setAdsMuted(true);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/settings/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d) return;
+        const hasLLM = d.openai || d.gemini || d.anthropic;
+        setApiMode(hasLLM ? "live" : "demo");
+      })
+      .catch(() => setApiMode("demo"));
   }, []);
 
   useEffect(() => {
@@ -998,6 +1010,30 @@ export function StudioPage() {
           className={`flex w-[380px] shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-10 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
           style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
         >
+
+          {/* Demo / Live mode banner */}
+          {apiMode !== "checking" && (
+            <div
+              className="flex items-center justify-between border-b px-3 py-1.5"
+              style={{ borderColor: "var(--border-default)", background: apiMode === "demo" ? "rgba(245,158,11,0.04)" : "rgba(34,197,94,0.03)" }}
+            >
+              <span
+                className="flex items-center gap-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest"
+                style={{ color: apiMode === "demo" ? "#F59E0B" : "var(--green-400)" }}
+              >
+                <span
+                  className="size-1.5 rounded-full"
+                  style={{ background: apiMode === "demo" ? "#F59E0B" : "var(--green-400)", opacity: apiMode === "demo" ? 0.8 : 1 }}
+                />
+                {apiMode === "demo" ? "Demo Mode" : "Live Mode"}
+              </span>
+              {apiMode === "demo" && (
+                <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                  Add API keys to go live
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Agent Cards */}
           <div className="space-y-2 border-b p-3" style={{ borderColor: "var(--border-default)" }}>
