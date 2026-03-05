@@ -122,7 +122,12 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
 
         {/* CTA */}
         <Link
-          href="/studio"
+          href={
+            agent.id === "agent-strategist" ? "/studio?mode=strategist" :
+            agent.id === "agent-researcher" ? "/studio?mode=researcher" :
+            agent.id === "agent-seller" ? "/store" :
+            "/studio"
+          }
           className="group flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200"
           style={{
             background: `${agent.accentColor}12`,

@@ -25,6 +25,7 @@ import {
   VolumeX,
   Package,
   Settings,
+  Download,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -565,16 +566,27 @@ function DocumentView({
 }) {
   const [copied, setCopied] = useState(false);
 
+  const buildMarkdown = useCallback(() => [
+    `# ${doc.title}`, "", doc.summary, "",
+    ...doc.sections.flatMap((s) => [`## ${s.heading}`, "", s.content, ""]),
+    "## Sources", ...doc.sources.map((s) => `- [${s.title}](${s.url})`),
+  ].join("\n"), [doc]);
+
   const handleCopy = useCallback(() => {
-    const text = [
-      `# ${doc.title}`, "", doc.summary, "",
-      ...doc.sections.flatMap((s) => [`## ${s.heading}`, "", s.content, ""]),
-      "## Sources", ...doc.sources.map((s) => `- [${s.title}](${s.url})`),
-    ].join("\n");
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(buildMarkdown());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [doc]);
+  }, [buildMarkdown]);
+
+  const handleDownload = useCallback(() => {
+    const blob = new Blob([buildMarkdown()], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${doc.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [buildMarkdown, doc.title]);
 
   return (
     <div className="flex h-full flex-col">
@@ -591,10 +603,16 @@ function DocumentView({
             </div>
           </div>
         </div>
-        <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}>
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleDownload} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }} title="Download as Markdown">
+            <Download size={12} />
+            .md
+          </button>
+          <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}>
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
@@ -886,10 +904,12 @@ export function StudioPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
+    const m = params.get("mode");
     if (q) {
       setInput(decodeURIComponent(q));
       setTimeout(() => inputRef.current?.focus(), 100);
     }
+    if (m === "strategist" || m === "researcher") setMode(m);
   }, []);
 
   function toggleAdsMuted() {
