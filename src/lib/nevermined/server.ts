@@ -3,8 +3,7 @@ import "server-only";
 import { Payments } from "@nevermined-io/payments";
 import type { PaymentStatus } from "@/types";
 
-const SUPPORTED_ENVIRONMENTS = ["sandbox", "live"] as const;
-type NeverminedEnvironment = (typeof SUPPORTED_ENVIRONMENTS)[number];
+type NeverminedEnvironment = "sandbox" | "live";
 
 function normalizeEnvValue(value?: string | null): string | null {
   const trimmed = value?.trim();

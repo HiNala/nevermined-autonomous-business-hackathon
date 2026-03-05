@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
+import { TryStudio } from "@/components/sections/try-studio";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import { Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -148,6 +149,10 @@ export function AgentsPage() {
               <AgentDetailCard key={agent.id} agent={agent} index={i} />
             ))}
           </div>
+        </div>
+
+        <div className="mt-16">
+          <TryStudio />
         </div>
       </main>
       <Footer />

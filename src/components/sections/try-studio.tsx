@@ -1,12 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { type CSSProperties, FormEvent, useMemo, useState } from "react";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
 import { formatCredits } from "@/lib/utils";
 import { Send, Terminal } from "lucide-react";
 import type { StudioRequestResponse } from "@/types";
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   background: "rgba(255, 255, 255, 0.04)",
   border: "1px solid var(--border-default)",
   color: "var(--gray-800)",
@@ -146,8 +146,10 @@ export function TryStudio() {
           </div>
 
           {error ? (
-            <p className="text-[13px]" style={{ color: "var(--tx-debit)" }}>{error}</p>
-          ) : response ? (
+            <p className="mb-4 text-[13px]" style={{ color: "var(--tx-debit)" }}>{error}</p>
+          ) : null}
+
+          {response ? (
             <div className="space-y-5">
               <div>
                 <div className="mb-2 flex items-center gap-2">

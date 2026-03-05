@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
+import { TryStudio } from "@/components/sections/try-studio";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
 import { formatCredits } from "@/lib/utils";
 import { Clock, ArrowRight, Sparkles } from "lucide-react";
@@ -159,6 +160,10 @@ export function ServicesPage() {
               <ServiceDetailCard key={service.id} service={service} index={i} />
             ))}
           </div>
+        </div>
+
+        <div className="mt-16">
+          <TryStudio />
         </div>
       </main>
       <Footer />

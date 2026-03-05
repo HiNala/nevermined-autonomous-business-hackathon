@@ -12,10 +12,19 @@ export function TransactionFeed() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [paused, setPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
 
   useEffect(() => {
     setTransactions(generateInitialTransactions(12));
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTimestamp(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const addTransaction = useCallback(() => {
@@ -32,7 +41,7 @@ export function TransactionFeed() {
   }, [addTransaction, mounted]);
 
   const recentCount = transactions.filter(
-    (tx) => Date.now() - tx.timestamp.getTime() < 300000
+    (tx) => currentTimestamp - tx.timestamp.getTime() < 300000
   ).length;
 
   return (
