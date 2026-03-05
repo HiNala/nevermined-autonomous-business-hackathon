@@ -7,7 +7,7 @@ import { Send, Terminal } from "lucide-react";
 import type { StudioRequestResponse } from "@/types";
 
 const inputStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.04)",
+  background: "var(--bg-surface)",
   border: "1px solid var(--border-default)",
   color: "var(--gray-800)",
 };

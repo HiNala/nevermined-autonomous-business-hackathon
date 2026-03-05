@@ -245,7 +245,7 @@ function OrderModal({
           placeholder="E.g. 'Research the AI agent marketplace landscape and key players in 2025'"
           rows={4}
           className="mb-4 w-full resize-none rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
         />
 
         <div className="flex gap-3">

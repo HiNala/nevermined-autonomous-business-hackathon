@@ -57,7 +57,7 @@ function ProviderSelect<T extends string>({
             onClick={() => onChange(opt.value)}
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-all"
             style={{
-              background: value === opt.value ? "rgba(34, 197, 94, 0.08)" : "rgba(255,255,255,0.02)",
+              background: value === opt.value ? "rgba(34, 197, 94, 0.08)" : "var(--bg-surface)",
               border: `1px solid ${value === opt.value ? "rgba(34, 197, 94, 0.25)" : "var(--border-default)"}`,
             }}
           >
@@ -251,7 +251,7 @@ export function ToolSettingsButton({
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all hover:opacity-80"
         style={{
-          background: "rgba(255,255,255,0.03)",
+          background: "var(--bg-surface)",
           border: "1px solid var(--border-default)",
           color: "var(--gray-400)",
         }}

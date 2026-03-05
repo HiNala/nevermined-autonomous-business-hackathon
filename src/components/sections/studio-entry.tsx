@@ -68,7 +68,7 @@ export function StudioEntry() {
                 rows={5}
                 className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(34,197,94,0.30)]"
                 style={{
-                  background: "rgba(255, 255, 255, 0.04)",
+                  background: "var(--bg-surface)",
                   border: "1px solid var(--border-default)",
                   color: "var(--gray-800)",
                   resize: "none",

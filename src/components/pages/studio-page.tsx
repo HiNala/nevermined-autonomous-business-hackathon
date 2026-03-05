@@ -349,7 +349,7 @@ function TransactionFeed({ transactions }: { transactions: AgentTransaction[] })
 }
 
 // ─── Brief View ─────────────────────────────────────────────────────
-function BriefView({ brief, adsMuted }: { brief: StructuredBrief; adsMuted: boolean }) {
+function BriefView({ brief, adsMuted, onAdServed }: { brief: StructuredBrief; adsMuted: boolean; onAdServed?: () => void }) {
   const [copied, setCopied] = useState(false);
 
   const buildText = useCallback(() => [
@@ -488,6 +488,7 @@ function BriefView({ brief, adsMuted }: { brief: StructuredBrief; adsMuted: bool
           { category: "interest" as const, confidence: 0.9, subject: brief.title, relatedSubjects: brief.scope.slice(0, 4), sentiment: "positive" as const },
           ...(brief.keyQuestions.length > 0 ? [{ category: "evaluation" as const, confidence: 0.75, subject: brief.keyQuestions[0], sentiment: "neutral" as const }] : []),
         ]}
+        onAdServed={onAdServed}
       />
 
       </div>
@@ -558,11 +559,13 @@ function DocumentView({
   adQuery,
   adSignals,
   adsMuted = false,
+  onAdServed,
 }: {
   doc: ResearchDocument;
   adQuery?: string;
   adSignals?: ZeroClickSignal[];
   adsMuted?: boolean;
+  onAdServed?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -629,7 +632,7 @@ function DocumentView({
           ))}
         </div>
 
-        <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} signals={adSignals} />
+        <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} signals={adSignals} onAdServed={onAdServed} />
 
         {doc.sources.length > 0 && (
           <div className="mt-8 border-t pt-5" style={{ borderColor: "var(--border-default)" }}>
@@ -638,7 +641,7 @@ function DocumentView({
             </p>
             <div className="space-y-2">
               {doc.sources.map((source, i) => (
-                <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-white/3">
+                <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-black/3">
                   <ExternalLink size={12} className="mt-0.5 shrink-0" style={{ color: "var(--gray-400)" }} />
                   <div className="min-w-0">
                     <p className="truncate text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>{source.title}</p>
@@ -1565,7 +1568,7 @@ export function StudioPage() {
           </div>
 
           {/* Sponsor Proof Rail */}
-          <SponsorRail toolsUsed={result?.toolsUsed ?? result?.document?.toolsUsed} />
+          <SponsorRail toolsUsed={[...(result?.toolsUsed ?? result?.document?.toolsUsed ?? []), ...adToolsUsed]} />
 
           {/* Content */}
           <div className="flex-1 overflow-hidden">
@@ -1579,9 +1582,10 @@ export function StudioPage() {
                 adQuery={adContext.query || result.brief?.title || result.document?.query}
                 adSignals={adContext.signals}
                 adsMuted={adsMuted}
+                onAdServed={handleAdServed}
               />
             ) : rightTab === "brief" && result.brief ? (
-              <BriefView brief={result.brief} adsMuted={adsMuted} />
+              <BriefView brief={result.brief} adsMuted={adsMuted} onAdServed={handleAdServed} />
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
               <div className="h-full overflow-y-auto p-6">
                 <PurchasedAssetGrid assets={result.purchasedAssets} />
@@ -1589,6 +1593,7 @@ export function StudioPage() {
                   query={result.brief?.title || result.document?.query || input}
                   muted={adsMuted}
                   signals={[{ category: "purchase_intent" as const, confidence: 0.85, subject: result.purchasedAssets[0]?.name || "marketplace asset", sentiment: "positive" as const }]}
+                  onAdServed={handleAdServed}
                 />
               </div>
             ) : (

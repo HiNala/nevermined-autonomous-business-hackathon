@@ -72,7 +72,7 @@ function ToggleGroup<T extends string>({
               style={{
                 background: isActive
                   ? "rgba(34, 197, 94, 0.07)"
-                  : "rgba(255,255,255,0.02)",
+                  : "var(--bg-surface)",
                 border: `1px solid ${
                   isActive
                     ? "rgba(34, 197, 94, 0.22)"
@@ -116,7 +116,7 @@ function ToggleGroup<T extends string>({
                 style={{
                   background: configured
                     ? "rgba(34, 197, 94, 0.07)"
-                    : "rgba(255,255,255,0.03)",
+                    : "var(--bg-surface)",
                   border: `1px solid ${
                     configured
                       ? "rgba(34, 197, 94, 0.15)"
@@ -220,7 +220,7 @@ function AgentSection({
     <div
       className="rounded-xl p-4"
       style={{
-        background: "rgba(255,255,255,0.02)",
+        background: "var(--bg-surface)",
         border: "1px solid var(--border-default)",
       }}
     >
@@ -281,7 +281,7 @@ function TradingToggle({
       onClick={() => onChange(!enabled)}
       className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition-all"
       style={{
-        background: enabled ? "rgba(34, 197, 94, 0.05)" : "rgba(255,255,255,0.02)",
+        background: enabled ? "rgba(34, 197, 94, 0.05)" : "var(--bg-surface)",
         border: `1px solid ${enabled ? "rgba(34, 197, 94, 0.18)" : "var(--border-default)"}`,
       }}
     >
@@ -322,7 +322,7 @@ function TradingSection({
     <div
       className="rounded-xl p-4"
       style={{
-        background: "rgba(255,255,255,0.02)",
+        background: "var(--bg-surface)",
         border: "1px solid var(--border-default)",
       }}
     >
@@ -494,7 +494,7 @@ export function SettingsPanel({
           <div
             className="rounded-xl p-4"
             style={{
-              background: "rgba(255,255,255,0.02)",
+              background: "var(--bg-surface)",
               border: "1px solid var(--border-default)",
             }}
           >
@@ -530,7 +530,7 @@ export function SettingsPanel({
                         style={{
                           background: ok
                             ? "rgba(34, 197, 94, 0.07)"
-                            : "rgba(255,255,255,0.03)",
+                            : "var(--bg-surface)",
                           border: `1px solid ${
                             ok
                               ? "rgba(34, 197, 94, 0.2)"

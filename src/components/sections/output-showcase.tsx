@@ -167,7 +167,7 @@ export function OutputShowcase() {
                 <div
                   key={i}
                   className="flex items-start gap-2 rounded-lg p-2"
-                  style={{ background: "rgba(255,255,255,0.02)" }}
+                  style={{ background: "var(--bg-surface)" }}
                 >
                   <ExternalLink size={11} className="mt-0.5 shrink-0" style={{ color: "var(--gray-400)" }} />
                   <p className="text-[11px] leading-snug" style={{ color: "var(--gray-500)" }}>

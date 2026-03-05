@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useScroll } from "@/hooks/use-scroll";
-import { useTheme } from "@/components/ui/theme-provider";
 import { SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const PAGE_LINKS = [
   { label: "Studio", href: "/studio" },
@@ -19,7 +18,6 @@ const PAGE_LINKS = [
 export function Nav() {
   const scrolled = useScroll(10);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { theme, toggle } = useTheme();
 
   return (
     <>
@@ -62,35 +60,20 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Right: theme toggle + CTA + mobile toggle */}
+      {/* Right: CTA + mobile toggle */}
       <div className="flex items-center gap-3">
-        {/* Theme toggle */}
-        <button
-          onClick={toggle}
-          className="flex size-8 items-center justify-center rounded-lg transition-all duration-200"
-          style={{
-            background: "var(--glass-bg)",
-            border: "1px solid var(--border-default)",
-            color: "var(--gray-500)",
-          }}
-          aria-label="Toggle theme"
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-        </button>
-
         <Link
           href="/studio"
           className="hidden rounded-lg px-4 py-1.5 text-[13px] font-medium text-white transition-all duration-200 sm:block"
           style={{
             background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-            boxShadow: "0 0 20px -4px rgba(99,102,241,0.35)",
+            boxShadow: "0 2px 12px -4px rgba(201,125,78,0.30)",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px -4px rgba(99,102,241,0.50)";
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 20px -4px rgba(201,125,78,0.45)";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px -4px rgba(99,102,241,0.35)";
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px -4px rgba(201,125,78,0.30)";
           }}
         >
           Try Studio

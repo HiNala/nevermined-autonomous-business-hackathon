@@ -189,7 +189,7 @@ export function PurchasedAssetCard({ asset }: { asset: PurchasedAsset }) {
               }}
               className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all"
               style={{
-                background: "rgba(255,255,255,0.04)",
+                background: "var(--bg-surface)",
                 border: "1px solid var(--border-default)",
                 color: copied ? "#22C55E" : "var(--gray-400)",
               }}

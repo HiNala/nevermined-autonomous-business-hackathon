@@ -166,18 +166,18 @@ export function ZeroClickAd({ query, muted, signals, onAdServed }: ZeroClickAdPr
       <div
         className="mt-5 animate-pulse rounded-xl p-4"
         style={{
-          background: "rgba(255,255,255,0.015)",
+          background: "var(--bg-surface)",
           border: "1px solid var(--border-default)",
         }}
       >
         <div className="mb-3 flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
-          <div className="h-2 w-16 rounded" style={{ background: "rgba(255,255,255,0.06)" }} />
+          <div className="h-2 w-2 rounded-full" style={{ background: "var(--gray-200)" }} />
+          <div className="h-2 w-16 rounded" style={{ background: "var(--gray-200)" }} />
         </div>
-        <div className="h-3 w-3/4 rounded" style={{ background: "rgba(255,255,255,0.05)" }} />
-        <div className="mt-1.5 h-2.5 w-full rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
-        <div className="mt-1 h-2.5 w-4/5 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
-        <div className="mt-3 h-7 w-20 rounded-lg" style={{ background: "rgba(255,255,255,0.05)" }} />
+        <div className="h-3 w-3/4 rounded" style={{ background: "var(--gray-200)" }} />
+        <div className="mt-1.5 h-2.5 w-full rounded" style={{ background: "var(--gray-100)" }} />
+        <div className="mt-1 h-2.5 w-4/5 rounded" style={{ background: "var(--gray-100)" }} />
+        <div className="mt-3 h-7 w-20 rounded-lg" style={{ background: "var(--gray-200)" }} />
       </div>
     );
   }
@@ -189,7 +189,7 @@ export function ZeroClickAd({ query, muted, signals, onAdServed }: ZeroClickAdPr
       ref={adRef}
       className="mt-5 rounded-xl p-4"
       style={{
-        background: "rgba(255,255,255,0.02)",
+        background: "var(--bg-surface)",
         border: "1px solid var(--border-default)",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(6px)",
@@ -202,7 +202,7 @@ export function ZeroClickAd({ query, muted, signals, onAdServed }: ZeroClickAdPr
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5"
             style={{
-              background: "rgba(255,255,255,0.04)",
+              background: "var(--bg-overlay)",
               border: "1px solid var(--border-default)",
             }}
           >
