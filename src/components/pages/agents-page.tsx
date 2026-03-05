@@ -98,7 +98,7 @@ function AgentDetailCard({ agent, index }: { agent: StudioAgent; index: number }
           </div>
 
           <Link
-            href="#try-studio"
+            href="/studio"
             className="group mt-auto flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium transition-all duration-200"
             style={{
               background: `${agent.accentColor}12`,

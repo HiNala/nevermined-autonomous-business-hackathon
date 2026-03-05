@@ -674,6 +674,21 @@ export function StudioPage() {
     });
   }
 
+  // Fetch persisted stats on mount
+  useEffect(() => {
+    fetch("/api/pipeline/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.agents) {
+          setInitialStats({
+            strategist: { earned: data.agents.strategist?.creditsEarned ?? 0, handled: data.agents.strategist?.requestsHandled ?? 0 },
+            researcher: { earned: data.agents.researcher?.creditsEarned ?? 0, handled: data.agents.researcher?.requestsHandled ?? 0 },
+          });
+        }
+      })
+      .catch(() => { /* stats unavailable */ });
+  }, []);
+
   // Aggregate stats: initial + live SSE transactions
   const agentStats = {
     strategist: {

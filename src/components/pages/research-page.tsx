@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Nav } from "@/components/layout/nav";
-import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check } from "lucide-react";
+import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { AIProvider } from "@/lib/ai/providers";
 
 interface ResearchSource {
@@ -265,6 +265,7 @@ export function ResearchPage() {
   const [document, setDocument] = useState<ResearchDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showEventLog, setShowEventLog] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const events = useSSE();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -309,10 +310,19 @@ export function ResearchPage() {
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden pt-14">
+        {/* Sidebar toggle (mobile) */}
+        <button
+          onClick={() => setSidebarOpen((v) => !v)}
+          className="absolute left-3 top-[68px] z-20 flex size-8 items-center justify-center rounded-lg lg:hidden"
+          style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+        >
+          {sidebarOpen ? <PanelLeftClose size={14} style={{ color: "var(--gray-400)" }} /> : <PanelLeftOpen size={14} style={{ color: "var(--gray-400)" }} />}
+        </button>
+
         {/* LEFT PANE: Input + Event Log */}
         <div
-          className="flex w-[420px] shrink-0 flex-col border-r"
-          style={{ borderColor: "var(--border-default)" }}
+          className={`flex w-[420px] shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-10 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
+          style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
         >
           {/* Input area */}
           <div className="flex flex-col border-b p-4" style={{ borderColor: "var(--border-default)" }}>
