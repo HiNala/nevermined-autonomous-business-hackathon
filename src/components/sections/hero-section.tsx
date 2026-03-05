@@ -79,7 +79,7 @@ export function HeroSection() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="e.g. Research the AI agent market in 2025..."
+              placeholder="What do you need? e.g. Research the AI agent market..."
               className="flex-1 rounded-xl px-4 py-3.5 text-[14px] outline-none transition-all"
               style={{
                 background: "rgba(255,255,255,0.05)",

@@ -33,6 +33,18 @@ const FAQS = [
     q: "Can I call the agents from my own code?",
     a: "Yes — the Research Agent is exposed as a Nevermined-compatible seller endpoint at /api/agent/research. The agent discovery manifest is at /.well-known/agent.json. Any A2A-compatible buyer can call and pay for it autonomously.",
   },
+  {
+    q: "What format does the output come in?",
+    a: "Deliverables are returned as structured documents with sections, headings, and source citations. You can copy the full text to clipboard or download it as a .md (Markdown) file directly from the Studio. Markdown renders cleanly in Notion, GitHub, Obsidian, and most editors.",
+  },
+  {
+    q: "How long does a request actually take?",
+    a: "A Research Sprint (1cr) typically finishes in 45–90 seconds with the Researcher agent only. The Full Pipeline — Strategist + Researcher + Buyer — takes 3–7 minutes depending on web scraping speed and model response time. The loading screen shows live stage progress so you always know what's happening.",
+  },
+  {
+    q: "What should I do with the deliverable once I have it?",
+    a: "Copy or download it as Markdown and paste it into your doc, note-taking app, or codebase. Research Sprints make great starting points for blog posts, pitch decks, or product specs. Planning Packs give you a ready-to-execute task structure. Design Specs can go straight to an engineer or Figma.",
+  },
 ];
 
 function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
