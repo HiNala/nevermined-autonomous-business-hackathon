@@ -9,6 +9,25 @@ import { SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Menu, X, CreditCard, Zap } from "lucide-react";
 
+function useLiveTxCount() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    async function fetch_() {
+      try {
+        const r = await fetch("/api/pipeline/stats");
+        if (!r.ok || cancelled) return;
+        const d = await r.json();
+        if (!cancelled) setCount(d.totalTransactions ?? 0);
+      } catch { /* silent */ }
+    }
+    fetch_();
+    const id = setInterval(fetch_, 10_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+  return count;
+}
+
 const PAGE_LINKS = [
   { label: "Studio", href: "/studio" },
   { label: "Research", href: "/research" },
@@ -21,6 +40,7 @@ export function Nav() {
   const scrolled = useScroll(10);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const txCount = useLiveTxCount();
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -88,6 +108,14 @@ export function Nav() {
 
       {/* Right: CTA + mobile toggle */}
       <div className="flex items-center gap-2.5">
+        {txCount !== null && txCount > 0 && (
+          <div className="hidden items-center gap-1.5 rounded-full border px-2.5 py-1 sm:flex" style={{ borderColor: "rgba(201,125,78,0.22)", background: "rgba(201,125,78,0.06)" }}>
+            <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
+            <span className="font-mono text-[10px] font-semibold tabular-nums" style={{ color: "var(--accent-400)" }}>
+              {txCount} tx live
+            </span>
+          </div>
+        )}
         <Link
           href="/studio?checkout=true"
           className="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-200 sm:flex btn-press"

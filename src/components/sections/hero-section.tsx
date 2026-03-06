@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Globe } from "@/components/ui/globe";
 import { ArrowRight, Brain, ImageIcon, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
+import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
 const PIPELINE_STEPS = [
   { label: "Seller",      sublabel: "takes order",    color: "#EF4444", icon: ShoppingCart },
@@ -27,9 +28,12 @@ const TRUST_BADGES = [
   { label: "A2A ready", sub: "Nevermined x402" },
 ];
 
+interface LiveStats { totalTransactions: number; totalCreditsFlowed: number; }
+
 export function HeroSection() {
   const [q, setQ] = useState("");
   const [activeStep, setActiveStep] = useState(0);
+  const [liveStats, setLiveStats] = useState<LiveStats>({ totalTransactions: 0, totalCreditsFlowed: 0 });
 
   // Cycle through pipeline steps for the animated flow highlight
   useEffect(() => {
@@ -38,6 +42,25 @@ export function HeroSection() {
     }, 1400);
     return () => clearInterval(id);
   }, []);
+
+  // Poll live stats every 12s
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const r = await fetch("/api/pipeline/stats");
+        if (!r.ok || cancelled) return;
+        const d = await r.json();
+        if (!cancelled) setLiveStats({ totalTransactions: d.totalTransactions ?? 0, totalCreditsFlowed: d.totalCreditsFlowed ?? 0 });
+      } catch { /* silent */ }
+    }
+    load();
+    const id = setInterval(load, 12_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  const animTx      = useAnimatedCounter(liveStats.totalTransactions, 1200, 600);
+  const animCredits = useAnimatedCounter(liveStats.totalCreditsFlowed, 1400, 700);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -330,6 +353,31 @@ export function HeroSection() {
                 </p>
               </motion.div>
             ))}
+          </motion.div>
+          {/* Live stats bar */}
+          <motion.div
+            className="flex flex-wrap items-center gap-2 pt-1"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.48 }}
+          >
+            <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
+              <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
+              <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>
+                {animTx}
+              </span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>agent transactions</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
+              <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>
+                {animCredits}cr
+              </span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits flowed</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.14)" }}>
+              <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#7C3AED" }}>5</span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>active agents</span>
+            </div>
           </motion.div>
         </div>
 

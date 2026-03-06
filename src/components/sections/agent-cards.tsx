@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { StudioAgent } from "@/types";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import { Zap, ArrowRight, Activity } from "lucide-react";
+import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
 interface AgentLiveStats {
   [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
@@ -18,6 +19,19 @@ const AGENT_SKILLS: Record<string, string[]> = {
   "agent-seller":     ["Order intake", "Quality gate", "Packaging", "Delivery"],
   "agent-vision":     ["Image generation", "Quality loop", "Prompt refinement", "NanoBanana"],
 };
+
+function AnimatedStatRow({ real, accentColor }: { real: { creditsEarned: number; creditsSpent: number; requestsHandled: number } | undefined; accentColor: string }) {
+  const runs    = useAnimatedCounter(real?.requestsHandled ?? 0, 900, 100);
+  const spent   = useAnimatedCounter(real?.creditsSpent    ?? 0, 1000, 150);
+  const earned  = useAnimatedCounter(real?.creditsEarned   ?? 0, 1100, 200);
+  return (
+    <>
+      <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{runs} runs</span>
+      <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{spent}cr spent</span>
+      <span className="ml-auto font-mono text-[10px] font-semibold" style={{ color: accentColor }}>{earned}cr earned</span>
+    </>
+  );
+}
 
 function AgentCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
   const agentKey = agent.id.replace("agent-", "");
@@ -137,17 +151,7 @@ function AgentCard({ agent, index, liveStats }: { agent: StudioAgent; index: num
               <span className="ml-auto h-2.5 w-16 animate-pulse rounded" style={{ background: "var(--border-default)" }} />
             </>
           ) : (
-            <>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {real ? `${real.requestsHandled} runs` : "0 runs"}
-              </span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {real ? `${real.creditsSpent}cr spent` : "0cr spent"}
-              </span>
-              <span className="ml-auto font-mono text-[10px] font-semibold" style={{ color: agent.accentColor }}>
-                {real ? `${real.creditsEarned}cr earned` : "0cr earned"}
-              </span>
-            </>
+            <AnimatedStatRow real={real} accentColor={agent.accentColor} />
           )}
         </div>
 
