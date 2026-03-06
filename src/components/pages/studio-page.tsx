@@ -413,12 +413,19 @@ export function StudioPage() {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // Clear any leftover timer from a previous run
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+
     setIsLoading(true);
     setError(null);
     setResult(null);
     setPipelineEvents([]);
     setElapsed(0);
     setVisionResult(null);
+    setActionIntelligence(null);
+    setAdToolsUsed([]);
+    setFollowUpOpen(false);
+    setFollowUpPrompt(undefined);
 
     // Start elapsed timer
     const start = Date.now();
@@ -561,6 +568,15 @@ export function StudioPage() {
   const handleSubmit = useCallback(async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    // Immediately clear stale output from any previous run so the UI doesn't
+    // show old content while the new request is being prepared / clarified.
+    setResult(null);
+    setPipelineEvents([]);
+    setError(null);
+    setVisionResult(null);
+    setActionIntelligence(null);
+    setAdToolsUsed([]);
 
     // For pipeline/strategist mode — check if clarification is needed first
     if ((mode === "pipeline" || mode === "strategist") && input.trim().length < 40) {
