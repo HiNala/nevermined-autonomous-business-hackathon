@@ -267,9 +267,16 @@ function EventLogPanel({ events }: { events: AgentEvent[] }) {
 
   if (events.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-[12px]" style={{ color: "var(--gray-400)" }}>
-          Waiting for events…
+      <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+        <div className="flex items-center gap-2">
+          <span className="relative flex size-1.5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full opacity-40" style={{ background: "var(--gray-300)" }} />
+            <span className="relative inline-flex size-1.5 rounded-full" style={{ background: "var(--gray-400)" }} />
+          </span>
+          <span className="font-mono text-[10px] font-semibold" style={{ color: "var(--gray-400)" }}>Listening</span>
+        </div>
+        <p className="text-[11px]" style={{ color: "var(--gray-300)" }}>
+          Agent events will stream here when you run a query.
         </p>
       </div>
     );
@@ -517,27 +524,29 @@ export function ResearchPage() {
             </div>
           )}
 
-          {/* Quick stats at bottom */}
-          <div className="flex items-center gap-4 border-t px-4 py-2.5" style={{ borderColor: "var(--border-default)" }}>
-            <div className="flex items-center gap-1.5">
-              <Globe size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {document ? `${document.sources.length} sources` : "0 sources"}
-              </span>
+          {/* Quick stats at bottom — only show after a result, hidden on mobile */}
+          {document && (
+            <div className="hidden lg:flex items-center gap-4 border-t px-4 py-2" style={{ borderColor: "var(--border-default)" }}>
+              <div className="flex items-center gap-1.5">
+                <Globe size={11} style={{ color: "var(--gray-400)" }} />
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                  {document.sources.length} sources
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock size={11} style={{ color: "var(--gray-400)" }} />
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                  {(document.durationMs / 1000).toFixed(1)}s
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Zap size={11} style={{ color: "var(--gray-400)" }} />
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                  {document.creditsUsed}cr
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Clock size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {document ? `${(document.durationMs / 1000).toFixed(1)}s` : "—"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Zap size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {document ? `${document.creditsUsed}cr` : "—"}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* RIGHT PANE: Document output */}
