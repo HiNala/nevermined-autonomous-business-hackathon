@@ -25,6 +25,9 @@ import {
   PenLine,
   ShoppingBag,
   PackageCheck,
+  Zap,
+  FileText,
+  ChevronDown,
 } from "lucide-react";
 import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
@@ -659,72 +662,40 @@ export function StorePage() {
     <ErrorBoundary>
     <main className="min-h-screen pt-20 pb-24" style={{ background: "var(--bg-base)" }}>
       <div className="mx-auto max-w-6xl px-6">
-        {/* ── Hero band — renders instantly ─────────────────────────────── */}
+        {/* ── Compact hero — storefront first ─────────────────────────── */}
         <div
-          className="mb-10 rounded-2xl p-8 relative overflow-hidden"
+          className="mb-6 rounded-2xl px-6 py-5 relative overflow-hidden"
           style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", boxShadow: "0 2px 16px -4px rgba(0,0,0,0.06)" }}
         >
-          {/* Background accent orb */}
-          <div className="absolute -right-16 -top-16 size-64 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(239,68,68,0.06) 0%, transparent 70%)" }} />
-          <div className="absolute -left-8 -bottom-8 size-48 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(14,165,233,0.04) 0%, transparent 70%)" }} />
-
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="mb-3 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl" style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.22)" }}>
-                  <Store size={18} style={{ color: "#EF4444" }} />
+              <div className="mb-2 flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-xl" style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.22)" }}>
+                  <Store size={16} style={{ color: "#EF4444" }} />
                 </div>
-                <div className="glass-pill px-3 py-1 flex items-center gap-2">
-                  <span className="pulse-dot" />
-                  <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: "var(--accent-400)" }}>Live Catalog · On-Demand Generation</span>
-                </div>
+                <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" style={{ color: "var(--gray-900)" }}>
+                  Agent <span className="text-gradient-accent">Store</span>
+                </h1>
               </div>
-              <h1 className="mb-2 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
-                Agent <span className="text-gradient-accent">Store</span>
-              </h1>
-              <p className="max-w-xl text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-                Browse deliverables and order on-demand. Each order runs through the full agent pipeline — structured, researched, enriched, and delivered.
+              <p className="max-w-lg text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+                Browse deliverables and order on-demand. Agents handle the rest.
               </p>
             </div>
-            {/* Quick stats — only show when there's real data */}
-            <div className="flex shrink-0 flex-col gap-3 sm:items-end">
+            {/* Trust bar — compact inline */}
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
               {mounted && animTx > 0 && (
-                <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
+                <span className="flex items-center gap-1.5 rounded-lg px-2.5 py-1" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
                   <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
-                  <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>{animTx}</span>
-                  <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>orders fulfilled</span>
-                </div>
+                  <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>{animTx} fulfilled</span>
+                </span>
               )}
-              {mounted && animCredits > 0 && (
-                <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
-                  <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>{animCredits}cr</span>
-                  <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits settled</span>
-                </div>
-              )}
-              {[
-                { label: "From 5 credits", sub: "≈ $0.50 USDC" },
-                { label: "3 delivery formats", sub: "Markdown · Summary · JSON" },
-              ].map((s) => (
-                <div key={s.label} className="flex items-center gap-2">
-                  <div className="size-1.5 rounded-full" style={{ background: "var(--accent-400)" }} />
-                  <span className="text-[12px] font-medium" style={{ color: "var(--gray-700)" }}>{s.label}</span>
-                  <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{s.sub}</span>
-                </div>
-              ))}
+              <span className="flex items-center gap-1.5 font-mono text-[10px]" style={{ color: "var(--gray-500)" }}>
+                <Zap size={10} style={{ color: "var(--accent-400)" }} /> From 5cr · ≈ $0.50
+              </span>
+              <span className="flex items-center gap-1.5 font-mono text-[10px]" style={{ color: "var(--gray-500)" }}>
+                <FileText size={10} style={{ color: "var(--gray-400)" }} /> Markdown · Summary · JSON
+              </span>
             </div>
-          </div>
-
-          {/* How it works strip */}
-          <div className="mt-7 grid grid-cols-2 gap-3 border-t pt-6 sm:grid-cols-4" style={{ borderColor: "var(--border-default)" }}>
-            {HOW_IT_WORKS.map((step) => (
-              <div key={step.step} className="flex items-start gap-2.5">
-                <span className="font-mono text-[11px] font-bold shrink-0" style={{ color: step.color }}>{step.step}</span>
-                <div>
-                  <p className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>{step.label}</p>
-                  <p className="mt-0.5 text-[11px] leading-snug" style={{ color: "var(--gray-400)" }}>{step.desc}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -913,6 +884,25 @@ export function StorePage() {
             </div>
           );
         })()}
+
+        {/* How fulfillment works — collapsible, below products */}
+        <details className="mt-10 mb-8 rounded-xl border group" style={{ borderColor: "var(--border-default)", background: "var(--glass-bg)" }}>
+          <summary className="flex cursor-pointer items-center gap-2.5 px-5 py-3.5 select-none" style={{ color: "var(--gray-500)" }}>
+            <ChevronDown size={12} className="transition-transform group-open:rotate-180" style={{ color: "var(--gray-400)" }} />
+            <span className="text-[13px] font-medium">How fulfillment works</span>
+          </summary>
+          <div className="grid grid-cols-2 gap-4 border-t px-5 py-4 sm:grid-cols-4" style={{ borderColor: "var(--border-default)" }}>
+            {HOW_IT_WORKS.map((step) => (
+              <div key={step.step} className="flex items-start gap-2.5">
+                <span className="font-mono text-[11px] font-bold shrink-0" style={{ color: step.color }}>{step.step}</span>
+                <div>
+                  <p className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>{step.label}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug" style={{ color: "var(--gray-400)" }}>{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
 
         {/* Third-party services section */}
         {inventory && inventory.thirdPartyServices.length > 0 && (
