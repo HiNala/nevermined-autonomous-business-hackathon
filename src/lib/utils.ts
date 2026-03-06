@@ -23,3 +23,16 @@ export function formatCredits(credits: number): string {
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
+
+/**
+ * Race a promise against a timeout. Rejects with a descriptive error if the
+ * timeout fires first. Works in both Node.js and browser environments.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number, label = "Operation"): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}

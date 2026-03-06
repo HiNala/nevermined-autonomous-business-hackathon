@@ -9,10 +9,15 @@ import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
 import type { SponsorToolUsage, EnrichmentSummary, ProcurementStatus, PipelineStage, PipelineEvent, ProvenanceInfo } from "@/types/pipeline";
+import { withTimeout } from "@/lib/utils";
 import { logNeverminedTask } from "@/lib/nevermined/server";
 import { runVisionAgent } from "@/lib/agents/vision";
 import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
 export type { SponsorToolUsage, PipelineStage, PipelineEvent };
+
+const STRATEGIST_TIMEOUT_MS = 60_000;  // 60 s
+const RESEARCHER_TIMEOUT_MS = 120_000; // 120 s
+const BUYER_TIMEOUT_MS = 45_000;       // 45 s
 
 export interface PipelineResult {
   id: string;
@@ -160,12 +165,16 @@ export async function runPipeline(
     // ── Stage 1: Strategist produces structured brief ──────────────
     emit("strategist_working", "strategist", "Analyzing input and structuring comprehensive brief…");
 
-    const brief = await runStrategist({
-      userInput,
-      outputType: outputType as StrategistRequest["outputType"],
-      provider,
-      workspaceId,
-    });
+    const brief = await withTimeout(
+      runStrategist({
+        userInput,
+        outputType: outputType as StrategistRequest["outputType"],
+        provider,
+        workspaceId,
+      }),
+      STRATEGIST_TIMEOUT_MS,
+      "Strategist"
+    );
 
     // Record transaction: user → strategist
     const tx1: AgentTransaction = {
@@ -211,13 +220,17 @@ export async function runPipeline(
     emit("researcher_working", "researcher", `Searching web with ${brief.searchQueries.length} queries…`);
 
     // Pass the strategist's search queries to the researcher for targeted multi-search
-    let document = await runResearch({
-      query: brief.objective,
-      searchQueries: brief.searchQueries,
-      provider,
-      depth: "standard",
-      toolSettings: toolSettings?.researcher,
-    });
+    let document = await withTimeout(
+      runResearch({
+        query: brief.objective,
+        searchQueries: brief.searchQueries,
+        provider,
+        depth: "standard",
+        toolSettings: toolSettings?.researcher,
+      }),
+      RESEARCHER_TIMEOUT_MS,
+      "Researcher"
+    );
 
     // Merge researcher's toolsUsed into pipeline toolsUsed
     if (document.toolsUsed) toolsUsed.push(...document.toolsUsed);
@@ -252,7 +265,11 @@ export async function runPipeline(
       emit("researcher_followup", "researcher", `Requesting more context from Strategist: "${followUp.slice(0, 80)}…"`);
 
       // Researcher buys follow-up from Strategist
-      const followUpBrief = await runFollowUp(brief, followUp, provider);
+      const followUpBrief = await withTimeout(
+        runFollowUp(brief, followUp, provider),
+        STRATEGIST_TIMEOUT_MS,
+        "Strategist follow-up"
+      );
       followUpBriefs.push(followUpBrief);
 
       if (internalTrading) {
@@ -278,12 +295,16 @@ export async function runPipeline(
         ...followUpBrief.searchQueries.slice(0, 3),
       ].join(" | ");
 
-      const additionalDoc = await runResearch({
-        query: followUpQuery,
-        provider,
-        depth: "quick",
-        toolSettings: toolSettings?.researcher,
-      });
+      const additionalDoc = await withTimeout(
+        runResearch({
+          query: followUpQuery,
+          provider,
+          depth: "quick",
+          toolSettings: toolSettings?.researcher,
+        }),
+        RESEARCHER_TIMEOUT_MS,
+        "Researcher follow-up"
+      );
 
       // Merge additional findings into the document
       document = {
@@ -325,11 +346,15 @@ export async function runPipeline(
       toolsUsed.push({ tool: "nevermined-402", label: "Nevermined Marketplace Discovery", sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `query: ${brief.title.slice(0, 40)}` });
 
       try {
-        buyerResult = await runBuyer({
-          query: brief.objective,
-          maxCredits: 20,
-          preferredTypes: ["report", "dataset", "service"],
-        });
+        buyerResult = await withTimeout(
+          runBuyer({
+            query: brief.objective,
+            maxCredits: 20,
+            preferredTypes: ["report", "dataset", "service"],
+          }),
+          BUYER_TIMEOUT_MS,
+          "Buyer"
+        );
 
         purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
 
