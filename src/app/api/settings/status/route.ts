@@ -9,5 +9,6 @@ export async function GET() {
     anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
     zeroclick: Boolean(process.env.ZEROCLICK_API_KEY?.trim()),
     nevermined: Boolean(process.env.NVM_API_KEY?.trim()),
+    nanobanana: Boolean(process.env.NANOBANANA_API_KEY?.trim()),
   });
 }

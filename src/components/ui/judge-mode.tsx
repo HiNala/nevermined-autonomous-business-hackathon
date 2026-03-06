@@ -1,6 +1,6 @@
 "use client";
 
-import { Zap, Search, Package, ShoppingCart, Award } from "lucide-react";
+import { Zap, Search, Package, ShoppingCart, Award, ImageIcon } from "lucide-react";
 import type { ToolSettings } from "@/lib/tool-settings";
 
 type ViewMode = "pipeline" | "strategist" | "researcher" | "seller";
@@ -31,9 +31,9 @@ export const JUDGE_PRESETS: JudgePreset[] = [
     outputType: "research",
     toolOverrides: {
       researcher: { search: "apify", scrape: "apify" },
-      trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true },
+      trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true, visionEnabled: true },
     } as Partial<ToolSettings>,
-    sponsors: ["Apify", "Nevermined", "ZeroClick"],
+    sponsors: ["Apify", "Nevermined", "ZeroClick", "NanoBanana"],
     icon: Search,
     color: "#0EA5E9",
     bgColor: "rgba(14, 165, 233, 0.06)",
@@ -48,9 +48,9 @@ export const JUDGE_PRESETS: JudgePreset[] = [
     outputType: "analysis",
     toolOverrides: {
       researcher: { search: "exa", scrape: "exa" },
-      trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true },
+      trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true, visionEnabled: true },
     } as Partial<ToolSettings>,
-    sponsors: ["Exa", "Nevermined"],
+    sponsors: ["Exa", "Nevermined", "NanoBanana"],
     icon: ShoppingCart,
     color: "#F59E0B",
     bgColor: "rgba(245, 158, 11, 0.06)",
@@ -65,13 +65,30 @@ export const JUDGE_PRESETS: JudgePreset[] = [
     outputType: "research",
     toolOverrides: {
       researcher: { search: "apify", scrape: "apify" },
-      trading: { internalTrading: true, externalTrading: false, sellerEnabled: true, nvmTracking: true },
+      trading: { internalTrading: true, externalTrading: false, sellerEnabled: true, nvmTracking: true, visionEnabled: true },
     } as Partial<ToolSettings>,
-    sponsors: ["Apify", "Nevermined"],
+    sponsors: ["Apify", "Nevermined", "NanoBanana"],
     icon: Package,
     color: "#6366F1",
     bgColor: "rgba(99, 102, 241, 0.06)",
     borderColor: "rgba(99, 102, 241, 0.18)",
+  },
+  {
+    id: "vision-demo",
+    title: "VISION Image Demo",
+    subtitle: "Composer → NanoBanana image with quality loop — showcases VISION agent",
+    prompt: "Analyze the future of autonomous AI agents in financial markets: trading bots, payment automation, and economic implications of machine-to-machine commerce.",
+    mode: "researcher",
+    outputType: "research",
+    toolOverrides: {
+      researcher: { search: "apify", scrape: "apify" },
+      trading: { internalTrading: true, externalTrading: false, sellerEnabled: true, nvmTracking: true, visionEnabled: true },
+    } as Partial<ToolSettings>,
+    sponsors: ["NanoBanana", "Apify"],
+    icon: ImageIcon,
+    color: "#CA8A04",
+    bgColor: "rgba(234, 179, 8, 0.06)",
+    borderColor: "rgba(234, 179, 8, 0.18)",
   },
   {
     id: "seller-live",
@@ -82,9 +99,9 @@ export const JUDGE_PRESETS: JudgePreset[] = [
     outputType: "analysis",
     toolOverrides: {
       researcher: { search: "apify", scrape: "apify" },
-      trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true },
+      trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true, visionEnabled: true },
     } as Partial<ToolSettings>,
-    sponsors: ["Apify", "Nevermined"],
+    sponsors: ["Apify", "Nevermined", "NanoBanana"],
     icon: Zap,
     color: "#EF4444",
     bgColor: "rgba(239, 68, 68, 0.06)",
@@ -101,6 +118,7 @@ const SPONSOR_PILL_COLORS: Record<string, { bg: string; text: string }> = {
   Exa: { bg: "rgba(99, 102, 241, 0.10)", text: "#6366F1" },
   Nevermined: { bg: "rgba(34, 197, 94, 0.10)", text: "#22C55E" },
   ZeroClick: { bg: "rgba(245, 158, 11, 0.10)", text: "#F59E0B" },
+  NanoBanana: { bg: "rgba(234, 179, 8, 0.10)", text: "#CA8A04" },
 };
 
 export function JudgeMode({ onSelect }: JudgeModeProps) {

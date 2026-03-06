@@ -20,6 +20,7 @@ export interface ServiceStatus {
   anthropic: boolean;
   zeroclick: boolean;
   nevermined: boolean;
+  nanobanana?: boolean;
 }
 
 interface SettingsPanelProps {
@@ -377,6 +378,13 @@ function TradingSection({
           onChange={(v) => onChange({ ...trading, nvmTracking: v })}
           accentColor="#8B5CF6"
         />
+        <TradingToggle
+          label="VISION Image Generation"
+          description="After each Composer report, the VISION agent calls NanoBanana (Gemini) to generate a hero image with an iterative quality loop. Disable to skip image generation and speed up results."
+          enabled={trading.visionEnabled ?? true}
+          onChange={(v) => onChange({ ...trading, visionEnabled: v })}
+          accentColor="#CA8A04"
+        />
       </div>
     </div>
   );
@@ -416,6 +424,7 @@ export function SettingsPanel({
     { key: "anthropic", label: "ANTHROPIC_API_KEY", note: "Claude" },
     { key: "zeroclick", label: "ZEROCLICK_API_KEY", note: "In-chat ads" },
     { key: "nevermined", label: "NVM_API_KEY", note: "Payments" },
+    { key: "nanobanana", label: "NANOBANANA_API_KEY", note: "Image generation" },
   ];
 
   return (
@@ -452,7 +461,7 @@ export function SettingsPanel({
               className="mt-0.5 text-[11px]"
               style={{ color: "var(--gray-400)" }}
             >
-              Configure tools &amp; capabilities for all four agents
+              Configure tools &amp; capabilities for all five agents
             </p>
           </div>
           <button

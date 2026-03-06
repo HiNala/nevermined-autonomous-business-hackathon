@@ -20,6 +20,8 @@ export interface TradingSettings {
   sellerEnabled: boolean;
   /** Log internal pipeline runs to the Nevermined network. External x402 transactions always log. Default: true */
   nvmTracking: boolean;
+  /** Generate images via VISION agent (NanoBanana) after each Composer document. Default: true */
+  visionEnabled: boolean;
 }
 
 export interface ToolSettings {
@@ -37,7 +39,7 @@ export const DEFAULT_TOOL_SETTINGS: ToolSettings = {
   researcher: { search: "apify", scrape: "apify" },
   buyer: { search: "apify", scrape: "apify" },
   seller: { search: "apify", scrape: "apify" },
-  trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true },
+  trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true, visionEnabled: true },
 };
 
 /** Load tool settings from localStorage (client-only). */

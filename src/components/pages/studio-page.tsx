@@ -2048,7 +2048,9 @@ export function StudioPage() {
       if (data.document) {
         extractActionsFromResult(data.document);
         // Trigger VISION agent async — non-blocking, generates hero image for the report
-        triggerVision(data.document.title ?? finalInput, data.document.summary ?? "");
+        if (toolSettings.trading.visionEnabled !== false) {
+          triggerVision(data.document.title ?? finalInput, data.document.summary ?? "");
+        }
       }
       else if (data.brief) setRightTab("brief");
 
