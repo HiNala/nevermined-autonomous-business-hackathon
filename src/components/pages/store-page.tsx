@@ -101,10 +101,12 @@ function ProductCard({
   product,
   onOrder,
   isOrdering,
+  externalTrading,
 }: {
   product: CatalogProduct;
   onOrder: (product: CatalogProduct) => void;
   isOrdering: boolean;
+  externalTrading: boolean;
 }) {
   const Icon = CATEGORY_ICONS[product.category] ?? Package;
 
@@ -233,6 +235,19 @@ function ProductCard({
           </>
         )}
       </button>
+
+      {/* Enrichment demo notice when externalTrading is off */}
+      {product.mayRequireExternalData && !externalTrading && (
+        <div
+          className="mt-2 flex items-start gap-1.5 rounded-lg px-2.5 py-2"
+          style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}
+        >
+          <span className="shrink-0 font-mono text-[8px] font-bold" style={{ color: "#6366F1" }}>DEMO</span>
+          <p className="text-[9px] leading-snug" style={{ color: "#6366F1" }}>
+            External Marketplace OFF — enrichment planned but Buyer won’t transact. Enable in Settings for live procurement.
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -728,6 +743,7 @@ export function StorePage() {
                   product={product}
                   onOrder={setSelectedProduct}
                   isOrdering={orderingProductId === product.id}
+                  externalTrading={toolSettings?.trading?.externalTrading ?? true}
                 />
               ))}
             </div>

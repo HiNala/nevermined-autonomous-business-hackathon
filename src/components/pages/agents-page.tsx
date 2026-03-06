@@ -336,6 +336,220 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
   );
 }
 
+// ─── Playbook Expansion Section ───────────────────────────────────────────────
+
+const AGENT_EXPANSIONS = [
+  {
+    id: "agent-strategist",
+    name: "Strategist",
+    color: "#7C3AED",
+    bg: "rgba(124,58,237,0.06)",
+    border: "rgba(124,58,237,0.20)",
+    icon: Brain,
+    headline: "Request Intelligence",
+    shipped: [
+      "Brief scoring (clarity, specificity, answerability, sourceability)",
+      "Routing inference — recommendedMode, recommendedDepth, enrichmentLikelihood",
+      "Clarification mode — asks 1–2 questions before running ambiguous jobs",
+      "Workspace-aware briefing — injects company, market, competitors per run",
+      "5 candidate output templates detected from input intent",
+      "Self-regeneration — reruns if brief scores C/D grade",
+    ],
+    metric: { label: "Brief quality gate", value: "≥ B grade or regenerate" },
+  },
+  {
+    id: "agent-researcher",
+    name: "Composer",
+    color: "#0EA5E9",
+    bg: "rgba(14,165,233,0.06)",
+    border: "rgba(14,165,233,0.20)",
+    icon: PenLine,
+    headline: "Evidence & Composition Engine",
+    shipped: [
+      "2-pass generation: outline pass → full synthesis pass",
+      "Source scoring — freshness, authority, relevance, overall quality",
+      "Contradiction detector — flags conflicting evidence across sources",
+      "Confidence summary: level, source count, freshness, uncertainties",
+      "Section-level citations — attributes claims to source index",
+      "5-path search fallback: Exa → Apify → DuckDuckGo → raw fetch",
+    ],
+    metric: { label: "Source scoring", value: "0–10 per source, sorted by quality" },
+  },
+  {
+    id: "agent-buyer",
+    name: "Buyer",
+    color: "#F59E0B",
+    bg: "rgba(245,158,11,0.06)",
+    border: "rgba(245,158,11,0.20)",
+    icon: ShoppingBag,
+    headline: "Budget-Aware Enrichment Specialist",
+    shipped: [
+      "Value-based asset ranking — relevance, price-value, information gain",
+      "Purchase rationale per asset — explains gap filled and why worth it",
+      "Approval threshold — flags high-cost buys before transacting",
+      "Demo fallback assets — 3 curated enrichment assets when marketplace empty",
+      "Composite scoring (weighted: relevance 50%, price 25%, info gain 25%)",
+      "Asset outcome tracking for future quality analysis",
+    ],
+    metric: { label: "Approval threshold", value: "Flags buys above cost limit" },
+  },
+  {
+    id: "agent-seller",
+    name: "Seller",
+    color: "#EF4444",
+    bg: "rgba(239,68,68,0.06)",
+    border: "rgba(239,68,68,0.20)",
+    icon: PackageCheck,
+    headline: "Job Owner & Delivery Boundary",
+    shipped: [
+      "7-state job lifecycle: received → planning → researching → enriching → packaging → delivered → failed",
+      "Delivery package with 3 variants: full report, executive brief, JSON artifact",
+      "5-check quality gate before delivery (completeness, citations, external disclosure)",
+      "Versioned handoff contracts with schemaVersion, jobId, traceId",
+      "IncomingOrder contract validated before any pipeline work begins",
+      "External buyer API with idempotency and stable schemas",
+    ],
+    metric: { label: "Quality gate", value: "5 checks before every delivery" },
+  },
+];
+
+function PlaybookSection() {
+  const [activeAgent, setActiveAgent] = useState<string | null>(null);
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      className="mx-auto mt-20 max-w-6xl px-6"
+    >
+      <div className="mb-8">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>AGENT EXPANSION PLAYBOOK</span>
+        </div>
+        <h2 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl" style={{ color: "var(--gray-900)" }}>
+          Smarter at every stage. <span className="text-gradient-accent">Not just more.</span>
+        </h2>
+        <p className="max-w-2xl text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+          Each agent has been upgraded to be more stateful, more explainable, and more useful in real workflows —
+          without adding complexity or new agents. Click any card to see exactly what shipped.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {AGENT_EXPANSIONS.map((agent, i) => {
+          const isOpen = activeAgent === agent.id;
+          const Icon = agent.icon;
+          return (
+            <motion.div
+              key={agent.id}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
+              style={{
+                background: isOpen ? agent.bg : "var(--bg-surface)",
+                border: `1px solid ${isOpen ? agent.border : "var(--border-default)"}`,
+                boxShadow: isOpen ? `0 8px 32px -8px ${agent.color}20` : "none",
+              }}
+              onClick={() => setActiveAgent(isOpen ? null : agent.id)}
+              onMouseEnter={(e) => {
+                if (!isOpen) {
+                  e.currentTarget.style.borderColor = `${agent.color}35`;
+                  e.currentTarget.style.background = agent.bg;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isOpen) {
+                  e.currentTarget.style.borderColor = "var(--border-default)";
+                  e.currentTarget.style.background = "var(--bg-surface)";
+                }
+              }}
+            >
+              {/* Card header */}
+              <div className="p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <div
+                    className="flex size-9 items-center justify-center rounded-xl"
+                    style={{ background: `${agent.color}14`, border: `1px solid ${agent.color}25` }}
+                  >
+                    <Icon size={16} style={{ color: agent.color }} />
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className="transition-transform duration-200"
+                    style={{ color: "var(--gray-400)", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                  />
+                </div>
+
+                <h3 className="mb-0.5 text-[14px] font-bold" style={{ color: "var(--gray-900)" }}>{agent.name}</h3>
+                <p className="text-[11px] font-medium" style={{ color: agent.color }}>{agent.headline}</p>
+
+                {/* Key metric chip */}
+                <div
+                  className="mt-3 rounded-lg px-2.5 py-1.5"
+                  style={{ background: `${agent.color}08`, border: `1px solid ${agent.color}18` }}
+                >
+                  <p className="font-mono text-[8px] uppercase tracking-wider mb-0.5" style={{ color: "var(--gray-400)" }}>
+                    {agent.metric.label}
+                  </p>
+                  <p className="font-mono text-[10px] font-semibold" style={{ color: agent.color }}>
+                    {agent.metric.value}
+                  </p>
+                </div>
+              </div>
+
+              {/* Expandable shipped features */}
+              {isOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="border-t px-5 pb-5 pt-4"
+                  style={{ borderColor: `${agent.color}20` }}
+                >
+                  <p className="mb-2.5 font-mono text-[8px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+                    Shipped capabilities
+                  </p>
+                  <div className="space-y-2">
+                    {agent.shipped.map((item, j) => (
+                      <div key={j} className="flex items-start gap-2">
+                        <CheckCircle2 size={10} className="mt-0.5 shrink-0" style={{ color: agent.color }} />
+                        <p className="text-[11px] leading-snug" style={{ color: "var(--gray-600)" }}>{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Design filter note */}
+      <div
+        className="mt-6 flex items-start gap-4 rounded-2xl px-6 py-5"
+        style={{ background: "rgba(201,125,78,0.04)", border: "1px solid rgba(201,125,78,0.12)" }}
+      >
+        <Sparkles size={16} className="mt-0.5 shrink-0" style={{ color: "var(--accent-400)" }} />
+        <div>
+          <p className="text-[13px] font-semibold mb-1" style={{ color: "var(--gray-800)" }}>
+            The expansion design filter
+          </p>
+          <p className="text-[12px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            Every capability added passes the same test: does it expand user capability, reduce friction, make the system more trustworthy, and remain useful weekly — not just in a demo?
+            More agents ≠ more intelligence. Better agents do.
+          </p>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
 // ─── Enrichment Explainer ─────────────────────────────────────────────────────
 
 function EnrichmentExplainer() {
@@ -628,6 +842,9 @@ export function AgentsPage() {
             ))}
           </div>
         </div>
+
+        {/* Playbook Expansion Section */}
+        <PlaybookSection />
 
         {/* Enrichment Explainer */}
         <EnrichmentExplainer />

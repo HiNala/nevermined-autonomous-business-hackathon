@@ -35,6 +35,7 @@ import {
   PenLine,
   ShoppingBag,
   ShoppingCart,
+  BookOpen,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -50,6 +51,11 @@ import { BuyerRationalePanel } from "@/components/ui/buyer-rationale-panel";
 import { ProvenanceBlockCard } from "@/components/ui/provenance-block";
 import { DeliveryPackageView } from "@/components/ui/delivery-package-view";
 import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge";
+import { ClarificationDialog } from "@/components/ui/clarification-dialog";
+import { ArtifactLibrary, saveArtifact, type ArtifactEntry } from "@/components/ui/artifact-library";
+import { BuyerApprovalModal } from "@/components/ui/buyer-approval-modal";
+import type { BriefRouting } from "@/lib/agent/strategist";
+import type { MarketplaceAsset } from "@/lib/agent/buyer";
 import type { ResearchConfidence, ProvenanceInfo, EnrichmentSummary } from "@/types/pipeline";
 import type {
   ResearchSource,
@@ -908,7 +914,15 @@ function DocumentView({
         <div className="flex items-center gap-3">
           <FileText size={16} style={{ color: AGENT_CONFIG.researcher.color }} />
           <div>
-            <p className="text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>{doc.title}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>{doc.title}</p>
+              <span
+                className="rounded px-1.5 py-0.5 font-mono text-[7px] font-semibold uppercase tracking-wide"
+                style={{ background: "rgba(14,165,233,0.10)", color: "#0EA5E9", border: "1px solid rgba(14,165,233,0.20)" }}
+              >
+                Composer draft
+              </span>
+            </div>
             <div className="flex items-center gap-3 mt-0.5">
               <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{doc.provider}/{doc.model}</span>
               <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{doc.creditsUsed}cr</span>
@@ -972,6 +986,32 @@ function DocumentView({
           })}
         </div>
 
+        {/* Uncertainties / unresolved claims — from researcher confidence */}
+        {(doc as ResearchDocument & { uncertainties?: string[] }).uncertainties?.length ? (
+          <div
+            className="mt-6 rounded-xl p-4"
+            style={{ background: "rgba(124,58,237,0.04)", border: "1px solid rgba(124,58,237,0.14)" }}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <Brain size={13} style={{ color: "#7C3AED" }} />
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#7C3AED" }}>
+                Unresolved uncertainties
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              {(doc as ResearchDocument & { uncertainties: string[] }).uncertainties.map((u, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="mt-1 size-1.5 shrink-0 rounded-full" style={{ background: "#7C3AED", opacity: 0.5 }} />
+                  <p className="text-[12px] leading-relaxed" style={{ color: "var(--gray-500)" }}>{u}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2.5 font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+              These claims had limited source support. Verify before acting on them.
+            </p>
+          </div>
+        ) : null}
+
         <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} signals={adSignals} onAdServed={onAdServed} />
 
         {doc.sources.length > 0 && (
@@ -1019,6 +1059,22 @@ function DocumentView({
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Output disclosure footer — shown when external data sections are present */}
+        {doc.sections.some((s) => s.heading.startsWith("External Data:") || s.heading.startsWith("Marketplace:")) && (
+          <div
+            className="mt-6 flex items-start gap-2.5 rounded-xl p-3.5"
+            style={{ background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.15)" }}
+          >
+            <Sparkles size={12} className="mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
+            <p className="font-mono text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
+              <span style={{ color: "#F59E0B" }}>✦ External data disclosure</span>
+              {" — "}This report includes sections sourced from third-party assets purchased via the Nevermined marketplace.
+              External sections are labeled <span style={{ color: "#F59E0B" }}>✦ External</span> above.
+              For full provenance, see the Provenance tab.
+            </p>
           </div>
         )}
       </div>
@@ -1505,6 +1561,18 @@ export function StudioPage() {
   const [adToolsUsed, setAdToolsUsed] = useState<SponsorToolUsage[]>([]);
   const [workspaceId] = useState<string>("default");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // Clarification dialog state
+  const [clarifyOpen, setClarifyOpen] = useState(false);
+  const [clarifyQuestions, setClarifyQuestions] = useState<string[]>([]);
+  const [clarifyRouting, setClarifyRouting] = useState<BriefRouting | undefined>(undefined);
+  const [pendingInput, setPendingInput] = useState<string | null>(null);
+  // Artifact library state
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  // Buyer approval state
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const [approvalAssets, setApprovalAssets] = useState<MarketplaceAsset[]>([]);
+  const [approvalCost, setApprovalCost] = useState(0);
+  const [approvalReason, setApprovalReason] = useState("");
 
   const handleAdServed = useCallback(() => {
     setAdToolsUsed((prev) => {
@@ -1638,9 +1706,12 @@ export function StudioPage() {
     setError("Request cancelled");
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  async function runPipeline(overrideInput?: string) {
+    const finalInput = overrideInput ?? input;
+    if (!finalInput.trim() || isLoading) return;
+
+    setClarifyOpen(false);
+    setPendingInput(null);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -1655,7 +1726,7 @@ export function StudioPage() {
     const start = Date.now();
     timerRef.current = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
 
-    // Open SSE stream to receive real-time pipeline events while the POST runs
+    // Open SSE stream
     const eventSource = new EventSource("/api/agent/events");
     eventSource.onmessage = (ev) => {
       try {
@@ -1677,7 +1748,7 @@ export function StudioPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          input: input.trim(),
+          input: finalInput.trim(),
           outputType,
           mode,
           toolSettings,
@@ -1698,8 +1769,35 @@ export function StudioPage() {
       else if (data.document) setRightTab("document");
       else if (data.brief) setRightTab("brief");
 
+      // Check if Buyer requires approval for next run context
+      if (data.buyerResult?.requiresApproval) {
+        const req = data.buyerResult.requiresApproval;
+        setApprovalAssets(req.assets ?? []);
+        setApprovalCost(req.totalCost ?? 0);
+        setApprovalReason(req.reason ?? "Cost exceeds threshold");
+        setApprovalOpen(true);
+      }
+
+      // Save to artifact library
+      try {
+        saveArtifact({
+          input: finalInput.trim(),
+          mode,
+          outputType,
+          title: data.document?.title ?? data.brief?.title ?? data.deliveryPackage?.title ?? finalInput.slice(0, 60),
+          summary: data.document?.summary ?? data.brief?.objective ?? "",
+          creditsUsed: data.totalCredits ?? 0,
+          durationMs: data.totalDurationMs ?? 0,
+          hasBrief: !!data.brief,
+          hasDocument: !!data.document,
+          hasDelivery: !!data.deliveryPackage,
+          sourceCount: data.document?.sources?.length ?? 0,
+          enriched: (data.purchasedAssets?.length ?? 0) > 0,
+        });
+      } catch { /* quota exceeded */ }
+
       // Persist last result to localStorage
-      try { localStorage.setItem("ab_last_result", JSON.stringify({ result: data, input: input.trim(), mode })); } catch { /* quota exceeded */ }
+      try { localStorage.setItem("ab_last_result", JSON.stringify({ result: data, input: finalInput.trim(), mode })); } catch { /* quota exceeded */ }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         // already handled by handleCancel
@@ -1711,6 +1809,34 @@ export function StudioPage() {
       if (timerRef.current) clearInterval(timerRef.current);
       setIsLoading(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    // For pipeline/strategist mode — check if clarification is needed first
+    if ((mode === "pipeline" || mode === "strategist") && input.trim().length < 40) {
+      try {
+        const res = await fetch("/api/pipeline/clarify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: input.trim(), outputType, workspaceId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isClarificationNeeded && data.clarificationQuestions?.length > 0) {
+            setClarifyQuestions(data.clarificationQuestions);
+            setClarifyRouting(data.routing);
+            setPendingInput(input.trim());
+            setClarifyOpen(true);
+            return;
+          }
+        }
+      } catch { /* fall through to normal run on error */ }
+    }
+
+    await runPipeline();
   }
 
   // Keyboard shortcuts: Escape to cancel, Cmd/Ctrl+K to open settings
@@ -1736,8 +1862,41 @@ export function StudioPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLoading]);
 
+  function handleRestoreArtifact(entry: ArtifactEntry) {
+    setInput(entry.input);
+    setMode(entry.mode as ViewMode);
+    setLibraryOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }
+
   return (
     <>
+    <ClarificationDialog
+      open={clarifyOpen}
+      questions={clarifyQuestions}
+      routing={clarifyRouting}
+      onAnswer={(answers) => {
+        const enriched = pendingInput
+          ? `${pendingInput}\n\nContext: ${answers.filter(Boolean).join(" | ")}`
+          : input;
+        setInput(enriched);
+        runPipeline(enriched);
+      }}
+      onSkip={() => runPipeline(pendingInput ?? undefined)}
+    />
+    <ArtifactLibrary
+      open={libraryOpen}
+      onClose={() => setLibraryOpen(false)}
+      onRestore={handleRestoreArtifact}
+    />
+    <BuyerApprovalModal
+      open={approvalOpen}
+      assets={approvalAssets}
+      totalCost={approvalCost}
+      reason={approvalReason}
+      onApprove={() => setApprovalOpen(false)}
+      onDeny={() => setApprovalOpen(false)}
+    />
     <SettingsPanel
       open={settingsOpen}
       onClose={() => setSettingsOpen(false)}
@@ -1868,6 +2027,15 @@ export function StudioPage() {
                 </button>
               )}
               <div className="ml-auto flex items-center gap-1.5">
+                <button
+                  onClick={() => setLibraryOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+                  title="Artifact Library"
+                >
+                  <BookOpen size={10} />
+                  library
+                </button>
                 <button
                   onClick={() => setJudgeMode((v) => !v)}
                   className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"

@@ -334,34 +334,78 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
     .map((s, i) => `--- SOURCE ${i + 1} [score:${s.overallScore}/10, authority:${s.authorityScore}, freshness:${s.freshnessLabel}]: ${s.title} (${s.url}) ---\n${s.excerpt.slice(0, 400)}`)
     .join("\n\n");
 
-  // ── Step 3: 2-pass generation (outline → draft) ─────────────────────
+  // ── Step 3a: Pass 1 — Outline (title + section headings + key claims) ───
   const sectionCount = depth === "quick" ? "2-3" : depth === "deep" ? "6-8" : "4-5";
 
-  const systemPrompt = `You are an expert research agent for Auto Business. Analyze web sources and produce a structured, decision-useful research document.
+  // Skip outline pass for quick depth to save time
+  let outlineSections: string[] = [];
+  let docTitle = `Research: ${request.query}`;
+
+  if (depth !== "quick") {
+    const outlinePrompt = `You are a research planning agent. Given a query and scored sources, produce an outline for a research document.
 
 Output strict JSON:
 {
-  "title": "Clear descriptive title",
-  "summary": "2-3 sentence executive summary with key insight",
-  "sections": [
-    { "heading": "Section title", "content": "Detailed findings with specific data, numbers, quotes, source refs" }
-  ],
-  "contradictions": "null or 1-2 sentences describing conflicting claims across sources",
-  "uncertainties": ["Any claims that need verification or had limited source support"]
+  "title": "Clear, specific, professional document title",
+  "sections": ["Section heading 1", "Section heading 2", ...],
+  "summary_hook": "One punchy sentence capturing the most important finding"
 }
 
 Rules:
-- ${sectionCount} sections at ${depth} depth
-- Include specific data points, stats, and quotes — not just summaries
-- If sources contradict each other, explicitly note it in the "contradictions" field
-- Flag uncertain claims in "uncertainties"
-- Section-level attribution: when possible, note which source supports which claim`;
+- ${sectionCount} sections
+- Headings should be specific and informative, not generic (e.g. "Market Growth: 34% CAGR 2023-2027" not "Market Overview")
+- Each heading represents a distinct angle, not repetitive themes`;
+
+    const outlineResult = await complete({
+      provider: request.provider,
+      messages: [
+        { role: "system", content: outlinePrompt },
+        { role: "user", content: `Query: "${request.query}"\n\nSource titles available:\n${scoredSources.slice(0, 5).map((s, i) => `${i + 1}. ${s.title}`).join("\n")}\n\nProduce the outline JSON.` },
+      ],
+      maxTokens: 512,
+      temperature: 0.3,
+    });
+
+    try {
+      const m = outlineResult.content.match(/\{[\s\S]*\}/);
+      const op = JSON.parse(m?.[0] ?? "{}");
+      outlineSections = Array.isArray(op.sections) ? op.sections : [];
+      if (op.title) docTitle = op.title;
+    } catch { /* use defaults */ }
+
+    toolsUsed.push({ tool: "llm-outline", label: `LLM Outline Pass — ${outlineResult.provider}/${outlineResult.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${outlineSections.length} sections planned` });
+  }
+
+  // ── Step 3b: Pass 2 — Full synthesis with outline guidance ───────────
+  const sectionGuidance = outlineSections.length > 0
+    ? `\n\nPre-planned section structure (follow these headings exactly):\n${outlineSections.map((h, i) => `${i + 1}. ${h}`).join("\n")}`
+    : "";
+
+  const systemPrompt = `You are an expert research synthesis agent for Auto Business. Analyze web sources and produce a structured, decision-useful research document.
+
+Output strict JSON:
+{
+  "title": "${depth !== "quick" ? docTitle : "Clear descriptive title"}",
+  "summary": "2-3 sentence executive summary with the single most important finding and a key data point",
+  "sections": [
+    { "heading": "Exact heading", "content": "Detailed findings with specific data, numbers, quotes, and source attribution (e.g. 'According to [Source 1]...')" }
+  ],
+  "contradictions": "null or 1-2 sentences on conflicting claims found across sources",
+  "uncertainties": ["Specific claim or area that needs more data / had weak source support"]
+}
+
+Rules:
+- ${sectionCount} sections
+- Include real numbers, percentages, years, company names — not vague summaries
+- Attribution: cite which source (by index) supports each major claim
+- contradictions: only fill if genuine conflict exists between sources, else null
+- uncertainties: flag anything stated with low source confidence${sectionGuidance}`;
 
   const userPrompt = `Research query: "${request.query}"
 
 ${scoredSources.length > 0
-  ? `Sources gathered and scored (${scoredSources.length}, sorted by quality):\n${sourceMaterial}`
-  : "No web sources were reachable. Synthesize from training data and clearly note this."
+  ? `Sources (${scoredSources.length}, sorted by quality score):\n${sourceMaterial}`
+  : "No web sources reachable. Synthesize from training knowledge; clearly note 'Based on training data — verify with current sources.'"
 }
 
 Produce the complete research document as JSON.`;
@@ -373,10 +417,10 @@ Produce the complete research document as JSON.`;
       { role: "user", content: userPrompt },
     ],
     maxTokens: depth === "quick" ? 2048 : depth === "deep" ? 8192 : 4096,
-    temperature: 0.2,
+    temperature: 0.15,
   });
 
-  toolsUsed.push({ tool: "llm-synthesis", label: `LLM Synthesis — ${aiResult.provider}/${aiResult.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${depth} depth` });
+  toolsUsed.push({ tool: "llm-synthesis", label: `LLM Synthesis Pass — ${aiResult.provider}/${aiResult.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${depth} depth, ${outlineSections.length > 0 ? "outline-guided" : "direct"}` });
 
   let parsed: {
     title: string;
@@ -390,7 +434,7 @@ Produce the complete research document as JSON.`;
     parsed = JSON.parse(jsonMatch?.[0] ?? aiResult.content);
   } catch {
     parsed = {
-      title: `Research: ${request.query}`,
+      title: docTitle,
       summary: aiResult.content.slice(0, 300),
       sections: [{ heading: "Findings", content: aiResult.content }],
     };

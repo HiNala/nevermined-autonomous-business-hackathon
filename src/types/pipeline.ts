@@ -115,7 +115,7 @@ export interface ProvenanceInfo {
 }
 
 export interface SponsorToolUsage {
-  tool: "apify-search" | "apify-crawl" | "exa-search" | "exa-contents" | "duckduckgo" | "raw-fetch" | "nevermined-402" | "nevermined-settled" | "zeroclick-ad" | "llm-synthesis";
+  tool: "apify-search" | "apify-crawl" | "exa-search" | "exa-contents" | "duckduckgo" | "raw-fetch" | "nevermined-402" | "nevermined-settled" | "zeroclick-ad" | "llm-synthesis" | "llm-outline";
   label: string;
   sponsor: "Apify" | "Exa" | "Nevermined" | "ZeroClick" | "DuckDuckGo" | "LLM";
   timestamp: string;
