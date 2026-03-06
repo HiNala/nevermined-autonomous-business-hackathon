@@ -51,21 +51,27 @@ function useSSE() {
 // ─── Sub-components ─────────────────────────────────────────────────
 function EmptyState() {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center">
       <div
-        className="flex size-16 items-center justify-center rounded-2xl"
+        className="flex size-14 items-center justify-center rounded-2xl"
         style={{ background: "rgba(201, 125, 78, 0.08)" }}
       >
-        <FileText size={28} style={{ color: "var(--accent-400)" }} />
+        <FileText size={24} style={{ color: "var(--accent-400)" }} />
       </div>
       <div>
-        <h3 className="mb-1 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>
+        <h3 className="mb-2 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>
           Research Output
         </h3>
         <p className="max-w-sm text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-          Submit a research query to see a structured document appear here.
-          The agent will search the web, scrape sources, and produce an organized report.
+          Your structured report will appear here.
         </p>
+      </div>
+      <div className="flex items-center gap-3 text-[11px] font-mono" style={{ color: "var(--gray-400)" }}>
+        <span className="rounded-md px-2 py-0.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)", color: "var(--accent-400)" }}>1. Query</span>
+        <span style={{ color: "var(--gray-300)" }}>→</span>
+        <span className="rounded-md px-2 py-0.5" style={{ background: "rgba(14,165,233,0.06)", border: "1px solid rgba(14,165,233,0.14)", color: "#0EA5E9" }}>2. Search &amp; Scrape</span>
+        <span style={{ color: "var(--gray-300)" }}>→</span>
+        <span className="rounded-md px-2 py-0.5" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.14)", color: "#7C3AED" }}>3. Report</span>
       </div>
     </div>
   );
@@ -394,33 +400,23 @@ export function ResearchPage() {
                 ))}
               </div>
 
-              {/* Provider selector */}
-              <select
-                value={provider}
-                onChange={(e) => setProvider(e.target.value as AIProvider | "auto")}
-                className="rounded-lg px-3 py-2 text-[12px] outline-none transition-all"
-                style={{
-                  background: "var(--bg-elevated)",
-                  border: "1px solid var(--border-default)",
-                  color: "var(--gray-600)",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border-default)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <option value="auto">Auto (best available)</option>
-                <option value="openai">OpenAI GPT-4o</option>
-                <option value="gemini">Google Gemini</option>
-                <option value="anthropic">Anthropic Claude</option>
-              </select>
-
-              {/* Tool settings */}
-              <div className="flex items-center">
+              {/* Provider + Tool settings — compact row */}
+              <div className="flex items-center gap-2">
+                <select
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value as AIProvider | "auto")}
+                  className="flex-1 rounded-lg px-2.5 py-1.5 text-[11px] outline-none transition-all"
+                  style={{
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border-default)",
+                    color: "var(--gray-600)",
+                  }}
+                >
+                  <option value="auto">Auto model</option>
+                  <option value="openai">GPT-4o</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="anthropic">Claude</option>
+                </select>
                 <ToolSettingsButton onSettingsChange={setToolSettings} />
               </div>
 
@@ -453,21 +449,24 @@ export function ResearchPage() {
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 />
-                <button
-                  type="submit"
-                  disabled={!query.trim() || isLoading}
-                  className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
-                  style={{
-                    background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-                  }}
-                >
-                  {isLoading ? (
-                    <Loader2 size={14} className="animate-spin text-white" />
-                  ) : (
-                    <Send size={14} className="text-white" />
-                  )}
-                </button>
               </div>
+
+              {/* Run button — full width, visually strong */}
+              <button
+                type="submit"
+                disabled={!query.trim() || isLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-medium text-white transition-all disabled:opacity-30"
+                style={{
+                  background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+                  boxShadow: query.trim() && !isLoading ? "0 0 20px -4px rgba(201,125,78,0.35)" : "none",
+                }}
+              >
+                {isLoading ? (
+                  <><Loader2 size={14} className="animate-spin" /> Researching…</>
+                ) : (
+                  <><Send size={14} /> Run Research</>
+                )}
+              </button>
 
               {error && (
                 <p className="text-[12px]" style={{ color: "#EF4444" }}>{error}</p>

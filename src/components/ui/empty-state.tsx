@@ -6,16 +6,12 @@ type ViewMode = "pipeline" | "strategist" | "researcher" | "seller";
 
 export const EXAMPLE_PROMPTS: Record<ViewMode, string[]> = {
   pipeline: [
-    "What are the best AI agent frameworks in 2025?",
     "Research the market for no-code automation tools",
     "Analyze competitors to Notion for team knowledge bases",
     "Write a product plan for a SaaS invoice tool",
-    "Research emerging trends in autonomous AI payments",
-    "Analyze the future of autonomous AI agents in financial markets — generates hero image via VISION",
   ],
   strategist: [
     "Structure a brief for a developer API go-to-market launch",
-    "Interpret a launch plan request for a B2B SaaS tool",
     "Build an execution brief for market entry into healthcare AI",
     "Define scope and sections for a mobile app MVP deliverable",
   ],
@@ -23,11 +19,9 @@ export const EXAMPLE_PROMPTS: Record<ViewMode, string[]> = {
     "What are the top Nevermined use cases in 2025?",
     "Find recent research on LLM agent architectures",
     "Compare Exa, Perplexity, and Tavily for AI search",
-    "What are developers building with the Apify platform?",
   ],
   seller: [
     "Generate a deep research report on AI agent frameworks",
-    "Produce a competitive intelligence brief on no-code tools",
     "Create a market analysis for autonomous payment systems",
     "Write a strategic plan for entering the developer tools market",
   ],
@@ -80,37 +74,39 @@ export function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p:
         <p className="max-w-md text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>{c.desc}</p>
       </div>
 
-      {/* Try these prompts */}
-      <div>
+      {/* Try these — styled as numbered selectable templates */}
+      <div className="w-full max-w-md">
         <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-300)" }}>
           Try one of these
         </p>
-        <div className="flex max-w-lg flex-wrap justify-center gap-2">
+        <div className="flex flex-col gap-2">
           {examples.map((ex, i) => (
             <button
               key={ex}
               onClick={() => onExample(ex)}
-              className="rounded-lg px-3 py-1.5 text-left text-[11px] leading-snug transition-all duration-200 hover:scale-[1.02]"
+              className="group flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200 hover:scale-[1.01]"
               style={{
                 background: "var(--bg-elevated)",
-                color: "var(--gray-500)",
                 border: "1px solid var(--border-default)",
-                animationDelay: `${i * 60}ms`,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "rgba(201, 125, 78, 0.30)";
-                e.currentTarget.style.color = "var(--gray-700)";
-                e.currentTarget.style.background = "rgba(201, 125, 78, 0.04)";
+                e.currentTarget.style.background = "rgba(201, 125, 78, 0.03)";
                 e.currentTarget.style.boxShadow = "0 2px 12px -4px rgba(201, 125, 78, 0.12)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = "var(--border-default)";
-                e.currentTarget.style.color = "var(--gray-500)";
                 e.currentTarget.style.background = "var(--bg-elevated)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
-              {ex}
+              <span
+                className="flex size-6 shrink-0 items-center justify-center rounded-lg font-mono text-[10px] font-bold"
+                style={{ background: "rgba(201,125,78,0.08)", color: "var(--accent-400)" }}
+              >
+                {i + 1}
+              </span>
+              <span className="text-[12px] leading-snug" style={{ color: "var(--gray-500)" }}>{ex}</span>
             </button>
           ))}
         </div>
