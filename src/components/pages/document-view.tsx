@@ -58,34 +58,26 @@ export function DocumentView({
     URL.revokeObjectURL(url);
   }, [buildMarkdown, doc.title]);
 
+  const confidence = (doc as ResearchDocument & { confidence?: ResearchConfidence }).confidence;
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: "var(--border-default)" }}>
-        <div className="flex items-center gap-3">
-          <FileText size={16} style={{ color: AGENT_CONFIG.researcher.color }} />
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>{doc.title}</p>
-              <span
-                className="rounded px-1.5 py-0.5 font-mono text-[7px] font-semibold uppercase tracking-wide"
-                style={{ background: "rgba(14,165,233,0.10)", color: "#0EA5E9", border: "1px solid rgba(14,165,233,0.20)" }}
-              >
-                Composer draft
-              </span>
-            </div>
-            <div className="flex items-center gap-3 mt-0.5">
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{doc.provider}/{doc.model}</span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{doc.creditsUsed}cr</span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{(doc.durationMs / 1000).toFixed(1)}s</span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{doc.sources.length} sources</span>
-            </div>
-          </div>
+      {/* Single compact header row */}
+      <div className="flex items-center justify-between border-b px-5 py-2" style={{ borderColor: "var(--border-default)" }}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <p className="truncate text-[13px] font-semibold" style={{ color: "var(--gray-800)" }}>{doc.title}</p>
+          <span className="shrink-0 font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+            {doc.provider}/{doc.model} · {doc.creditsUsed}cr · {(doc.durationMs / 1000).toFixed(1)}s · {doc.sources.length} src
+          </span>
+          {confidence && confidence.score > 0 && (
+            <ConfidenceBadge confidence={confidence} compact />
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-default)", background: "var(--bg-elevated)" }}>
-            {(["full", "executive", "sources"] as const).map((m) => {
-              const labels: Record<typeof m, string> = { full: "Full", executive: "Summary", sources: "Sources" };
-              const active = viewMode === m;
+            {(["full", "executive"] as const).map((m) => {
+              const labels: Record<typeof m, string> = { full: "Full", executive: "Summary" };
+              const active = viewMode === m || (viewMode === "sources" && m === "full");
               return (
                 <button
                   key={m}
@@ -94,7 +86,7 @@ export function DocumentView({
                   style={{
                     background: active ? "rgba(14,165,233,0.12)" : "transparent",
                     color: active ? "#0EA5E9" : "var(--gray-400)",
-                    borderRight: m !== "sources" ? "1px solid var(--border-default)" : "none",
+                    borderRight: m === "full" ? "1px solid var(--border-default)" : "none",
                   }}
                 >
                   {labels[m]}
@@ -102,12 +94,11 @@ export function DocumentView({
               );
             })}
           </div>
-          <button onClick={handleDownload} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }} title="Download as Markdown">
-            <Download size={12} />.md
+          <button onClick={handleDownload} className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }} title="Download as Markdown">
+            <Download size={11} />
           </button>
-          <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}>
-            {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? "Copied" : "Copy"}
+          <button onClick={handleCopy} className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition-colors" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}>
+            {copied ? <Check size={11} /> : <Copy size={11} />}
           </button>
         </div>
       </div>
@@ -153,13 +144,6 @@ export function DocumentView({
         )}
         {visionResult?.imageUrl && (
           <VisionImageBanner visionResult={visionResult} title={doc.title} />
-        )}
-
-        {/* Confidence badge */}
-        {(doc as ResearchDocument & { confidence?: ResearchConfidence }).confidence && (
-          <div className="mb-4">
-            <ConfidenceBadge confidence={(doc as ResearchDocument & { confidence: ResearchConfidence }).confidence} />
-          </div>
         )}
 
         {/* ── SOURCES MODE ── */}

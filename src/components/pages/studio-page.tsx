@@ -799,96 +799,81 @@ export function StudioPage() {
           style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
         >
 
-          {/* Live pipeline strip — shows each agent's status */}
+          {/* Combined pipeline status + output type — single bar */}
           <div className="border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-            <div className="flex items-center gap-2">
-              {/* Mini pipeline flow */}
-              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-                {([
-                  { key: "strategist", label: "Interpreter", config: AGENT_CONFIG.strategist },
-                  { key: "researcher", label: "Composer", config: AGENT_CONFIG.researcher },
-                  { key: "buyer", label: "Buyer", config: AGENT_CONFIG.buyer },
-                  { key: "seller", label: "Seller", config: AGENT_CONFIG.seller },
-                  { key: "vision", label: "VISION", config: AGENT_CONFIG.vision },
-                ] as const).map((agent, i, arr) => {
-                  const s = agentStatuses[agent.key];
-                  const statusColor = s.status === "completed" ? "#22C55E" : s.status === "active" ? agent.config.color : s.status === "skipped" ? "var(--gray-300)" : "var(--gray-400)";
-                  const isSkipped = s.status === "skipped";
-                  return (
-                    <div key={agent.key} className="flex items-center gap-1">
-                      <span
-                        className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[8px] font-semibold uppercase transition-all duration-300"
-                        style={{
-                          color: statusColor,
-                          opacity: isSkipped ? 0.4 : 1,
-                          background: s.status === "active" ? `${agent.config.color}12` : s.status === "completed" ? "rgba(34,197,94,0.08)" : "transparent",
-                          textDecoration: isSkipped ? "line-through" : "none",
-                        }}
-                        title={s.skipReason || agent.label}
-                      >
-                        {s.status === "active" && (
-                          <span className="relative flex size-1.5 shrink-0">
-                            <span className="absolute inline-flex size-full animate-ping rounded-full opacity-40" style={{ background: agent.config.color }} />
-                            <span className="relative inline-flex size-1.5 rounded-full" style={{ background: agent.config.color }} />
-                          </span>
-                        )}
-                        {s.status === "completed" && <CheckCircle2 size={8} />}
-                        {agent.label}
-                      </span>
-                      {i < arr.length - 1 && (
-                        <ArrowRight size={7} style={{ color: isSkipped ? "var(--gray-200)" : "var(--gray-300)", flexShrink: 0 }} />
+            {/* Pipeline agent status row */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+              {([
+                { key: "strategist", label: "Interpreter", config: AGENT_CONFIG.strategist },
+                { key: "researcher", label: "Composer", config: AGENT_CONFIG.researcher },
+                { key: "buyer", label: "Buyer", config: AGENT_CONFIG.buyer },
+                { key: "seller", label: "Seller", config: AGENT_CONFIG.seller },
+                { key: "vision", label: "VISION", config: AGENT_CONFIG.vision },
+              ] as const).map((agent, i, arr) => {
+                const s = agentStatuses[agent.key];
+                const statusColor = s.status === "completed" ? "#22C55E" : s.status === "active" ? agent.config.color : s.status === "skipped" ? "var(--gray-300)" : "var(--gray-400)";
+                const isSkipped = s.status === "skipped";
+                return (
+                  <div key={agent.key} className="flex items-center gap-1">
+                    <span
+                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[8px] font-semibold uppercase transition-all duration-300"
+                      style={{
+                        color: statusColor,
+                        opacity: isSkipped ? 0.4 : 1,
+                        background: s.status === "active" ? `${agent.config.color}12` : s.status === "completed" ? "rgba(34,197,94,0.08)" : "transparent",
+                        textDecoration: isSkipped ? "line-through" : "none",
+                      }}
+                      title={s.skipReason || agent.label}
+                    >
+                      {s.status === "active" && (
+                        <span className="relative flex size-1.5 shrink-0">
+                          <span className="absolute inline-flex size-full animate-ping rounded-full opacity-40" style={{ background: agent.config.color }} />
+                          <span className="relative inline-flex size-1.5 rounded-full" style={{ background: agent.config.color }} />
+                        </span>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
+                      {s.status === "completed" && <CheckCircle2 size={8} />}
+                      {agent.label}
+                    </span>
+                    {i < arr.length - 1 && (
+                      <ArrowRight size={7} style={{ color: isSkipped ? "var(--gray-200)" : "var(--gray-300)", flexShrink: 0 }} />
+                    )}
+                  </div>
+                );
+              })}
               {mode !== "pipeline" && (
                 <button
                   onClick={() => setMode("pipeline")}
-                  className="flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  className="ml-1 flex items-center gap-1 rounded-lg px-2 py-0.5 font-mono text-[8px] transition-all hover:opacity-80"
                   style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
                 >
-                  <RefreshCw size={9} /> Pipeline
+                  <RefreshCw size={8} /> Pipeline
                 </button>
               )}
-              <div className="ml-auto flex items-center gap-1.5">
-                <button
-                  onClick={() => setSettingsOpen(true)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
-                  style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
-                  title="Tool Settings (⌘K)"
-                >
-                  <Settings size={10} />
-                  tools
-                </button>
+            </div>
+            {/* Output type chips — inline below pipeline strip */}
+            {mode !== "researcher" && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {OUTPUT_TYPES.map((ot) => {
+                  const active = outputType === ot.value;
+                  return (
+                    <button
+                      key={ot.value}
+                      onClick={() => setOutputType(ot.value)}
+                      className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[9px] font-medium transition-all duration-150"
+                      style={{
+                        background: active ? "rgba(201, 125, 78, 0.10)" : "transparent",
+                        border: `1px solid ${active ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
+                        color: active ? "var(--accent-400)" : "var(--gray-500)",
+                      }}
+                    >
+                      <ot.icon size={9} />
+                      {ot.label}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
-
-          {/* Output type selector (only for pipeline/strategist) */}
-          {mode !== "researcher" && (
-            <div className="flex flex-wrap gap-1.5 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-              {OUTPUT_TYPES.map((ot) => {
-                const active = outputType === ot.value;
-                return (
-                  <button
-                    key={ot.value}
-                    onClick={() => setOutputType(ot.value)}
-                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[10px] font-medium transition-all duration-150"
-                    style={{
-                      background: active ? "rgba(201, 125, 78, 0.10)" : "var(--bg-surface)",
-                      border: `1px solid ${active ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
-                      color: active ? "var(--accent-400)" : "var(--gray-500)",
-                      transform: active ? "scale(1.02)" : "scale(1)",
-                    }}
-                  >
-                    <ot.icon size={10} />
-                    {ot.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
 
           {/* ── PRIMARY ACTION: Cost estimate + Input ── */}
           <div className="border-b p-3" style={{ borderColor: "var(--border-default)" }}>
@@ -1392,9 +1377,6 @@ export function StudioPage() {
               )}
             </div>
           </div>
-
-          {/* Sponsor Proof Rail */}
-          <SponsorRail toolsUsed={[...(result?.toolsUsed ?? result?.document?.toolsUsed ?? []), ...adToolsUsed]} />
 
           {/* Content */}
           <div className="flex-1 overflow-hidden">
