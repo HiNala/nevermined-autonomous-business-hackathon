@@ -42,6 +42,7 @@ export const metadata: Metadata = {
     title: "Auto Business — AI Agent Studio",
     description: "Describe the work. Agents build it. Powered by Nevermined.",
   },
+  keywords: ["AI agents", "autonomous business", "Nevermined", "AI research", "agent commerce", "x402 payments", "AI pipeline", "business automation"],
   robots: {
     index: true,
     follow: true,
