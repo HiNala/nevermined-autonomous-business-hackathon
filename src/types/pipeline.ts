@@ -163,6 +163,36 @@ export interface PurchasedAsset {
   error?: string;
 }
 
+// ─── Procurement & Enrichment Types (PRD §14) ───────────────────────
+
+/** Canonical procurement status for seller-led third-party enrichment */
+export type ProcurementStatus =
+  | "not_needed"
+  | "disabled_in_demo"
+  | "disabled_by_policy"
+  | "attempted_none_purchased"
+  | "purchased_and_merged"
+  | "failed_and_skipped";
+
+export interface EnrichmentSummary {
+  /** Final procurement outcome */
+  procurementStatus: ProcurementStatus;
+  /** Human-readable reason enrichment was skipped (if applicable) */
+  procurementSkippedReason?: string;
+  /** Whether Seller planned to enrich (even if it didn't happen) */
+  enrichmentConsidered: boolean;
+  /** Whether external data was actually used in the final report */
+  externalDataUsed: boolean;
+  /** Count of purchased assets */
+  purchasedAssetCount: number;
+  /** External provider names used */
+  externalProviders: string[];
+  /** Credits spent on external procurement */
+  externalCreditsSpent: number;
+  /** Names of purchased assets incorporated */
+  purchasedAssetNames: string[];
+}
+
 // ─── Async Job Lifecycle Types ──────────────────────────────────────
 /** Canonical lifecycle stages matching the canonical pipeline */
 export type JobLifecycleStage =
@@ -248,6 +278,8 @@ export interface PipelineResult {
     rationales?: BuyerPurchaseRationale[];
     requiresApproval?: BuyerApprovalRequired;
   };
+  /** NEW: seller enrichment summary — procurement status, external providers, credits spent */
+  enrichmentSummary?: EnrichmentSummary;
   /** NEW: seller delivery package with variants, quality gate, and metadata */
   deliveryPackage?: {
     orderId: string;

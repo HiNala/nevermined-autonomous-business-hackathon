@@ -8,7 +8,7 @@ import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
-import type { SponsorToolUsage } from "@/types/pipeline";
+import type { SponsorToolUsage, EnrichmentSummary, ProcurementStatus } from "@/types/pipeline";
 import { logNeverminedTask } from "@/lib/nevermined/server";
 export type { SponsorToolUsage };
 
@@ -594,6 +594,8 @@ export interface SellerPipelineResult {
   totalDurationMs: number;
   toolsUsed: SponsorToolUsage[];
   deliveryPackage?: DeliveryPackage;
+  /** PRD §14: enrichment summary with procurement status and metadata */
+  enrichmentSummary: EnrichmentSummary;
 }
 
 export async function fulfillSellerOrder(
@@ -641,6 +643,15 @@ export async function fulfillSellerOrder(
         totalCredits: 0,
         totalDurationMs: Date.now() - startTime,
         toolsUsed,
+        enrichmentSummary: {
+          procurementStatus: "not_needed" as const,
+          enrichmentConsidered: false,
+          externalDataUsed: false,
+          purchasedAssetCount: 0,
+          externalProviders: [],
+          externalCreditsSpent: 0,
+          purchasedAssetNames: [],
+        },
       };
     }
 
@@ -725,73 +736,122 @@ export async function fulfillSellerOrder(
     ledger.record(txRes);
 
     // ── Stage 4: Optional Buyer — acquire 3rd-party data ──────────────
+    // PRD §7: Two execution contexts:
+    //   Context A (UI Demo): externalTrading=false → skip procurement, narrate clearly
+    //   Context B (Agentic Live): externalTrading=true → allow real procurement
     let purchasedAssets: PurchasedAsset[] = [];
+    let procurementStatus: ProcurementStatus = "not_needed";
+    let procurementSkippedReason: string | undefined;
+    let enrichmentConsidered = false;
+    let externalCreditsSpent = 0;
 
     if (plan.shouldBuyExternal && plan.externalServices.length > 0) {
-      emit("buyer_discovering", "buyer", `Seller requested ${plan.externalServices.length} external service(s)…`);
-      toolsUsed.push({ tool: "nevermined-402", label: "Nevermined Marketplace — Seller External Buy", sponsor: "Nevermined", timestamp: new Date().toISOString() });
+      enrichmentConsidered = true;
+      const externalTradingEnabled = toolSettings?.trading?.externalTrading ?? true;
 
-      try {
-        const targetDids = plan.externalServices
-          .map((s) => s.did)
-          .filter((d) => d);
+      if (!externalTradingEnabled) {
+        // ── Context A: UI Demo Mode — procurement disabled by settings ──
+        procurementStatus = "disabled_in_demo";
+        procurementSkippedReason = "External Marketplace is disabled in settings. Keep this OFF for UI demos — turn ON only for agentic/live procurement flows.";
+        emit("buyer_discovering", "buyer",
+          `Seller evaluated external enrichment for ${plan.externalServices.length} service(s) — would improve output quality`,
+          { enrichmentConsidered: true, servicesEvaluated: plan.externalServices.length }
+        );
+        emit("buyer_complete", "buyer",
+          `External procurement disabled in demo mode — ${procurementSkippedReason}`,
+          { procurementStatus, reason: procurementSkippedReason }
+        );
+      } else {
+        // ── Context B: Agentic Live Mode — proceed with procurement ──────
+        emit("buyer_discovering", "buyer",
+          `Seller requested external enrichment — ${plan.externalServices.length} service(s) targeted via Nevermined marketplace`,
+          { enrichmentConsidered: true, servicesRequested: plan.externalServices.length }
+        );
+        toolsUsed.push({ tool: "nevermined-402", label: "Nevermined Marketplace — Seller External Buy", sponsor: "Nevermined", timestamp: new Date().toISOString() });
 
-        if (targetDids.length > 0) {
-          const buyerResult = await runBuyer({
-            query: brief.objective,
-            maxCredits: 20,
-            targetDids,
-          });
+        try {
+          const targetDids = plan.externalServices
+            .map((s) => s.did)
+            .filter(Boolean);
 
-          purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
+          if (targetDids.length > 0) {
+            const buyerResult = await runBuyer({
+              query: brief.objective,
+              maxCredits: 20,
+              targetDids,
+            });
 
-          if (purchasedAssets.length > 0) {
-            emit("buyer_purchasing", "buyer", `Purchased ${purchasedAssets.length} asset(s) for seller order`);
-            toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined Settlement — ${purchasedAssets.length} asset(s)`, sponsor: "Nevermined", timestamp: new Date().toISOString() });
+            purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
+            externalCreditsSpent = buyerResult.totalCreditsSpent;
 
-            for (const asset of purchasedAssets) {
-              const txBuy: AgentTransaction = {
-                id: makeTxId(),
-                timestamp: new Date().toISOString(),
-                from: { id: buyer.id, name: buyer.name },
-                to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
-                credits: asset.creditsPaid,
-                purpose: `Seller order purchase: "${asset.name}"`,
-                artifactId: asset.id,
-                status: "completed",
-                durationMs: asset.durationMs,
-              };
-              transactions.push(txBuy);
-              ledger.record(txBuy);
+            if (purchasedAssets.length > 0) {
+              emit("buyer_purchasing", "buyer",
+                `Buyer purchased ${purchasedAssets.length} asset(s) for seller order — merging into deliverable`,
+                { purchasedCount: purchasedAssets.length, providers: purchasedAssets.map(a => a.provider) }
+              );
+              toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined Settlement — ${purchasedAssets.length} asset(s)`, sponsor: "Nevermined", timestamp: new Date().toISOString() });
+
+              for (const asset of purchasedAssets) {
+                const txBuy: AgentTransaction = {
+                  id: makeTxId(),
+                  timestamp: new Date().toISOString(),
+                  from: { id: buyer.id, name: buyer.name },
+                  to: { id: "marketplace", name: `Marketplace: ${asset.provider}` },
+                  credits: asset.creditsPaid,
+                  purpose: `Seller order purchase: "${asset.name}"`,
+                  artifactId: asset.id,
+                  status: "completed",
+                  durationMs: asset.durationMs,
+                };
+                transactions.push(txBuy);
+                ledger.record(txBuy);
+              }
+
+              // Merge: append external assets as labeled report sections
+              const purchasedSections = purchasedAssets
+                .filter((a) => a.content)
+                .map((a) => ({
+                  heading: `External Data: ${a.name}`,
+                  content: a.content.slice(0, 4000),
+                }));
+
+              if (purchasedSections.length > 0) {
+                document = {
+                  ...document,
+                  sections: [...document.sections, ...purchasedSections],
+                  creditsUsed: document.creditsUsed + externalCreditsSpent,
+                };
+              }
+
+              procurementStatus = "purchased_and_merged";
+              emit("buyer_complete", "buyer",
+                `${purchasedAssets.length} external asset(s) merged into deliverable (${externalCreditsSpent}cr spent externally)`,
+                { procurementStatus, externalCreditsSpent, assetNames: purchasedAssets.map(a => a.name) }
+              );
+            } else {
+              procurementStatus = "attempted_none_purchased";
+              emit("buyer_complete", "buyer",
+                "Buyer discovered marketplace assets but none met quality threshold — using internal research only",
+                { procurementStatus }
+              );
             }
-
-            // Merge purchased content into the document
-            const purchasedSections = purchasedAssets
-              .filter((a) => a.content)
-              .map((a) => ({
-                heading: `External Data: ${a.name}`,
-                content: a.content.slice(0, 4000),
-              }));
-
-            if (purchasedSections.length > 0) {
-              document = {
-                ...document,
-                sections: [...document.sections, ...purchasedSections],
-                creditsUsed: document.creditsUsed + buyerResult.totalCreditsSpent,
-              };
-            }
+          } else {
+            procurementStatus = "attempted_none_purchased";
+            emit("buyer_complete", "buyer", "No valid service DIDs available for procurement", { procurementStatus });
           }
-
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "External purchase failed";
+          procurementStatus = "failed_and_skipped";
+          procurementSkippedReason = msg;
           emit("buyer_complete", "buyer",
-            purchasedAssets.length > 0
-              ? `${purchasedAssets.length} external asset(s) merged into deliverable`
-              : "No external assets purchased — using research data only"
+            `External procurement failed and was skipped — ${msg}. Delivering internal report.`,
+            { procurementStatus, error: msg }
           );
         }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "External purchase failed";
-        emit("buyer_complete", "buyer", `External procurement skipped: ${msg}`);
       }
+    } else if (plan.shouldBuyExternal === false) {
+      procurementStatus = "not_needed";
+      emit("researcher_working", "researcher", "Seller determined external enrichment not needed for this request — internal pipeline sufficient");
     }
 
     // ── Complete ──────────────────────────────────────────────────────
@@ -838,6 +898,17 @@ export async function fulfillSellerOrder(
       await logNeverminedTask({ credits: totalCredits, description: `Seller order: "${order.query.slice(0, 60)}" — ${totalCredits}cr`, tag: "seller" });
     }
 
+    const enrichmentSummary: EnrichmentSummary = {
+      procurementStatus,
+      procurementSkippedReason,
+      enrichmentConsidered,
+      externalDataUsed: procurementStatus === "purchased_and_merged",
+      purchasedAssetCount: purchasedAssets.length,
+      externalProviders: [...new Set(purchasedAssets.map((a) => a.provider).filter(Boolean))],
+      externalCreditsSpent,
+      purchasedAssetNames: purchasedAssets.map((a) => a.name),
+    };
+
     return {
       id: pipelineId,
       orderId: order.id,
@@ -852,6 +923,7 @@ export async function fulfillSellerOrder(
       totalDurationMs,
       toolsUsed,
       deliveryPackage,
+      enrichmentSummary,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Seller pipeline failed";

@@ -8,6 +8,8 @@ import {
   BookMarked, Sparkles, AlertTriangle, Copy, Check
 } from "lucide-react";
 import type { DeliveryPackage } from "@/lib/agent/seller";
+import type { EnrichmentSummary } from "@/types/pipeline";
+import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge";
 
 const FORMAT_ICONS: Record<string, typeof FileText> = {
   markdown: FileText,
@@ -138,7 +140,7 @@ function VariantTab({
   );
 }
 
-export function DeliveryPackageView({ pkg }: { pkg: DeliveryPackage }) {
+export function DeliveryPackageView({ pkg, enrichmentSummary }: { pkg: DeliveryPackage; enrichmentSummary?: EnrichmentSummary }) {
   const [activeVariant, setActiveVariant] = useState(pkg.primaryVariant);
   const [copied, setCopied] = useState(false);
 
@@ -231,6 +233,11 @@ export function DeliveryPackageView({ pkg }: { pkg: DeliveryPackage }) {
 
       {/* Quality Gate */}
       <QualityGateDisplay gate={pkg.qualityGate} />
+
+      {/* Enrichment Summary */}
+      {enrichmentSummary && (
+        <EnrichmentSummaryBadge summary={enrichmentSummary} expandable={true} />
+      )}
 
       {/* Delivery variants */}
       <div>

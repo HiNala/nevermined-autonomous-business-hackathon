@@ -91,6 +91,7 @@ export async function POST(request: Request) {
         ...result,
         totalCredits: result.totalCredits,
         totalDurationMs: result.totalDurationMs,
+        enrichmentSummary: result.enrichmentSummary,
         workspaceId,
       });
     }

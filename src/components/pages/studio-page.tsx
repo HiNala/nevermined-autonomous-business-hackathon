@@ -45,7 +45,8 @@ import { BriefScoreCard } from "@/components/ui/brief-score-card";
 import { BuyerRationalePanel } from "@/components/ui/buyer-rationale-panel";
 import { ProvenanceBlockCard } from "@/components/ui/provenance-block";
 import { DeliveryPackageView } from "@/components/ui/delivery-package-view";
-import type { ResearchConfidence, ProvenanceInfo } from "@/types/pipeline";
+import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge";
+import type { ResearchConfidence, ProvenanceInfo, EnrichmentSummary } from "@/types/pipeline";
 import type {
   ResearchSource,
   ResearchDocument,
@@ -1872,6 +1873,24 @@ export function StudioPage() {
             <WorkspaceProfilePanel workspaceId={workspaceId} />
           </div>
 
+          {/* Seller demo mode banner */}
+          {mode === "seller" && !toolSettings.trading.externalTrading && (
+            <div
+              className="flex items-start gap-2.5 border-b px-3 py-2.5"
+              style={{ borderColor: "var(--border-default)", background: "rgba(99,102,241,0.05)" }}
+            >
+              <span
+                className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
+                style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
+              >
+                DEMO
+              </span>
+              <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
+                Seller orchestration visible — external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
+              </p>
+            </div>
+          )}
+
           {/* Cost estimate + Input */}
           <div className="border-b p-3" style={{ borderColor: "var(--border-default)" }}>
             {input.trim() && !isLoading && (
@@ -1967,7 +1986,7 @@ export function StudioPage() {
                   borderBottom: bottomTab === tab ? "2px solid var(--accent-400)" : "2px solid transparent",
                 }}
               >
-                {tab === "stages" ? "Pipeline Stages" : `Transactions (${transactions.length})`}
+                {tab === "stages" ? "Job & Events" : `Transactions (${transactions.length})`}
               </button>
             ))}
           </div>
@@ -2165,7 +2184,10 @@ export function StudioPage() {
                 />
               </div>
             ) : rightTab === "delivery" && result?.deliveryPackage ? (
-              <DeliveryPackageView pkg={result.deliveryPackage as import("@/lib/agent/seller").DeliveryPackage} />
+              <DeliveryPackageView
+                pkg={result.deliveryPackage as import("@/lib/agent/seller").DeliveryPackage}
+                enrichmentSummary={result.enrichmentSummary as EnrichmentSummary | undefined}
+              />
             ) : rightTab === "provenance" ? (
               <div className="h-full overflow-y-auto p-4 space-y-3">
                 {result.provenance && (

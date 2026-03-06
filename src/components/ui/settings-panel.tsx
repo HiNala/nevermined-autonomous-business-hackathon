@@ -347,14 +347,25 @@ function TradingSection({
         />
         <TradingToggle
           label="External Marketplace"
-          description="Buyer agent discovers and purchases outputs from third-party agents on the Nevermined marketplace."
+          description="Buyer agent discovers and purchases outputs from third-party agents on the Nevermined marketplace. Keep OFF for UI demos — turn ON only for agentic/live procurement flows where real x402 payments can be transacted."
           enabled={trading.externalTrading}
           onChange={(v) => onChange({ ...trading, externalTrading: v })}
           accentColor="#F59E0B"
         />
+        {!trading.externalTrading && (
+          <div
+            className="flex items-start gap-2 rounded-lg px-3 py-2.5"
+            style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}
+          >
+            <span className="mt-0.5 shrink-0 font-mono text-[10px] font-bold" style={{ color: "#6366F1" }}>DEMO</span>
+            <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
+              Demo-safe mode active. Seller will plan enrichment but the Buyer will not transact. Ideal for judges and internal demos.
+            </p>
+          </div>
+        )}
         <TradingToggle
           label="Seller Agent"
-          description="Accept and fulfill incoming orders from external buyers via the Seller agent reverse pipeline."
+          description="Enable Seller mode — accept and orchestrate orders through the full canonical pipeline: Interpreter → Composer → optional Buyer → packaged delivery."
           enabled={trading.sellerEnabled}
           onChange={(v) => onChange({ ...trading, sellerEnabled: v })}
           accentColor="#EF4444"
@@ -457,18 +468,18 @@ export function SettingsPanel({
         {/* Scrollable body */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           <AgentSection
-            title="Strategist Agent"
-            subtitle="How Agent 1 enriches briefs with web context"
-            accentColor="#A78BFA"
+            title="Interpreter Agent"
+            subtitle="Structures incoming requests into precise execution briefs"
+            accentColor="#7C3AED"
             tools={settings.strategist}
             onChange={(t) => onChange({ ...settings, strategist: t })}
             status={status}
           />
 
           <AgentSection
-            title="Researcher Agent"
-            subtitle="How Agent 2 discovers and extracts web content"
-            accentColor="#22C55E"
+            title="Composer Agent"
+            subtitle="Searches the web and composes the final research report"
+            accentColor="#0EA5E9"
             tools={settings.researcher}
             onChange={(t) => onChange({ ...settings, researcher: t })}
             status={status}
@@ -476,7 +487,7 @@ export function SettingsPanel({
 
           <AgentSection
             title="Buyer Agent"
-            subtitle="How Agent 3 discovers marketplace assets"
+            subtitle="Procures third-party assets from Nevermined marketplace"
             accentColor="#F59E0B"
             tools={settings.buyer}
             onChange={(t) => onChange({ ...settings, buyer: t })}
@@ -485,7 +496,7 @@ export function SettingsPanel({
 
           <AgentSection
             title="Seller Agent"
-            subtitle="How Agent 4 generates outputs for external buyers"
+            subtitle="Intake, orchestration, quality gate, and final delivery"
             accentColor="#EF4444"
             tools={settings.seller}
             onChange={(t) => onChange({ ...settings, seller: t })}
