@@ -60,9 +60,9 @@ export function getSellerConfig() {
   }
 
   return {
-    planId: status.references.planId!,
-    agentId: status.references.agentId!,
-    sellerEndpoint: status.references.sellerEndpoint!,
+    planId: status.references.planId ?? "",
+    agentId: status.references.agentId ?? "",
+    sellerEndpoint: status.references.sellerEndpoint ?? "",
   };
 }
 

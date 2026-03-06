@@ -2102,7 +2102,7 @@ export function StudioPage() {
                 label: "Image Generation",
                 sponsor: "NanoBanana",
                 timestamp: new Date().toISOString(),
-                detail: `${data.visionResult!.attempts} attempt${data.visionResult!.attempts !== 1 ? "s" : ""} · score ${data.visionResult!.qualityScore}/100`,
+                detail: `${data.visionResult.attempts} attempt${data.visionResult.attempts !== 1 ? "s" : ""} · score ${data.visionResult.qualityScore}/100`,
               },
             ];
             return tools;

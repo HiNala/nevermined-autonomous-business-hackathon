@@ -8,39 +8,11 @@ import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
-import type { SponsorToolUsage, EnrichmentSummary, ProcurementStatus } from "@/types/pipeline";
+import type { SponsorToolUsage, EnrichmentSummary, ProcurementStatus, PipelineStage, PipelineEvent, ProvenanceInfo } from "@/types/pipeline";
 import { logNeverminedTask } from "@/lib/nevermined/server";
 import { runVisionAgent } from "@/lib/agents/vision";
 import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
-export type { SponsorToolUsage };
-
-export type PipelineStage =
-  | "idle"
-  | "strategist_working"
-  | "strategist_complete"
-  | "researcher_buying"
-  | "researcher_working"
-  | "researcher_evaluating"
-  | "researcher_followup"
-  | "buyer_discovering"
-  | "buyer_purchasing"
-  | "buyer_complete"
-  | "seller_received"
-  | "seller_planning"
-  | "seller_fulfilling"
-  | "seller_complete"
-  | "vision_complete"
-  | "complete"
-  | "error";
-
-export interface PipelineEvent {
-  id: string;
-  timestamp: string;
-  stage: PipelineStage;
-  agent: "strategist" | "researcher" | "buyer" | "seller" | "vision" | "pipeline";
-  message: string;
-  data?: Record<string, unknown>;
-}
+export type { SponsorToolUsage, PipelineStage, PipelineEvent };
 
 export interface PipelineResult {
   id: string;
@@ -57,7 +29,7 @@ export interface PipelineResult {
   totalDurationMs: number;
   iterations: number;
   toolsUsed: SponsorToolUsage[];
-  provenance?: import("@/types/pipeline").ProvenanceInfo;
+  provenance?: ProvenanceInfo;
   workspaceId?: string;
   visionResult?: {
     imageUrl: string;

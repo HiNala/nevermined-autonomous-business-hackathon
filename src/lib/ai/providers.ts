@@ -40,7 +40,9 @@ function getAvailableProvider(): AIProvider {
 }
 
 async function completeWithOpenAI(options: AICompletionOptions): Promise<AICompletionResult> {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
+  const client = new OpenAI({ apiKey });
   const model = options.model ?? DEFAULT_MODELS.openai;
 
   const response = await client.chat.completions.create({
@@ -59,7 +61,9 @@ async function completeWithOpenAI(options: AICompletionOptions): Promise<AICompl
 }
 
 async function completeWithGemini(options: AICompletionOptions): Promise<AICompletionResult> {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY!);
+  const googleKey = process.env.GOOGLE_AI_KEY;
+  if (!googleKey) throw new Error("GOOGLE_AI_KEY is not configured");
+  const genAI = new GoogleGenerativeAI(googleKey);
   const model = options.model ?? DEFAULT_MODELS.gemini;
   const geminiModel = genAI.getGenerativeModel({ model });
 
@@ -82,7 +86,9 @@ async function completeWithGemini(options: AICompletionOptions): Promise<AICompl
 }
 
 async function completeWithAnthropic(options: AICompletionOptions): Promise<AICompletionResult> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) throw new Error("ANTHROPIC_API_KEY is not configured");
+  const client = new Anthropic({ apiKey: anthropicKey });
   const model = options.model ?? DEFAULT_MODELS.anthropic;
 
   const systemMsg = options.messages.find((m) => m.role === "system")?.content;

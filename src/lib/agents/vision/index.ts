@@ -110,20 +110,36 @@ export async function runVisionAgent(request: VisionRequest): Promise<VisionResu
   }
 
   // --- Hard stop: return best attempt with failure flag ---
-  console.log(`[VISION] Hard stop. Returning best of ${MAX_ATTEMPTS} attempts.`);
+  if (!bestAttempt) {
+    return {
+      success: false,
+      imageUrl: "",
+      attempts: MAX_ATTEMPTS,
+      passedQuality: false,
+      qualityReport: {
+        score: 0,
+        passed: [],
+        failed: request.requirements,
+        notes: `All ${MAX_ATTEMPTS} attempts failed to generate an image.`,
+      },
+      finalPrompt: "",
+      attemptHistory: history,
+      error: "All generation attempts failed",
+    };
+  }
 
   return {
     success: true,
-    imageUrl: bestAttempt!.imageUrl,
+    imageUrl: bestAttempt.imageUrl,
     attempts: MAX_ATTEMPTS,
     passedQuality: false,
     qualityReport: {
-      score: bestAttempt!.qualityScore,
+      score: bestAttempt.qualityScore,
       passed: [],
-      failed: bestAttempt!.failureReasons ?? request.requirements,
+      failed: bestAttempt.failureReasons ?? request.requirements,
       notes: `Best of ${MAX_ATTEMPTS} attempts. Quality threshold not met.`,
     },
-    finalPrompt: bestAttempt!.prompt,
+    finalPrompt: bestAttempt.prompt,
     attemptHistory: history,
   };
 }

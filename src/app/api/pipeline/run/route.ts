@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   if (!validation.valid) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const input = validation.sanitized!;
+  const input = validation.sanitized ?? "";
 
   const mode = body.mode ?? "pipeline";
   const outputType = body.outputType ?? "general";

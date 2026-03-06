@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   if (!validation.valid) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const query = validation.sanitized!;
+  const query = validation.sanitized ?? "";
 
   const depth = body.depth ?? "standard";
   const credits = CREDIT_COSTS[depth];

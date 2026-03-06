@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
   try {
     const brief = await runStrategist({
-      userInput: validation.sanitized!,
+      userInput: validation.sanitized ?? "",
       outputType: (body.outputType ?? "general") as "research" | "prd" | "plan" | "analysis" | "general",
       provider: body.provider,
       workspaceId: body.workspaceId ?? "default",

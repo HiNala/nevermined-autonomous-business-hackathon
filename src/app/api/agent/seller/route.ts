@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   if (!validation.valid) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const query = validation.sanitized!;
+  const query = validation.sanitized ?? "";
 
   const isInternalRequest = request.headers.get("x-internal-request") === "true";
   const paymentSignature = request.headers.get("payment-signature");

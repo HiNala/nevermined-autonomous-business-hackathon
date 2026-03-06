@@ -193,14 +193,15 @@ export type PipelineStage =
   | "seller_planning"
   | "seller_fulfilling"
   | "seller_complete"
+  | "vision_complete"
   | "complete"
   | "error";
 
 export interface PipelineEvent {
   id: string;
   timestamp: string;
-  stage: string;
-  agent: string;
+  stage: PipelineStage | string;
+  agent: "strategist" | "researcher" | "buyer" | "seller" | "vision" | "pipeline" | string;
   message: string;
   data?: Record<string, unknown>;
 }
