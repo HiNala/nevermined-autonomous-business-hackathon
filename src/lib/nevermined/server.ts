@@ -124,26 +124,12 @@ export async function verifyX402Token(
 }
 
 /**
- * Resolve the Nevermined backend base URL for the current environment.
- */
-function getNvmBackendUrl(): string {
-  const env = getEnvironment();
-  const urls: Record<string, string> = {
-    sandbox: "https://api.sandbox.nevermined.app",
-    live: "https://api.live.nevermined.app",
-    staging_sandbox: "https://api.sandbox.nevermined.dev",
-    staging_live: "https://api.live.nevermined.dev",
-  };
-  return urls[env] ?? urls.sandbox;
-}
-
-/**
- * Log an agent task on the Nevermined network.
+ * Log an agent task on the Nevermined network using the Payments SDK.
  *
  * Approach:
- *  1. startSimulationRequest — registers the API call on the NVM dashboard.
- *  2. trackAgentSubTask — records credit redemption for the task.
- *  3. finishSimulationRequest — attempts to close/settle (best-effort).
+ *  1. requests.startSimulationRequest — registers the API call on the NVM dashboard.
+ *  2. requests.trackAgentSubTask — records credit redemption for the task.
+ *  3. requests.finishSimulationRequest — settles and closes the request.
  *
  * Even if steps 2 or 3 fail the start alone creates a visible entry.
  */
@@ -152,72 +138,47 @@ export async function logNeverminedTask(opts: {
   description?: string;
   tag?: string;
 }): Promise<{ success: boolean; agentRequestId?: string; error?: string }> {
-  const apiKey = normalizeEnvValue(process.env.NVM_API_KEY);
-  if (!apiKey) {
+  const payments = getPaymentsClient();
+  if (!payments) {
     return { success: false, error: "NVM_API_KEY not configured" };
   }
 
-  const backend = getNvmBackendUrl();
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-  };
-
   try {
-    // Step 1: Start simulation request
-    const startRes = await fetch(`${backend}/api/v1/protocol/agents/simulate/start`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        agentName: opts.tag ?? "Auto Business Agent",
-        planName: "plan one",
-      }),
-      signal: AbortSignal.timeout(15000),
+    // Step 1: Start simulation request via SDK
+    console.log(`[NVM] Starting simulation request (tag: ${opts.tag}, credits: ${opts.credits})`);
+    const simResult = await payments.requests.startSimulationRequest({
+      agentName: opts.tag ?? "Auto Business Agent",
+      planName: "plan one",
     });
 
-    if (!startRes.ok) {
-      const errBody = await startRes.text().catch(() => "");
-      console.warn(`[NVM] Start simulation failed (${startRes.status}): ${errBody.slice(0, 200)}`);
-      return { success: false, error: `Start failed (${startRes.status})` };
-    }
-
-    const simRequest = await startRes.json();
-    const agentRequestId = simRequest?.agentRequestId;
-
+    const agentRequestId = simResult?.agentRequestId;
     if (!agentRequestId) {
+      console.warn("[NVM] No agentRequestId returned from startSimulationRequest:", JSON.stringify(simResult));
       return { success: false, error: "No agentRequestId returned" };
     }
 
     console.log(`[NVM] Simulation started: ${agentRequestId}`);
 
-    // Step 2: Track sub-task with credit info (best-effort)
+    // Step 2: Track sub-task with credit info via SDK (best-effort)
     try {
-      await fetch(`${backend}/api/v1/protocol/agent-sub-tasks`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          agentRequestId,
-          creditsToRedeem: opts.credits,
-          tag: opts.tag ?? "pipeline",
-          description: opts.description ?? "Agent task completed",
-          status: "SUCCESS",
-        }),
-        signal: AbortSignal.timeout(10000),
+      const trackResult = await payments.requests.trackAgentSubTask({
+        agentRequestId,
+        creditsToRedeem: opts.credits,
+        tag: opts.tag ?? "pipeline",
+        description: opts.description ?? "Agent task completed",
+        status: "SUCCESS" as never,
       });
-    } catch {
-      // non-fatal — the start already registered the call
+      console.log(`[NVM] Sub-task tracked: ${JSON.stringify(trackResult)}`);
+    } catch (e) {
+      console.warn("[NVM] trackAgentSubTask failed (non-fatal):", e instanceof Error ? e.message : e);
     }
 
-    // Step 3: Finish simulation (best-effort)
+    // Step 3: Finish simulation via SDK (best-effort)
     try {
-      await fetch(`${backend}/api/v1/protocol/agents/simulate/finish`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ agentRequestId, marginPercent: 0.2, batch: false }),
-        signal: AbortSignal.timeout(10000),
-      });
-    } catch {
-      // non-fatal
+      const finishResult = await payments.requests.finishSimulationRequest(agentRequestId, 0.2, false);
+      console.log(`[NVM] Simulation finished: ${JSON.stringify(finishResult)}`);
+    } catch (e) {
+      console.warn("[NVM] finishSimulationRequest failed (non-fatal):", e instanceof Error ? e.message : e);
     }
 
     return { success: true, agentRequestId };
@@ -225,6 +186,56 @@ export async function logNeverminedTask(opts: {
     const msg = err instanceof Error ? err.message : "Task logging error";
     console.error("[NVM] logNeverminedTask failed:", msg);
     return { success: false, error: msg };
+  }
+}
+
+/**
+ * Order our own plan to register a real "sale" on the Nevermined dashboard.
+ * This creates a real blockchain transaction and shows up in metrics.
+ */
+export async function orderOwnPlan(): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  const payments = getPaymentsClient();
+  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
+
+  if (!payments || !planId) {
+    return { success: false, error: "NVM not configured (need API key + plan ID)" };
+  }
+
+  try {
+    console.log(`[NVM] Ordering own plan: ${planId}`);
+    const result = await payments.plans.orderPlan(planId);
+    console.log(`[NVM] Plan ordered: ${JSON.stringify(result)}`);
+    return {
+      success: true,
+      txHash: typeof result === "string" ? result : (result as { txHash?: string })?.txHash,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Order failed";
+    console.error("[NVM] orderOwnPlan failed:", msg);
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Get the plan balance to verify credits are available.
+ */
+export async function getPlanBalance(): Promise<{ balance?: string; isSubscriber?: boolean; error?: string }> {
+  const payments = getPaymentsClient();
+  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
+
+  if (!payments || !planId) {
+    return { error: "NVM not configured" };
+  }
+
+  try {
+    const result = await payments.plans.getPlanBalance(planId);
+    console.log(`[NVM] Plan balance: ${JSON.stringify(result)}`);
+    return {
+      balance: String(result?.balance ?? "unknown"),
+      isSubscriber: result?.isSubscriber ?? false,
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Balance check failed" };
   }
 }
 
