@@ -1,200 +1,286 @@
-# NVM Market — Autonomous Agent Marketplace
+# Auto Business — Autonomous Agent Economy
 
-A live agent economy running on **Nevermined**. Built for the Autonomous Business Hackathon (March 5–6, 2026).
+> **"Four agents that buy from and sell to each other — autonomously, with payment settlement, image generation, and full A2A discoverability."**
+>
+> Built for the **Autonomous Business Hackathon** · March 5–6, 2026
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-auto--business.vercel.app-orange?style=flat-square)](https://auto-business.vercel.app)
+[![A2A Agent Card](https://img.shields.io/badge/A2A-agent.json-blue?style=flat-square)](https://auto-business.vercel.app/.well-known/agent.json)
+[![Nevermined](https://img.shields.io/badge/Powered%20by-Nevermined%20x402-purple?style=flat-square)](https://nevermined.app)
+
+---
+
+## What This Is
+
+A **live, running agent economy** — not a chatbot, not a demo wrapper. Every request — whether from a human in the Studio or an external agent calling our API — flows through a canonical 5-stage pipeline where specialist agents buy, sell, research, compose, and generate images autonomously.
+
+The business is always open. Any A2A-compatible buyer agent can discover our pricing, pay via x402, and receive a structured deliverable — no signup, no OAuth, no waiting.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph External["External World"]
+        BUYER_EXT["🤖 Any A2A Buyer Agent"]
+        HUMAN["👤 Human via Studio"]
+    end
+
+    subgraph Discovery["Discovery Layer"]
+        AJ["/.well-known/agent.json\nA2A Card + Nevermined extension"]
+    end
+
+    subgraph Pipeline["Canonical Pipeline — 5 Stages"]
+        direction LR
+        S1["🏪 Seller\nStage 1: Intake\n+ x402 verify"]
+        I["🧠 Interpreter\nStage 2: Intent\nStructuring"]
+        C["✍️ Composer\nStage 3: Research\n+ 2-pass synthesis"]
+        B["🛒 Buyer\nStage 4 (optional)\nNVM marketplace\nx402 purchase"]
+        S2["📦 Seller\nStage 5: Quality\ngate + delivery"]
+    end
+
+    subgraph Vision["VISION Agent (new)"]
+        V["🎨 VISION\nNanoBanana → Gemini\nQuality judge loop\nMax 3 attempts"]
+    end
+
+    subgraph Sponsors["Sponsor Tools"]
+        NVM["Nevermined\nx402 payments"]
+        APIFY["Apify\nSearch + Scrape"]
+        EXA["Exa\nNeural search"]
+        ZC["ZeroClick\nContextual ads"]
+        VGS["VGS + Stripe\nCard payments"]
+        NB["NanoBanana\nGemini images"]
+    end
+
+    subgraph Output["Delivery"]
+        DOC["📄 Structured Report\nMarkdown + JSON\nSource citations\nConfidence score"]
+        IMG["🖼️ Generated Image\nQuality-assessed\nAttempt history"]
+    end
+
+    BUYER_EXT -->|"GET agent.json"| AJ
+    HUMAN --> S1
+    AJ --> S1
+    S1 -->|"IncomingOrder contract"| I
+    I -->|"StructuredBrief contract"| C
+    C -->|"ComposedReport contract"| S2
+    C -->|"EnrichmentRequest"| B
+    B -->|"PurchasedAssets"| S2
+    I -.->|"optional"| V
+    C -.->|"optional"| V
+    S2 -->|"settlePermissions"| NVM
+    S2 --> DOC
+    V --> IMG
+    C --> APIFY
+    C --> EXA
+    S2 --> ZC
+    S1 --> NVM
+    B --> NVM
+    V --> NB
+```
+
+---
+
+## The Five Agents
+
+| Agent | Role | Stage | Handoff Contract |
+|-------|------|-------|-----------------|
+| **Seller** | Public API boundary — intake + delivery | 1 + 5 | `IncomingOrder` → `DeliveryPackage` |
+| **Interpreter** | Converts vague input into precise execution brief | 2 | `StructuredBrief` |
+| **Composer** | 2-pass research synthesis with source scoring | 3 | `ComposedReport` |
+| **Buyer** | Value-ranked asset procurement via Nevermined x402 | 4 (optional) | `EnrichmentRequest` → `PurchasedAssets` |
+| **VISION** ✨ | Image generation with iterative quality loop | On-demand | `VisionRequest` → `VisionResult` |
+
+### VISION Agent — NanoBanana Integration
+
+VISION is a specialist image agent called by Interpreter or Composer when a visual output is needed:
+
+```
+Brief → Prompt Engineering → NanoBanana (Gemini) → Poll for result
+    → Quality Assessment (GPT-4o-mini vision) → PASS: return image
+                                               → FAIL (attempt < 3): refine prompt → retry
+                                               → FAIL (attempt 3): return best + failure flag
+```
+
+- **NanoBanana standard:** Gemini 2.5 Flash Image — fast, 24 credits/generation
+- **Max cost:** 72 credits (3 attempts) — bounded, predictable
+- **Quality threshold:** 72/100 score required to pass
+- **Autonomy story:** Agent reasoned about failure and fixed its own prompt
+
+---
 
 ## Tech Stack
 
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS v4
-- **Animation:** Framer Motion
-- **Icons:** Lucide React
-- **Payments:** Nevermined SDK (`@nevermined-io/payments`)
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 + Framer Motion |
+| Payments | Nevermined SDK (`@nevermined-io/payments`) + x402 |
+| AI | OpenAI GPT-4o / Gemini / Anthropic Claude (auto-selected) |
+| Search | Apify (Google Search + Content Crawler) / Exa / DuckDuckGo fallback |
+| Images | NanoBanana (Gemini image models) |
+| Cards | VGS Collect + Stripe |
+| Ads | ZeroClick contextual ads |
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── .well-known/agent.json/  # A2A agent card (auto-discovery)
+│   ├── .well-known/agent.json/   # A2A agent card (Google A2A + Nevermined)
 │   ├── api/
-│   │   ├── agent/
-│   │   │   ├── research/        # POST — x402-protected seller endpoint
-│   │   │   ├── pricing/         # GET  — free pricing discovery
-│   │   │   ├── stats/           # GET  — usage stats
-│   │   │   └── events/          # GET  — SSE event stream
-│   │   ├── payment-status/      # GET  — Nevermined config status
-│   │   └── studio-request/      # POST — buyer-side studio flow
-│   ├── research/                # /research page (dual-pane agent UI)
-│   └── ...
+│   │   ├── agent/                # Seller, Buyer, Research, Stats, Events
+│   │   ├── agents/vision/        # VISION agent — NanoBanana image loop
+│   │   ├── pipeline/             # run, clarify, followup, extract-actions
+│   │   ├── workspace/            # jobs, profile
+│   │   └── vgs/                  # VGS + Stripe payment processing
+│   ├── studio/                   # /studio — main agent UI
+│   ├── agents/                   # /agents — agent detail page
+│   ├── store/                    # /store — marketplace
+│   └── services/                 # /services — service catalog
 ├── lib/
-│   ├── nevermined/server.ts     # SDK init, x402 verify/settle, maxAmount
-│   ├── agent/                   # Web research agent + event store
-│   └── ai/                      # Multi-provider AI (OpenAI/Gemini/Anthropic)
-└── ...
-docs/                            # Reference docs & design guide
+│   ├── agent/                    # pipeline, strategist, researcher, buyer, seller
+│   ├── agents/vision/            # VISION agent (NanoBanana + quality loop)
+│   ├── nevermined/server.ts      # SDK init, x402 verify/settle
+│   ├── ai/providers.ts           # OpenAI / Gemini / Anthropic selector
+│   ├── apify/                    # Google Search + Content Crawler
+│   └── exa/                      # Neural search
+└── components/
+    ├── pages/                    # studio, store, agents, services pages
+    ├── sections/                 # hero, agent-cards, faq, how-to-buy, etc.
+    └── ui/                       # judge-mode, sponsor-rail, vgs-checkout
+docs/                             # Sponsor integration guides
+WIN_STRATEGY.md                   # Detailed hackathon win guide
 ```
 
-## Getting Started (Local Dev)
+---
+
+## Quick Start
 
 ```bash
 npm install
-cp env.template .env.local       # Fill in your keys (see below)
+cp env.template .env.local    # fill in keys
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Without any env vars the app runs in **demo mode** — all UI works, pipeline runs, no real payments charged.
 
-Without any env vars set the app runs in **demo mode** — all UI works, no real payments.
+---
 
 ## Environment Variables
 
-Copy `env.template` to `.env.local` and fill in:
-
 | Variable | Required | Description |
-|---|---|---|
-| `NVM_API_KEY` | Yes (for live) | From nevermined.app → API Keys. Sandbox keys start with `sandbox:` |
-| `NVM_ENVIRONMENT` | Yes | `sandbox` (testnet) or `live` (mainnet) |
-| `NVM_PLAN_ID` | Yes (for live) | DID of your payment plan, e.g. `did:nvm:abc...` |
-| `NVM_AGENT_ID` | Yes (for live) | DID of your registered agent, e.g. `did:nvm:xyz...` |
-| `NVM_SELLER_ENDPOINT` | Yes (for live) | Full URL of `POST /api/agent/research` on your deployed domain |
-| `NEXT_PUBLIC_BASE_URL` | Yes (for live) | Base URL of your deployed app, e.g. `https://your-app.vercel.app` |
-| `OPENAI_API_KEY` | One of these | For the research agent LLM calls |
-| `GOOGLE_AI_KEY` | One of these | Gemini fallback |
-| `ANTHROPIC_API_KEY` | One of these | Anthropic fallback |
+|----------|----------|-------------|
+| `NVM_API_KEY` | Live only | From [nevermined.app](https://nevermined.app) → API Keys |
+| `NVM_ENVIRONMENT` | Live only | `sandbox` or `live` |
+| `NVM_PLAN_ID` | Live only | DID of your payment plan |
+| `NVM_AGENT_ID` | Live only | DID of your registered agent |
+| `NVM_SELLER_ENDPOINT` | Live only | Full URL of `POST /api/agent/research` |
+| `NEXT_PUBLIC_BASE_URL` | Live only | Your deployed app URL |
+| `OPENAI_API_KEY` | One required | Primary LLM provider |
+| `GOOGLE_AI_KEY` | Optional | Gemini fallback |
+| `ANTHROPIC_API_KEY` | Optional | Anthropic Claude fallback |
+| `APIFY_API_TOKEN` | Optional | Google Search + scraping (recommended) |
+| `EXA_API_KEY` | Optional | Neural search alternative |
+| `NANOBANANA_API_KEY` | Optional | Image generation — VISION agent |
+| `ZEROCLICK_API_KEY` | Optional | Contextual ads |
+| `NEXT_PUBLIC_VGS_VAULT_ID` | Optional | VGS card collection |
+| `STRIPE_SECRET_KEY` | Optional | Stripe backend for VGS |
 
-## Nevermined Sandbox Setup
+---
 
-### 1. Get an API Key
-Go to [nevermined.app](https://nevermined.app) → sign in → Profile → API Keys → create one.
-Sandbox keys start with `sandbox:` — set `NVM_API_KEY=sandbox:your-key`.
-
-### 2. Deploy to Vercel First
-You need a public HTTPS URL before registering the agent.
-Push to `main` → Vercel auto-deploys. Copy your `https://your-app.vercel.app` URL.
-
-### 3. Create a Pricing Plan (nevermined.app UI)
-1. Go to **My Pricing Plans** → Create New Plan
-2. Fill in:
-   - **Plan Name:** e.g. "Research Agent — Standard"
-   - **Description:** e.g. "Pay-per-query web research"
-   - **Plan Type:** Credit-based (pay-per-use)
-   - **Price:** e.g. 1 USDC (= `1_000_000` in 6-decimal BigInt)
-   - **Payment Currency:** Fiat (Stripe/credit card) **and/or** Crypto (USDC on Arbitrum Sepolia)
-   - **Credits in bundle:** e.g. 100 (buyer gets 100 credits per purchase)
-   - **Credits per request:** 1–10 depending on depth tier
-   - **Protected endpoint:** `POST https://your-app.vercel.app/api/agent/research`
-3. Copy the **Plan DID** → set `NVM_PLAN_ID=did:nvm:...`
-
-### 4. Register the Agent (nevermined.app UI)
-1. Go to **Agents** → Register New Agent
-2. Fill in:
-   - **Agent Definition URL:** `https://your-app.vercel.app/.well-known/agent.json`
-   - **Protected Endpoint:** `POST https://your-app.vercel.app/api/agent/research`
-   - **Agent Name:** e.g. "Auto Business Research Agent" (max 50 chars)
-   - **Description:** max 50 words
-3. Link to your pricing plan
-4. Copy the **Agent DID** → set `NVM_AGENT_ID=did:nvm:...`
-
-### 5. Set Remaining Env Vars on Vercel
-In Vercel dashboard → Settings → Environment Variables:
-```
-NVM_API_KEY             = sandbox:your-key
-NVM_ENVIRONMENT         = sandbox
-NVM_PLAN_ID             = did:nvm:...
-NVM_AGENT_ID            = did:nvm:...
-NVM_SELLER_ENDPOINT     = https://your-app.vercel.app/api/agent/research
-NEXT_PUBLIC_BASE_URL    = https://your-app.vercel.app
-```
-Redeploy after setting.
-
-### 6. Verify
-```bash
-# Confirm your agent card is live
-curl https://your-app.vercel.app/.well-known/agent.json
-
-# Confirm payment status
-curl https://your-app.vercel.app/api/payment-status
-
-# Trigger a 402 response (no token)
-curl -X POST https://your-app.vercel.app/api/agent/research \
-  -H "Content-Type: application/json" \
-  -d '{"query":"test","depth":"quick"}'
-# → HTTP 402 with payment-required header
-```
-
-## Payment Flow (x402)
-
-The seller endpoint at `POST /api/agent/research` implements the **manual x402 verify → execute → settle** pattern:
+## x402 Payment Flow
 
 ```
-Buyer                    Nevermined               Seller (this app)
-  |                          |                          |
-  | GET /.well-known/agent.json ──────────────────────> |
-  | <── planId, agentId, endpoint ────────────────────── |
-  |                          |                          |
-  | getX402AccessToken(planId, agentId) ─────────────>  |
-  | <── accessToken ──────────────────────────────────  |
-  |                          |                          |
-  | POST /api/agent/research                            |
-  |   payment-signature: accessToken ────────────────> |
-  |                          |                          |
-  |               verifyPermissions(maxAmount: BigInt)  |
-  |                     <────────────────────────────── |
-  |                          | valid ─────────────────> |
-  |                          |                          |
-  |                          |     [run research]       |
-  |                          |                          |
-  |               settlePermissions(maxAmount: BigInt)  |
-  |                     <────────────────────────────── |
-  |                          | settled ───────────────> |
-  | <── 200 + document ───────────────────────────────  |
+Buyer Agent              Nevermined                Seller (this app)
+    │                        │                           │
+    │  GET /.well-known/agent.json ─────────────────────▶│
+    │◀─ planId, agentId, endpoint ──────────────────────│
+    │                        │                           │
+    │  getX402AccessToken() ─▶                           │
+    │◀─ accessToken ─────────│                           │
+    │                        │                           │
+    │  POST /api/agent/seller (payment-signature: token)▶│
+    │                        │  verifyPermissions() ─────▶
+    │                        │◀─ valid ──────────────────│
+    │                        │  [pipeline runs]          │
+    │                        │  settlePermissions() ─────▶
+    │                        │◀─ settled ────────────────│
+    │◀─ 200 + DeliveryPackage ───────────────────────────│
 ```
 
-`maxAmount` is passed as a `BigInt` matching the credit cost for the request depth (1, 5, or 10). This caps the maximum credits the seller can burn per request.
+`maxAmount` is a `BigInt` matching the credit cost per tier (1cr / 5cr / 10cr), capping the maximum the seller can debit per request.
 
-## Fiat Payments (Stripe / VGS)
-
-Buyers can pay with a credit card instead of USDC:
-
-```typescript
-const { url } = await payments.plans.orderFiatPlan(planId);
-window.location.href = url; // Redirects to Stripe Checkout
-```
-
-Nevermined's sandbox uses Stripe's **test mode**. Use test card `4242 4242 4242 4242` with any future expiry and any CVC.
+---
 
 ## A2A Discovery
 
-The agent publishes an agent card at `/.well-known/agent.json` following the Google A2A spec with a Nevermined payment extension:
+Our agent card is live at `/.well-known/agent.json`. It follows the Google A2A spec with Nevermined x402 extension, and includes:
+- Per-agent `inputSchema`, `outputSchema`, and `examples`
+- Skill tags, rate limits, error codes
+- VISION agent capability declaration
 
-```json
-{
-  "name": "Auto Business Research Agent",
-  "url": "https://your-app.vercel.app/api/agent/research",
-  "capabilities": {
-    "extensions": [{
-      "uri": "urn:nevermined:payment",
-      "params": { "planId": "did:nvm:...", "agentId": "did:nvm:..." }
-    }]
-  }
-}
+Any A2A-compatible buyer agent can autonomously discover, negotiate, pay, and receive deliverables — zero human involvement.
+
+```bash
+curl https://your-app.vercel.app/.well-known/agent.json
 ```
 
-Other teams' buyer agents can discover and transact with this endpoint automatically.
+---
+
+## Testing the VISION Agent
+
+```bash
+# Check if configured
+curl https://your-app.vercel.app/api/agents/vision
+
+# Generate an image
+curl -X POST https://your-app.vercel.app/api/agents/vision \
+  -H "Content-Type: application/json" \
+  -d '{
+    "brief": "Two AI agents exchanging a glowing token over a network",
+    "outputContext": "hero_banner",
+    "requirements": ["Clear subject", "Professional quality", "No text overlay"],
+    "aspectRatio": "16:9",
+    "calledBy": "composer"
+  }'
+# Returns: imageUrl, attempts, passedQuality, qualityReport, attemptHistory
+```
+
+---
+
+## Sponsor Integrations
+
+| Sponsor | What We Use | Where It Shows |
+|---------|-------------|----------------|
+| **Nevermined** | x402 verify + settle, marketplace buy, agent.json | Transaction feed, Sponsor Rail |
+| **Apify** | Google Search Scraper + Website Content Crawler | Sponsor Rail `Apify ✓` |
+| **Exa** | Neural search with inline content | Sponsor Rail `Exa ✓` |
+| **ZeroClick** | Contextual ads on document view | Sponsor Rail `ZeroClick ✓` |
+| **VGS + Stripe** | PCI-compliant card collection | Buy Credits modal |
+| **NanoBanana** | Gemini image generation + quality loop | VISION agent, Sponsor Rail |
+
+---
 
 ## Build & Deploy
 
 ```bash
-npm run build    # Production build
-npm start        # Start production server
+npm run build    # type-check + production build
+npm start        # serve production
 ```
 
-Deploys to **Vercel** automatically on push to `main`.
+Pushes to `main` auto-deploy via Vercel.
+
+---
 
 ## Links
 
+- [Live Demo](https://auto-business.vercel.app)
+- [Agent Card](https://auto-business.vercel.app/.well-known/agent.json)
 - [Nevermined App](https://nevermined.app)
 - [Nevermined Docs](https://docs.nevermined.app)
-- [Hackathon Repo](https://github.com/nevermined-io/hackathons)
+- [NanoBanana](https://nanobnana.com)
 - [x402 Protocol](https://docs.cdp.coinbase.com/x402/welcome)
+- [Hackathon Repo](https://github.com/nevermined-io/hackathons)
+- [Win Strategy](./WIN_STRATEGY.md)
