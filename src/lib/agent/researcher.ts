@@ -1,6 +1,7 @@
 import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
+import { withTimeout } from "@/lib/utils";
 import type { AgentToolSettings, SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
 import type { SponsorToolUsage, ResearchDocument, ResearchSource } from "@/types/pipeline";
 export type { SponsorToolUsage, ResearchDocument, ResearchSource };
@@ -14,6 +15,9 @@ import {
   exaSearch,
   exaGetContents,
 } from "@/lib/exa/client";
+
+const LLM_TIMEOUT_MS = 30_000;
+const DDG_FETCH_TIMEOUT_MS = 8_000;
 
 export interface ResearchRequest {
   query: string;
@@ -156,9 +160,13 @@ async function fallbackSearchDDG(queries: string[]): Promise<{ url: string }[]> 
   for (const query of queries) {
     const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
     try {
+      const ddgController = new AbortController();
+      const ddgTimer = setTimeout(() => ddgController.abort(), DDG_FETCH_TIMEOUT_MS);
       const response = await fetch(searchUrl, {
         headers: { "User-Agent": "AutoBusiness-ResearchAgent/1.0", Accept: "text/html" },
+        signal: ddgController.signal,
       });
+      clearTimeout(ddgTimer);
       const html = await response.text();
       const linkRegex = /class="result__a"[^>]*href="([^"]+)"/g;
       let match;
@@ -356,15 +364,19 @@ Rules:
 - Headings should be specific and informative, not generic (e.g. "Market Growth: 34% CAGR 2023-2027" not "Market Overview")
 - Each heading represents a distinct angle, not repetitive themes`;
 
-    const outlineResult = await complete({
-      provider: request.provider,
-      messages: [
-        { role: "system", content: outlinePrompt },
-        { role: "user", content: `Query: "${request.query}"\n\nSource titles available:\n${scoredSources.slice(0, 5).map((s, i) => `${i + 1}. ${s.title}`).join("\n")}\n\nProduce the outline JSON.` },
-      ],
-      maxTokens: 512,
-      temperature: 0.3,
-    });
+    const outlineResult = await withTimeout(
+      complete({
+        provider: request.provider,
+        messages: [
+          { role: "system", content: outlinePrompt },
+          { role: "user", content: `Query: "${request.query}"\n\nSource titles available:\n${scoredSources.slice(0, 5).map((s, i) => `${i + 1}. ${s.title}`).join("\n")}\n\nProduce the outline JSON.` },
+        ],
+        maxTokens: 512,
+        temperature: 0.3,
+      }),
+      LLM_TIMEOUT_MS,
+      "Outline LLM"
+    );
 
     try {
       const m = outlineResult.content.match(/\{[\s\S]*\}/);
@@ -410,15 +422,19 @@ ${scoredSources.length > 0
 
 Produce the complete research document as JSON.`;
 
-  const aiResult = await complete({
-    provider: request.provider,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-    maxTokens: depth === "quick" ? 2048 : depth === "deep" ? 8192 : 4096,
-    temperature: 0.15,
-  });
+  const aiResult = await withTimeout(
+    complete({
+      provider: request.provider,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      maxTokens: depth === "quick" ? 2048 : depth === "deep" ? 8192 : 4096,
+      temperature: 0.15,
+    }),
+    depth === "deep" ? 90_000 : LLM_TIMEOUT_MS * 2,
+    "Synthesis LLM"
+  );
 
   toolsUsed.push({ tool: "llm-synthesis", label: `LLM Synthesis Pass — ${aiResult.provider}/${aiResult.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${depth} depth, ${outlineSections.length > 0 ? "outline-guided" : "direct"}` });
 

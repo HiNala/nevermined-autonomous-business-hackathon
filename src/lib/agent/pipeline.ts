@@ -99,15 +99,19 @@ Sources used: ${document.sources.length}
 
 Is this document sufficient?`;
 
-  const result = await complete({
-    provider,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-    maxTokens: 256,
-    temperature: 0.1,
-  });
+  const result = await withTimeout(
+    complete({
+      provider,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      maxTokens: 256,
+      temperature: 0.1,
+    }),
+    30_000,
+    "Completeness evaluator"
+  );
 
   const content = result.content.trim();
 
@@ -484,11 +488,11 @@ export async function runPipeline(
 
     // Log this pipeline run on the Nevermined network
     if (nvmTracking) {
-      const nvmResult = await logNeverminedTask({
+      const nvmResult = await withTimeout(logNeverminedTask({
         credits: totalCredits,
         description: `Pipeline: "${brief.title.slice(0, 60)}" — ${document.sections.length} sections, ${totalCredits}cr`,
         tag: "pipeline",
-      });
+      }), 10_000, "Nevermined log").catch(() => ({ success: false, agentRequestId: "" }));
       if (nvmResult.success) {
         emit("complete", "pipeline", `Nevermined: task logged (${nvmResult.agentRequestId})`);
       }
@@ -548,7 +552,11 @@ export async function runStrategistStandalone(
 
   emit("strategist_working", "strategist", "Analyzing input and structuring brief…");
 
-  const brief = await runStrategist({ userInput, outputType: outputType as StrategistRequest["outputType"], provider });
+  const brief = await withTimeout(
+    runStrategist({ userInput, outputType: outputType as StrategistRequest["outputType"], provider }),
+    STRATEGIST_TIMEOUT_MS,
+    "Strategist standalone"
+  );
 
   const txS: AgentTransaction = {
     id: makeTxId(),
@@ -571,7 +579,11 @@ export async function runStrategistStandalone(
 
   // Log on Nevermined network — only if nvmTracking is enabled
   if (toolSettings?.trading?.nvmTracking ?? true) {
-    await logNeverminedTask({ credits: brief.creditsUsed, description: `Strategist: "${brief.title.slice(0, 60)}"`, tag: "strategist" });
+    await withTimeout(
+      logNeverminedTask({ credits: brief.creditsUsed, description: `Strategist: "${brief.title.slice(0, 60)}"`, tag: "strategist" }),
+      10_000,
+      "Nevermined log"
+    ).catch(() => { /* non-critical — never block the response */ });
   }
 
   return { brief, transaction: txS, events, toolsUsed };
@@ -605,7 +617,11 @@ export async function runResearcherStandalone(
 
   emit("researcher_working", "researcher", `Searching web for: "${query.slice(0, 60)}…"`);
 
-  const document = await runResearch({ query, provider, depth, toolSettings: toolSettings?.researcher });
+  const document = await withTimeout(
+    runResearch({ query, provider, depth, toolSettings: toolSettings?.researcher }),
+    RESEARCHER_TIMEOUT_MS,
+    "Researcher standalone"
+  );
 
   const txR: AgentTransaction = {
     id: makeTxId(),
@@ -624,7 +640,11 @@ export async function runResearcherStandalone(
 
   // Log on Nevermined network — only if nvmTracking is enabled
   if (toolSettings?.trading?.nvmTracking ?? true) {
-    await logNeverminedTask({ credits: document.creditsUsed, description: `Research: "${query.slice(0, 60)}"`, tag: "researcher" });
+    await withTimeout(
+      logNeverminedTask({ credits: document.creditsUsed, description: `Research: "${query.slice(0, 60)}"`, tag: "researcher" }),
+      10_000,
+      "Nevermined log"
+    ).catch(() => { /* non-critical */ });
   }
 
   const resToolsUsed: SponsorToolUsage[] = [...(document.toolsUsed ?? [])];
@@ -774,11 +794,15 @@ export async function fulfillSellerOrder(
     // ── Stage 2: Strategist structures the brief ──────────────────────
     emit("strategist_working", "strategist", "Analyzing seller order and structuring brief…");
 
-    const brief = await runStrategist({
-      userInput: plan.expandedPrompt,
-      outputType: plan.product.outputType,
-      provider: order.provider ?? provider,
-    });
+    const brief = await withTimeout(
+      runStrategist({
+        userInput: plan.expandedPrompt,
+        outputType: plan.product.outputType,
+        provider: order.provider ?? provider,
+      }),
+      STRATEGIST_TIMEOUT_MS,
+      "Strategist (seller order)"
+    );
 
     const txStrat: AgentTransaction = {
       id: makeTxId(),
@@ -801,13 +825,17 @@ export async function fulfillSellerOrder(
     // ── Stage 3: Researcher executes research ─────────────────────────
     emit("researcher_working", "researcher", `Searching web with ${brief.searchQueries.length} queries…`);
 
-    let document = await runResearch({
-      query: brief.objective,
-      searchQueries: brief.searchQueries,
-      provider: order.provider ?? provider,
-      depth: "standard",
-      toolSettings: toolSettings?.researcher,
-    });
+    let document = await withTimeout(
+      runResearch({
+        query: brief.objective,
+        searchQueries: brief.searchQueries,
+        provider: order.provider ?? provider,
+        depth: "standard",
+        toolSettings: toolSettings?.researcher,
+      }),
+      RESEARCHER_TIMEOUT_MS,
+      "Researcher (seller order)"
+    );
 
     if (document.toolsUsed) toolsUsed.push(...document.toolsUsed);
 
@@ -865,11 +893,15 @@ export async function fulfillSellerOrder(
             .filter(Boolean);
 
           if (targetDids.length > 0) {
-            const buyerResult = await runBuyer({
-              query: brief.objective,
-              maxCredits: 20,
-              targetDids,
-            });
+            const buyerResult = await withTimeout(
+              runBuyer({
+                query: brief.objective,
+                maxCredits: 20,
+                targetDids,
+              }),
+              BUYER_TIMEOUT_MS,
+              "Buyer (seller order)"
+            );
 
             purchasedAssets = buyerResult.purchased.filter((p) => p.status === "success");
             externalCreditsSpent = buyerResult.totalCreditsSpent;
@@ -985,7 +1017,11 @@ export async function fulfillSellerOrder(
     // Log on Nevermined network
     // External seller orders (no toolSettings) always log; internal UI calls respect nvmTracking
     if (!toolSettings || (toolSettings.trading?.nvmTracking ?? true)) {
-      await logNeverminedTask({ credits: totalCredits, description: `Seller order: "${order.query.slice(0, 60)}" — ${totalCredits}cr`, tag: "seller" });
+      await withTimeout(
+        logNeverminedTask({ credits: totalCredits, description: `Seller order: "${order.query.slice(0, 60)}" — ${totalCredits}cr`, tag: "seller" }),
+        10_000,
+        "Nevermined log"
+      ).catch(() => { /* non-critical */ });
     }
 
     const enrichmentSummary: EnrichmentSummary = {

@@ -1,6 +1,10 @@
 import "server-only";
 
 import { getPaymentsClient } from "@/lib/nevermined/server";
+import { withTimeout } from "@/lib/utils";
+
+const NVM_DISCOVER_TIMEOUT_MS = 15_000;
+const ASSET_FETCH_TIMEOUT_MS = 20_000;
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -85,7 +89,11 @@ async function discoverAssets(
 
   try {
     // List available plans from the NVM marketplace
-    const searchResult = await payments.plans.getPlans(20, 0);
+    const searchResult = await withTimeout(
+      payments.plans.getPlans(20, 0),
+      NVM_DISCOVER_TIMEOUT_MS,
+      "Marketplace discovery"
+    );
 
     if (!searchResult || !Array.isArray(searchResult)) return [];
 
@@ -172,6 +180,8 @@ async function purchaseAsset(asset: MarketplaceAsset): Promise<PurchasedAsset> {
     let contentType: PurchasedAsset["contentType"] = "text";
 
     if (asset.endpoint) {
+      const endpointController = new AbortController();
+      const endpointTimer = setTimeout(() => endpointController.abort(), ASSET_FETCH_TIMEOUT_MS);
       const response = await fetch(asset.endpoint, {
         method: "POST",
         headers: {
@@ -180,7 +190,9 @@ async function purchaseAsset(asset: MarketplaceAsset): Promise<PurchasedAsset> {
           Authorization: `Bearer ${agreementId}`,
         },
         body: JSON.stringify({ query: asset.name }),
+        signal: endpointController.signal,
       });
+      clearTimeout(endpointTimer);
 
       if (response.ok) {
         const responseContentType = response.headers.get("content-type") ?? "";
