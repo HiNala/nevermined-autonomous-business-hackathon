@@ -13,6 +13,12 @@ function normalizeEnvValue(value?: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
+function normalizeNeverminedId(value?: string | null): string | null {
+  const normalized = normalizeEnvValue(value);
+  if (!normalized) return null;
+  return normalized.startsWith("did:nvm:") ? normalized.slice("did:nvm:".length) : normalized;
+}
+
 function getEnvironment(): EnvironmentName {
   const env = normalizeEnvValue(process.env.NVM_ENVIRONMENT)?.toLowerCase();
   if (env === "live") return "live";
@@ -23,8 +29,8 @@ function getEnvironment(): EnvironmentName {
 
 export function getPaymentStatus(): PaymentStatus {
   const apiKey = normalizeEnvValue(process.env.NVM_API_KEY);
-  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
-  const agentId = normalizeEnvValue(process.env.NVM_AGENT_ID);
+  const planId = normalizeNeverminedId(process.env.NVM_PLAN_ID);
+  const agentId = normalizeNeverminedId(process.env.NVM_AGENT_ID);
   const sellerEndpoint = normalizeEnvValue(process.env.NVM_SELLER_ENDPOINT);
   const ready = Boolean(apiKey && planId && agentId && sellerEndpoint);
 
@@ -78,8 +84,8 @@ export function getPaymentsClient(): Payments | null {
  * Used by seller endpoints to produce proper 402 responses.
  */
 export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X402PaymentRequired | null {
-  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
-  const agentId = normalizeEnvValue(process.env.NVM_AGENT_ID);
+  const planId = normalizeNeverminedId(process.env.NVM_PLAN_ID);
+  const agentId = normalizeNeverminedId(process.env.NVM_AGENT_ID);
 
   if (!planId || !agentId) return null;
 
@@ -195,7 +201,7 @@ export async function logNeverminedTask(opts: {
  */
 export async function orderOwnPlan(): Promise<{ success: boolean; txHash?: string; error?: string }> {
   const payments = getPaymentsClient();
-  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
+  const planId = normalizeNeverminedId(process.env.NVM_PLAN_ID);
 
   if (!payments || !planId) {
     return { success: false, error: "NVM not configured (need API key + plan ID)" };
@@ -221,7 +227,7 @@ export async function orderOwnPlan(): Promise<{ success: boolean; txHash?: strin
  */
 export async function getPlanBalance(): Promise<{ balance?: string; isSubscriber?: boolean; error?: string }> {
   const payments = getPaymentsClient();
-  const planId = normalizeEnvValue(process.env.NVM_PLAN_ID);
+  const planId = normalizeNeverminedId(process.env.NVM_PLAN_ID);
 
   if (!payments || !planId) {
     return { error: "NVM not configured" };
