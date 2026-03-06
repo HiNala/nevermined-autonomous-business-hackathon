@@ -327,7 +327,7 @@ export function StudioPage() {
     setError("Request cancelled");
   }, []);
 
-  async function triggerVision(title: string, summary: string) {
+  const triggerVision = useCallback(async function triggerVision(title: string, summary: string) {
     setIsGeneratingImage(true);
     try {
       const res = await fetch("/api/agents/vision", {
@@ -390,9 +390,9 @@ export function StudioPage() {
       }
     } catch { /* silent — vision is non-critical */ }
     finally { setIsGeneratingImage(false); }
-  }
+  }, [toolSettings.trading.visionEnabled]);
 
-  async function runPipeline(overrideInput?: string) {
+  const runPipeline = useCallback(async function runPipeline(overrideInput?: string) {
     const finalInput = overrideInput ?? input;
     if (!finalInput.trim() || isLoading) return;
 
@@ -522,9 +522,9 @@ export function StudioPage() {
       if (timerRef.current) clearInterval(timerRef.current);
       setIsLoading(false);
     }
-  }
+  }, [input, outputType, mode, toolSettings, workspaceId, triggerVision]);
 
-  async function extractActionsFromResult(doc: ResearchDocument) {
+  const extractActionsFromResult = useCallback(async function extractActionsFromResult(doc: ResearchDocument) {
     if (!doc.summary && !doc.sections?.length) return;
     setIsExtractingActions(true);
     setActionIntelligence(null);
@@ -545,9 +545,9 @@ export function StudioPage() {
       }
     } catch { /* silent — action extraction is non-critical */ }
     finally { setIsExtractingActions(false); }
-  }
+  }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = useCallback(async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
@@ -577,7 +577,7 @@ export function StudioPage() {
     }
 
     await runPipeline();
-  }
+  }, [input, isLoading, mode, outputType, workspaceId, runPipeline]);
 
   // Keyboard shortcuts: Escape to cancel, Cmd/Ctrl+K to open settings
   useEffect(() => {
@@ -643,6 +643,7 @@ export function StudioPage() {
       settings={toolSettings}
       onChange={(next) => {
         setToolSettings(next);
+        saveToolSettings(next);
       }}
     />
     <div className="flex h-screen flex-col" style={{ background: "var(--bg-base)" }}>
