@@ -25,6 +25,7 @@ export function Nav() {
   return (
     <>
     <nav
+      aria-label="Main navigation"
       className={cn(
         "fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between px-6 transition-all duration-300",
         scrolled || mobileOpen ? "glass-nav shadow-sm" : "bg-transparent"
@@ -57,6 +58,7 @@ export function Nav() {
                 href={link.href}
                 className="relative px-3 py-1.5 text-[13px] transition-colors duration-200 rounded-lg"
                 style={{ color: isActive ? "var(--gray-900)" : "var(--gray-400)" }}
+                aria-current={isActive ? "page" : undefined}
                 onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--gray-700)"; (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.03)"; }}
                 onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--gray-400)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
@@ -104,6 +106,8 @@ export function Nav() {
           style={{ color: "var(--gray-600)" }}
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle navigation"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-nav"
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
@@ -128,6 +132,9 @@ export function Nav() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          id="mobile-nav"
+          role="navigation"
+          aria-label="Mobile navigation"
           className="glass-nav fixed inset-x-0 top-14 z-40 flex flex-col gap-1 px-6 py-4 sm:hidden"
         >
           {PAGE_LINKS.map((link, i) => {
@@ -144,9 +151,10 @@ export function Nav() {
                   className="flex items-center rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150"
                   style={{ color: isActive ? "var(--accent-400)" : "var(--gray-700)", background: isActive ? "rgba(201,125,78,0.06)" : "transparent" }}
                   onClick={() => setMobileOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
                 >
                   {link.label}
-                  {isActive && <span className="ml-auto size-1.5 rounded-full" style={{ background: "var(--accent-400)" }} />}
+                  {isActive && <span className="ml-auto size-1.5 rounded-full" aria-hidden="true" style={{ background: "var(--accent-400)" }} />}
                 </Link>
               </motion.div>
             );

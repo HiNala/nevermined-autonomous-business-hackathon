@@ -33,6 +33,7 @@ function FooterLink({ label, href, external }: { label: string; href: string; ex
         rel="noopener noreferrer"
         className={cls}
         style={style}
+        aria-label={`${label} (opens in new tab)`}
         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-400)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--gray-400)")}
       >
@@ -56,9 +57,10 @@ function FooterLink({ label, href, external }: { label: string; href: string; ex
 
 export function Footer() {
   return (
-    <footer className="relative border-t px-6 pt-14 pb-8" style={{ borderColor: "var(--border-default)" }}>
+    <footer aria-label="Site footer" className="relative border-t px-6 pt-14 pb-8" style={{ borderColor: "var(--border-default)" }}>
       {/* Top glow line */}
       <div
+        aria-hidden="true"
         className="absolute top-0 left-[15%] right-[15%] h-px"
         style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.20), transparent)" }}
       />
@@ -127,8 +129,8 @@ export function Footer() {
           <p className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
             &copy; {new Date().getFullYear()} Auto Business. Powered by Nevermined.
           </p>
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex size-1.5">
+          <div className="flex items-center gap-1.5" role="status" aria-label="System status">
+            <span className="relative flex size-1.5" aria-hidden="true">
               <span className="absolute inline-flex size-full animate-ping rounded-full opacity-50" style={{ background: "var(--green-400)" }} />
               <span className="relative inline-flex size-1.5 rounded-full" style={{ background: "var(--green-500)" }} />
             </span>

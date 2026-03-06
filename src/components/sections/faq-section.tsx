@@ -74,6 +74,8 @@ const FAQS = [
 function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(false);
   const num = String(index + 1).padStart(2, "0");
+  const answerId = `faq-answer-${index}`;
+  const buttonId = `faq-btn-${index}`;
 
   return (
     <motion.div
@@ -85,9 +87,11 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
       style={{ borderColor: "var(--border-default)" }}
     >
       <button
+        id={buttonId}
         className="flex w-full items-center justify-between gap-4 py-4 text-left transition-all duration-150"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-controls={answerId}
       >
         <div className="flex items-baseline gap-3 min-w-0">
           <span
@@ -105,6 +109,7 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
         </div>
         <ChevronDown
           size={14}
+          aria-hidden="true"
           className="shrink-0 transition-transform duration-200"
           style={{
             color: open ? "var(--accent-400)" : "var(--gray-400)",
@@ -116,6 +121,9 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
+            id={answerId}
+            role="region"
+            aria-labelledby={buttonId}
             key="answer"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
