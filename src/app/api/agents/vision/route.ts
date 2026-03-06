@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       const brief = (body.brief ?? "").trim();
       const keywords = extractImageKeywords(brief);
       const seed = simpleHash(brief || `fallback-${Date.now()}`);
-      const unsplashUrl = `https://source.unsplash.com/1200x675/?${encodeURIComponent(keywords)}&sig=${seed}`;
+      const unsplashUrl = `https://picsum.photos/seed/${seed}/1200/675`;
 
       return NextResponse.json(
         {

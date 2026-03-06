@@ -93,7 +93,7 @@ const FOLLOW_UP_TEMPLATES = [
 ];
 
 export function ActionPanel({ actions, reportTitle, onFollowUp }: Props) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [activeSection, setActiveSection] = useState<keyof ActionIntelligence | null>("takeaways");
 
   const totalItems = Object.values(actions).reduce((sum, arr) => sum + arr.length, 0);

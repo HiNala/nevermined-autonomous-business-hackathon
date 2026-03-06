@@ -69,7 +69,7 @@ export function DocumentView({
           <span className="shrink-0 font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
             {doc.provider}/{doc.model} · {doc.creditsUsed}cr · {(doc.durationMs / 1000).toFixed(1)}s · {doc.sources.length} src
           </span>
-          {confidence && confidence.score > 0 && (
+          {confidence && confidence.score >= 30 && (
             <ConfidenceBadge confidence={confidence} compact />
           )}
         </div>
