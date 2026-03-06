@@ -85,6 +85,16 @@ const CATEGORY_ICONS: Record<string, typeof Package> = {
   custom: Store,
 };
 
+const CATEGORY_COLORS: Record<string, string> = {
+  research_report: "#0EA5E9",
+  market_analysis: "#7C3AED",
+  competitive_intel: "#EF4444",
+  strategic_plan: "#F59E0B",
+  prd: "#10B981",
+  technical_report: "#6366F1",
+  custom: "#c97d4e",
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   research_report: "Research Report",
   market_analysis: "Market Analysis",
@@ -94,6 +104,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   technical_report: "Technical Report",
   custom: "Custom",
 };
+
+// ─── How-it-works steps ──────────────────────────────────────────────
+const HOW_IT_WORKS = [
+  { step: "01", label: "Pick a product", desc: "Browse the catalog — research, analysis, competitive intel, strategic plans.", color: "#EF4444" },
+  { step: "02", label: "Describe the scope", desc: "Add a short brief. The Interpreter structures it into a precise execution plan.", color: "#7C3AED" },
+  { step: "03", label: "Agents build it", desc: "Composer researches, Buyer enriches with marketplace data, Seller quality-gates.", color: "#0EA5E9" },
+  { step: "04", label: "Receive your report", desc: "Delivered in Markdown, summary, and JSON. Saved to your artifact library.", color: "#F59E0B" },
+];
 
 // ─── Product Card ────────────────────────────────────────────────────
 
@@ -109,37 +127,43 @@ function ProductCard({
   externalTrading: boolean;
 }) {
   const Icon = CATEGORY_ICONS[product.category] ?? Package;
+  const accentColor = CATEGORY_COLORS[product.category] ?? "#c97d4e";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative flex flex-col rounded-xl border p-5 transition-all duration-200"
+      whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 28 } }}
+      className="group relative flex flex-col rounded-xl border p-5 cursor-default"
       style={{
         background: "var(--bg-elevated)",
         borderColor: "var(--border-default)",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px -4px rgba(201,125,78,0.12)";
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,125,78,0.25)";
+        (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 28px -8px ${accentColor}28, 0 2px 8px rgba(0,0,0,0.06)`;
+        (e.currentTarget as HTMLElement).style.borderColor = `${accentColor}35`;
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "none";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
         (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
       }}
     >
+      {/* Top accent bar */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: `linear-gradient(90deg, ${accentColor}60, ${accentColor}20)` }} />
       {/* Category badge */}
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mt-2 mb-3 flex items-center justify-between">
         <div
           className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[10px] font-semibold uppercase"
-          style={{ background: "rgba(201, 125, 78, 0.08)", color: "var(--accent-400)" }}
+          style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}25` }}
         >
           <Icon size={10} />
           {CATEGORY_LABELS[product.category] ?? product.category}
         </div>
         <div
           className="rounded-md px-2 py-1 font-mono text-[11px] font-bold"
-          style={{ background: "rgba(201, 125, 78, 0.08)", color: "var(--accent-400)" }}
+          style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}20` }}
         >
           {product.price} cr
         </div>
@@ -216,11 +240,11 @@ function ProductCard({
       <button
         onClick={() => onOrder(product)}
         disabled={isOrdering}
-        className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider transition-all disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider transition-all disabled:opacity-50 btn-press"
         style={{
-          background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+          background: `linear-gradient(135deg, ${accentColor}dd, ${accentColor})`,
           color: "white",
-          boxShadow: "0 2px 12px -4px rgba(201,125,78,0.30)",
+          boxShadow: `0 2px 12px -4px ${accentColor}40`,
         }}
       >
         {isOrdering ? (
@@ -543,6 +567,7 @@ export function StorePage() {
   const [toolSettings, setToolSettings] = useState<ToolSettings | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
 
   useEffect(() => {
     setToolSettings(loadToolSettings());
@@ -605,37 +630,64 @@ export function StorePage() {
     <Nav />
     <main className="min-h-screen pt-20 pb-24" style={{ background: "var(--bg-base)" }}>
       <div className="mx-auto max-w-6xl px-6">
-        {/* Header */}
+        {/* ── Hero band ─────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-10"
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-10 rounded-2xl p-8 relative overflow-hidden"
+          style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", boxShadow: "0 2px 16px -4px rgba(0,0,0,0.06)" }}
         >
-          <div className="mb-4 flex items-center gap-3">
-            <div
-              className="flex size-10 items-center justify-center rounded-xl"
-              style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.20)" }}
-            >
-              <Store size={18} style={{ color: "#EF4444" }} />
-            </div>
+          {/* Background accent orb */}
+          <div className="absolute -right-16 -top-16 size-64 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(239,68,68,0.06) 0%, transparent 70%)" }} />
+          <div className="absolute -left-8 -bottom-8 size-48 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(14,165,233,0.04) 0%, transparent 70%)" }} />
+
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1
-                className="text-3xl font-semibold tracking-tight sm:text-4xl"
-                style={{ color: "var(--gray-900)" }}
-              >
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl" style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.22)" }}>
+                  <Store size={18} style={{ color: "#EF4444" }} />
+                </div>
+                <div className="glass-pill px-3 py-1 flex items-center gap-2">
+                  <span className="pulse-dot" />
+                  <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: "var(--accent-400)" }}>Live Catalog · On-Demand Generation</span>
+                </div>
+              </div>
+              <h1 className="mb-2 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
                 Agent <span className="text-gradient-accent">Store</span>
               </h1>
+              <p className="max-w-xl text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+                Every order triggers the full 4-agent pipeline — Interpreter structures your brief, Composer researches and writes, Buyer enriches from the marketplace, Seller quality-gates and delivers.
+              </p>
+            </div>
+            {/* Quick stats */}
+            <div className="flex shrink-0 flex-col gap-3 sm:items-end">
+              {[
+                { label: "On-demand generation", sub: "No pre-rendered content" },
+                { label: "From 5 credits", sub: "≈ $0.50 USDC" },
+                { label: "3 delivery formats", sub: "Markdown · Summary · JSON" },
+              ].map((s) => (
+                <div key={s.label} className="flex items-center gap-2">
+                  <div className="size-1.5 rounded-full" style={{ background: "var(--accent-400)" }} />
+                  <span className="text-[12px] font-medium" style={{ color: "var(--gray-700)" }}>{s.label}</span>
+                  <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{s.sub}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <p
-            className="max-w-xl text-[15px] leading-relaxed"
-            style={{ color: "var(--gray-500)" }}
-          >
-            Browse products generated on-the-fly by our autonomous Seller agent.
-            Each order triggers a full pipeline: Strategist plans, Researcher discovers,
-            and the Buyer procures external data when needed.
-          </p>
+
+          {/* How it works strip */}
+          <div className="mt-7 grid grid-cols-2 gap-3 border-t pt-6 sm:grid-cols-4" style={{ borderColor: "var(--border-default)" }}>
+            {HOW_IT_WORKS.map((step) => (
+              <div key={step.step} className="flex items-start gap-2.5">
+                <span className="font-mono text-[11px] font-bold shrink-0" style={{ color: step.color }}>{step.step}</span>
+                <div>
+                  <p className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>{step.label}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug" style={{ color: "var(--gray-400)" }}>{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </motion.div>
 
         {/* Search */}
@@ -667,6 +719,37 @@ export function StorePage() {
             </div>
           </motion.div>
         )}
+
+        {/* Category filter tabs */}
+        {inventory && inventory.products.length > 0 && (() => {
+          const cats = Array.from(new Set(inventory.products.map((p) => p.category)));
+          return (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="mb-5 flex flex-wrap gap-2">
+              <button
+                onClick={() => setActiveCategory("all")}
+                className="rounded-full px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider transition-all btn-press"
+                style={{ background: activeCategory === "all" ? "var(--accent-400)" : "var(--bg-elevated)", color: activeCategory === "all" ? "white" : "var(--gray-500)", border: "1px solid", borderColor: activeCategory === "all" ? "var(--accent-400)" : "var(--border-default)" }}
+              >
+                All ({inventory.products.length})
+              </button>
+              {cats.map((cat) => {
+                const color = CATEGORY_COLORS[cat] ?? "#c97d4e";
+                const active = activeCategory === cat;
+                const count = inventory.products.filter((p) => p.category === cat).length;
+                return (
+                  <button key={cat}
+                    onClick={() => setActiveCategory(active ? "all" : cat)}
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider transition-all btn-press"
+                    style={{ background: active ? `${color}18` : "var(--bg-elevated)", color: active ? color : "var(--gray-500)", border: `1px solid ${active ? color + "40" : "var(--border-default)"}` }}
+                  >
+                    {(() => { const I = CATEGORY_ICONS[cat] ?? Package; return <I size={9} />; })()}
+                    {CATEGORY_LABELS[cat] ?? cat} ({count})
+                  </button>
+                );
+              })}
+            </motion.div>
+          );
+        })()}
 
         {/* Stats bar */}
         {inventory && (
@@ -731,10 +814,11 @@ export function StorePage() {
         {/* Product grid */}
         {inventory && (() => {
           const q = searchQuery.toLowerCase().trim();
-          const filtered = q ? inventory.products.filter((p) =>
+          const catFiltered = activeCategory === "all" ? inventory.products : inventory.products.filter((p) => p.category === activeCategory);
+          const filtered = q ? catFiltered.filter((p) =>
             p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) ||
             p.category.toLowerCase().includes(q) || p.tags.some((t) => t.toLowerCase().includes(q))
-          ) : inventory.products;
+          ) : catFiltered;
           return filtered.length > 0 ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((product) => (
