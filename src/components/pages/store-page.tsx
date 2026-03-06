@@ -184,7 +184,7 @@ function ProductCard({
         {product.description}
       </p>
 
-      {/* Agent flow mini-map — APP_LOGIC_REVIEW §10D */}
+      {/* Agent flow mini-map */}
       <div
         className="mb-4 rounded-lg px-3 py-2.5"
         style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
@@ -311,7 +311,7 @@ function OrderModal({
           <h3 className="text-lg font-semibold" style={{ color: "var(--gray-900)" }}>
             Order: {product.name}
           </h3>
-          <button onClick={onClose} className="text-sm" style={{ color: "var(--gray-400)" }}>
+          <button onClick={onClose} aria-label="Close" className="flex size-7 items-center justify-center rounded-md text-sm transition-colors hover:bg-black/5" style={{ color: "var(--gray-400)" }}>
             ✕
           </button>
         </div>
@@ -434,7 +434,7 @@ function OrderResultView({ result, onClose }: { result: OrderResult; onClose: ()
               Order Fulfilled
             </h3>
           </div>
-          <button onClick={onClose} className="text-sm" style={{ color: "var(--gray-400)" }}>✕</button>
+          <button onClick={onClose} aria-label="Close" className="flex size-7 items-center justify-center rounded-md text-sm transition-colors hover:bg-black/5" style={{ color: "var(--gray-400)" }}>✕</button>
         </div>
 
         {/* Stats bar */}

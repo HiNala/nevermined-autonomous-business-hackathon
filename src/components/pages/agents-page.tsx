@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
 interface AgentLiveStats {
   [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
@@ -105,6 +106,28 @@ function PipelineMiniMap({ highlightAgent }: { highlightAgent: string }) {
   );
 }
 
+function AnimatedAgentStats({ real, accentColor }: { real: { creditsEarned: number; creditsSpent: number; requestsHandled: number }; accentColor: string }) {
+  const runs   = useAnimatedCounter(real.requestsHandled, 900, 80);
+  const spent  = useAnimatedCounter(real.creditsSpent,    1000, 130);
+  const earned = useAnimatedCounter(real.creditsEarned,  1100, 180);
+  return (
+    <>
+      <div className="text-center">
+        <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{runs}</p>
+        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>runs</p>
+      </div>
+      <div className="text-center">
+        <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{spent}</p>
+        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>spent</p>
+      </div>
+      <div className="text-center">
+        <p className="font-mono text-sm font-bold" style={{ color: accentColor }}>{earned}cr</p>
+        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>earned</p>
+      </div>
+    </>
+  );
+}
+
 function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
   const [expanded, setExpanded] = useState(false);
   const agentKey = agent.id.replace("agent-", "");
@@ -193,20 +216,7 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
               style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
             >
               {real ? (
-                <>
-                  <div className="text-center">
-                    <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.requestsHandled}</p>
-                    <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>runs</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.creditsSpent}</p>
-                    <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>spent</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-mono text-sm font-bold" style={{ color: "var(--accent-400)" }}>{real.creditsEarned}cr</p>
-                    <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>earned</p>
-                  </div>
-                </>
+                <AnimatedAgentStats real={real} accentColor={agent.accentColor} />
               ) : (
                 <>
                   {Array.from({ length: 3 }).map((_, k) => (
