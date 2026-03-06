@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { ResearchPage } from "@/components/pages/research-page";
 
 export const metadata: Metadata = {
-  title: "Research",
+  title: "Research | Auto Business",
   description: "Run web research requests and get structured intelligence documents. Powered by the Composer AI agent.",
 };
 
 export default function Page() {
-  redirect("/studio?mode=researcher");
+  return <ResearchPage />;
 }
