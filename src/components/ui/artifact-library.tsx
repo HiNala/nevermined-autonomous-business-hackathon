@@ -171,6 +171,7 @@ export function ArtifactLibrary({ open, onClose, onRestore }: ArtifactLibraryPro
                 )}
                 <button
                   onClick={onClose}
+                  aria-label="Close artifact library"
                   className="flex size-7 items-center justify-center rounded-lg transition-all hover:opacity-80"
                   style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
                 >
@@ -285,6 +286,7 @@ export function ArtifactLibrary({ open, onClose, onRestore }: ArtifactLibraryPro
                           </button>
                           <button
                             onClick={() => handleDelete(art.id)}
+                            aria-label="Delete artifact"
                             className="flex size-8 items-center justify-center rounded-lg transition-all hover:opacity-80"
                             style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
                           >

@@ -110,6 +110,8 @@ export function ActionPanel({ actions, reportTitle, onFollowUp }: Props) {
       {/* Header */}
       <button
         onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-label={expanded ? "Collapse decision intelligence" : "Expand decision intelligence"}
         className="flex w-full items-center justify-between px-5 py-3.5 transition-colors"
         style={{ background: "rgba(201,125,78,0.03)" }}
       >
