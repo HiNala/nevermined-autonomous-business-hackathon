@@ -48,7 +48,7 @@ const PIPELINE_STAGES = [
     bg: "rgba(245,158,11,0.08)",
     border: "rgba(245,158,11,0.20)",
     title: "Enrichment",
-    desc: "When the Composer identifies a knowledge gap, the Buyer procures third-party assets from the Nevermined marketplace to fill it.",
+    desc: "Seller decides if third-party enrichment is needed. Buyer procures assets via Nevermined x402. Disabled in demo mode — enabled for live agentic flows.",
     artifact: "External assets",
     optional: true,
   },
@@ -187,16 +187,52 @@ export function DecisionLogic() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-8 rounded-2xl p-5"
-        style={{ background: "rgba(201,125,78,0.04)", border: "1px solid rgba(201,125,78,0.12)" }}
+        className="mt-8 space-y-3"
       >
-        <p className="text-center text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-          <span style={{ color: "var(--accent-400)", fontWeight: 600 }}>Seller</span> takes the order.{" "}
-          <span style={{ color: "#7C3AED", fontWeight: 600 }}>Interpreter</span> clarifies it.{" "}
-          <span style={{ color: "#0EA5E9", fontWeight: 600 }}>Composer</span> builds it.{" "}
-          <span style={{ color: "#F59E0B", fontWeight: 600 }}>Buyer</span> enriches it when needed.{" "}
-          <span style={{ color: "#EF4444", fontWeight: 600 }}>Seller</span> delivers it.
-        </p>
+        <div
+          className="rounded-2xl p-5"
+          style={{ background: "rgba(201,125,78,0.04)", border: "1px solid rgba(201,125,78,0.12)" }}
+        >
+          <p className="text-center text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            <span style={{ color: "var(--accent-400)", fontWeight: 600 }}>Seller</span> takes the order.{" "}
+            <span style={{ color: "#7C3AED", fontWeight: 600 }}>Interpreter</span> clarifies it.{" "}
+            <span style={{ color: "#0EA5E9", fontWeight: 600 }}>Composer</span> builds it.{" "}
+            <span style={{ color: "#F59E0B", fontWeight: 600 }}>Buyer</span> enriches it when needed.{" "}
+            <span style={{ color: "#EF4444", fontWeight: 600 }}>Seller</span> delivers it.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div
+            className="flex flex-1 items-start gap-3 rounded-xl px-4 py-3"
+            style={{ background: "rgba(99,102,241,0.04)", border: "1px solid rgba(99,102,241,0.15)" }}
+          >
+            <span
+              className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
+              style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
+            >
+              DEMO
+            </span>
+            <p className="text-[11px] leading-snug" style={{ color: "var(--gray-500)" }}>
+              <span className="font-semibold" style={{ color: "#6366F1" }}>Context A — UI Demo:</span>{" "}
+              Seller narrates the enrichment decision. Buyer evaluates but doesn’t transact. Safe for judges &amp; demos.
+            </p>
+          </div>
+          <div
+            className="flex flex-1 items-start gap-3 rounded-xl px-4 py-3"
+            style={{ background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.15)" }}
+          >
+            <span
+              className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
+              style={{ background: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.22)" }}
+            >
+              LIVE
+            </span>
+            <p className="text-[11px] leading-snug" style={{ color: "var(--gray-500)" }}>
+              <span className="font-semibold" style={{ color: "#F59E0B" }}>Context B — Agentic Live:</span>{" "}
+              Buyer purchases third-party assets via Nevermined x402. External sections labeled ❖ in the final report.
+            </p>
+          </div>
+        </div>
       </motion.div>
     </section>
   );

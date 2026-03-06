@@ -2058,6 +2058,16 @@ export function StudioPage() {
                 {result?.purchasedAssets?.length ?? 0}
               </span>
             </div>
+            {result?.enrichmentSummary && (
+              <div className="flex items-center">
+                <div className="h-2.5 w-px mr-1.5" style={{ background: "var(--border-default)" }} />
+                <EnrichmentSummaryBadge
+                  summary={result.enrichmentSummary as EnrichmentSummary}
+                  compact={true}
+                  expandable={false}
+                />
+              </div>
+            )}
             <div className="ml-auto flex items-center gap-1.5">
               <button
                 onClick={() => setCheckoutOpen(true)}
@@ -2212,6 +2222,12 @@ export function StudioPage() {
               />
             ) : rightTab === "provenance" ? (
               <div className="h-full overflow-y-auto p-4 space-y-3">
+                {result.enrichmentSummary && (
+                  <EnrichmentSummaryBadge
+                    summary={result.enrichmentSummary as EnrichmentSummary}
+                    expandable={true}
+                  />
+                )}
                 {result.provenance && (
                   <ProvenanceBlockCard provenance={result.provenance as ProvenanceInfo} />
                 )}
@@ -2223,7 +2239,7 @@ export function StudioPage() {
                     totalCreditsSpent={result.buyerResult.totalCreditsSpent}
                   />
                 )}
-                {!result.provenance && !result.buyerResult && (
+                {!result.enrichmentSummary && !result.provenance && !result.buyerResult && (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-[12px]" style={{ color: "var(--gray-400)" }}>No provenance data for this run</p>
                   </div>
