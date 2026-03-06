@@ -323,46 +323,37 @@ const UPGRADE_HIGHLIGHTS = [
 
 function PlaybookSection() {
   return (
-    <section className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
-      <div className="mb-6">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
-          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>Upgrade Summary</span>
-        </div>
-        <h2 className="mb-1 text-[22px] font-semibold tracking-tight sm:text-[26px]" style={{ color: "var(--gray-900)" }}>
-          Smarter at every stage.{" "}<span className="text-gradient-accent">Not just more.</span>
-        </h2>
-        <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-          Each agent is stateful, explainable, and quality-gated — no added complexity.
-        </p>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {UPGRADE_HIGHLIGHTS.map((agent) => {
-          const Icon = agent.icon;
-          return (
-            <div
-              key={agent.name}
-              className="rounded-xl p-4 transition-all duration-200"
-              style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${agent.color}35`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-default)"; }}
-            >
-              <div className="mb-2 flex items-center gap-2">
-                <div
-                  className="flex size-7 items-center justify-center rounded-lg"
-                  style={{ background: `${agent.color}12` }}
-                >
-                  <Icon size={13} style={{ color: agent.color }} />
+    <section className="mx-auto mt-10 max-w-6xl px-4 sm:px-6">
+      <details className="group rounded-xl" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}>
+        <summary className="flex cursor-pointer items-center gap-3 px-5 py-4 select-none list-none [&::-webkit-details-marker]:hidden">
+          <ChevronDown size={14} className="shrink-0 transition-transform group-open:rotate-180" style={{ color: "var(--gray-400)" }} />
+          <span className="text-[14px] font-semibold" style={{ color: "var(--gray-800)" }}>
+            Quality gates &amp; upgrade highlights
+          </span>
+          <span className="ml-auto font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+            5 agents · stateful · explainable
+          </span>
+        </summary>
+        <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2 lg:grid-cols-5">
+          {UPGRADE_HIGHLIGHTS.map((agent) => {
+            const Icon = agent.icon;
+            return (
+              <div
+                key={agent.name}
+                className="rounded-lg p-3"
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
+              >
+                <div className="mb-1.5 flex items-center gap-2">
+                  <Icon size={12} style={{ color: agent.color }} />
+                  <span className="text-[11px] font-bold" style={{ color: "var(--gray-900)" }}>{agent.name}</span>
                 </div>
-                <span className="text-[12px] font-bold" style={{ color: "var(--gray-900)" }}>{agent.name}</span>
+                <p className="mb-1 font-mono text-[9px] font-semibold" style={{ color: agent.color }}>{agent.metric}</p>
+                <p className="text-[9px] leading-snug" style={{ color: "var(--gray-500)" }}>{agent.detail}</p>
               </div>
-              <p className="mb-1.5 font-mono text-[10px] font-semibold" style={{ color: agent.color }}>{agent.metric}</p>
-              <p className="text-[10px] leading-snug" style={{ color: "var(--gray-500)" }}>{agent.detail}</p>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </details>
     </section>
   );
 }
