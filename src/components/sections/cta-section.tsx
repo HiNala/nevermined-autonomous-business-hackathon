@@ -42,11 +42,13 @@ export function CtaSection() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/studio"
-            className="group flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium text-white transition-all duration-200"
+            className="group flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium text-white transition-all duration-200 btn-press"
             style={{
               background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
               boxShadow: "0 0 20px -4px rgba(201, 125, 78, 0.35)",
             }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 32px -4px rgba(201,125,78,0.55)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px -4px rgba(201, 125, 78, 0.35)"; }}
           >
             Open Studio &mdash; it&apos;s free
             <ArrowRight
@@ -57,7 +59,7 @@ export function CtaSection() {
 
           <Link
             href="/studio?checkout=true"
-            className="flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium transition-all duration-200"
+            className="flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium transition-all duration-200 btn-press"
             style={{
               background: "rgba(201, 125, 78, 0.08)",
               color: "var(--accent-400)",
@@ -78,7 +80,7 @@ export function CtaSection() {
 
           <Link
             href="/agents"
-            className="rounded-xl px-6 py-3 text-[14px] font-medium transition-all duration-200"
+            className="rounded-xl px-6 py-3 text-[14px] font-medium transition-all duration-200 btn-press"
             style={{
               background: "var(--glass-bg)",
               color: "var(--gray-600)",

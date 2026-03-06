@@ -144,14 +144,17 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
 export function FaqSection() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="mb-8">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>007 / FAQ</span>
+      <div className="mb-10">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>007 / FAQ</span>
         </div>
-        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          Common questions.
+        <h2 className="text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+          Common{" "}<span className="text-gradient-accent">questions.</span>
         </h2>
+        <p className="mt-2 max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
+          Everything you need to know about agents, credits, and the pipeline.
+        </p>
       </div>
 
       <div className="glass overflow-hidden">

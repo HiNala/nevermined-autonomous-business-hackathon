@@ -14,17 +14,11 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, boxShadow: "0 12px 40px -10px rgba(201,125,78,0.18), 0 2px 8px rgba(0,0,0,0.05)", borderColor: "rgba(201,125,78,0.28)", transition: { type: "spring", stiffness: 350, damping: 28 } }}
+      viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="glass relative overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1"
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201, 125, 78, 0.25)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px -8px rgba(201, 125, 78, 0.12)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "none";
-      }}
+      className="glass relative overflow-hidden p-8 cursor-default"
     >
       {/* Top accent */}
       <div
@@ -94,11 +88,13 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
 
           <Link
             href={`/studio?q=${encodeURIComponent(`I need a ${service.name}: ${service.summary.split(".")[0]}`)}`}
-            className="group mt-2 flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
+            className="group mt-2 flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200 btn-press"
             style={{
               background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
               boxShadow: "0 0 20px -4px rgba(201, 125, 78, 0.28)",
             }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px -4px rgba(201,125,78,0.45)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px -4px rgba(201, 125, 78, 0.28)"; }}
           >
             Start {service.name} in Studio
             <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
@@ -122,12 +118,16 @@ export function ServicesPage() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-12"
           >
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+              <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>Service Catalog</span>
+            </div>
             <h1 className="mb-3 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
-              Service <span className="text-gradient-accent">Catalog</span>
+              High-signal{" "}<span className="text-gradient-accent">deliverables.</span>
             </h1>
-            <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-              Six structured deliverables — research, analysis, strategy, and more —
-              powered by four specialist agents and Nevermined credit-based payments.
+            <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
+              Research, analysis, strategy, and more — generated on-demand by four specialist agents,
+              settled via Nevermined credit-based payments.
             </p>
           </motion.div>
 

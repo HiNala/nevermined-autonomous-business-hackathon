@@ -425,14 +425,14 @@ function PlaybookSection() {
       className="mx-auto mt-20 max-w-6xl px-6"
     >
       <div className="mb-8">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>AGENT EXPANSION PLAYBOOK</span>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>Agent Expansion Playbook</span>
         </div>
-        <h2 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl" style={{ color: "var(--gray-900)" }}>
-          Smarter at every stage. <span className="text-gradient-accent">Not just more.</span>
+        <h2 className="mb-2 text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+          Smarter at every stage.{" "}<span className="text-gradient-accent">Not just more.</span>
         </h2>
-        <p className="max-w-2xl text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+        <p className="max-w-2xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
           Each agent has been upgraded to be more stateful, more explainable, and more useful in real workflows —
           without adding complexity or new agents. Click any card to see exactly what shipped.
         </p>
@@ -563,14 +563,14 @@ function EnrichmentExplainer() {
     >
       {/* Header */}
       <div className="mb-8">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>BUYER ENRICHMENT</span>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>Buyer Enrichment</span>
         </div>
-        <h2 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl" style={{ color: "var(--gray-900)" }}>
-          Two execution contexts. <span className="text-gradient-accent">One clear boundary.</span>
+        <h2 className="mb-2 text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+          Two execution contexts.{" "}<span className="text-gradient-accent">One clear boundary.</span>
         </h2>
-        <p className="max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+        <p className="max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
           The Seller decides whether external enrichment is needed. The Buyer only acts when the Seller calls it.
           Which context runs depends on a single setting — <span className="font-mono text-[12px]" style={{ color: "var(--gray-700)" }}>External Marketplace</span>.
         </p>
@@ -788,14 +788,14 @@ export function AgentsPage() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-6"
           >
-            <div className="mb-3 flex items-center gap-3">
-              <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-              <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>AGENT ARCHITECTURE</span>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+              <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>Agent Architecture</span>
             </div>
             <h1 className="mb-3 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
-              Four agents. <span className="text-gradient-accent">One pipeline.</span>
+              Four agents.{" "}<span className="text-gradient-accent">One pipeline.</span>
             </h1>
-            <p className="max-w-xl text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            <p className="max-w-xl text-[15px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
               The Seller accepts and delivers. The Interpreter structures intent. The Composer builds the report.
               The Buyer enriches it when needed. Each has one clear job, one clear handoff.
             </p>
