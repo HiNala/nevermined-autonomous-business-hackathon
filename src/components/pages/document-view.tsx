@@ -9,7 +9,8 @@ import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad"
 import { VisionImageBanner } from "@/components/ui/vision-image-banner";
 import { ConfidenceBadge } from "@/components/ui/confidence-badge";
 import { MarkdownContent } from "@/components/ui/markdown-content";
-import type { ResearchDocument, ResearchSource } from "@/types/pipeline";
+import { SourcesPanel } from "@/components/ui/sources-panel";
+import type { ResearchDocument, ResearchSource, SponsorToolUsage } from "@/types/pipeline";
 import type { ResearchConfidence } from "@/types/pipeline";
 import { ImageIcon } from "lucide-react";
 
@@ -21,6 +22,7 @@ export function DocumentView({
   onAdServed,
   visionResult,
   isGeneratingImage,
+  toolsUsed,
 }: {
   doc: ResearchDocument;
   adQuery?: string;
@@ -29,6 +31,7 @@ export function DocumentView({
   onAdServed?: () => void;
   visionResult?: { imageUrl: string; attempts: number; passedQuality: boolean; qualityScore: number; finalPrompt: string } | null;
   isGeneratingImage?: boolean;
+  toolsUsed?: SponsorToolUsage[];
 }) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<"full" | "executive" | "sources">("full");
@@ -161,43 +164,7 @@ export function DocumentView({
 
         {/* ── SOURCES MODE ── */}
         {viewMode === "sources" ? (
-          <div className="space-y-3">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest mb-4" style={{ color: "var(--gray-400)" }}>
-              {doc.sources.length} sources used in this report
-            </p>
-            {doc.sources.map((source, i) => {
-              const scored = source as ResearchSource & { overallScore?: number; freshnessLabel?: string; authorityScore?: number };
-              const score = scored.overallScore ?? 0;
-              const fresh = scored.freshnessLabel ?? "unknown";
-              const freshColor = fresh === "recent" ? "#22C55E" : fresh === "moderate" ? "#F59E0B" : "#94A3B8";
-              return (
-                <a key={i} href={source.url} target="_blank" rel="noopener noreferrer"
-                  className="group flex items-start gap-3 rounded-xl p-3 transition-all hover:scale-[1.005]"
-                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
-                >
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg font-mono text-[10px] font-bold" style={{ background: "rgba(14,165,233,0.08)", color: "#0EA5E9" }}>
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-[12px] font-semibold" style={{ color: "var(--gray-700)" }}>{source.title}</p>
-                    <p className="truncate font-mono text-[9px] mt-0.5" style={{ color: "var(--gray-400)" }}>{source.url}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      {score > 0 && (
-                        <div className="flex items-center gap-1">
-                          <div className="h-1 w-16 rounded-full overflow-hidden" style={{ background: "var(--border-default)" }}>
-                            <div className="h-full rounded-full" style={{ width: `${Math.round(score * 100)}%`, background: score > 0.7 ? "#22C55E" : score > 0.4 ? "#F59E0B" : "#EF4444" }} />
-                          </div>
-                          <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>{Math.round(score * 100)}%</span>
-                        </div>
-                      )}
-                      <span className="rounded px-1.5 py-0.5 font-mono text-[8px]" style={{ background: `${freshColor}12`, color: freshColor }}>{fresh}</span>
-                    </div>
-                  </div>
-                  <ExternalLink size={12} className="mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--gray-400)" }} />
-                </a>
-              );
-            })}
-          </div>
+          <SourcesPanel sources={doc.sources} toolsUsed={toolsUsed ?? doc.toolsUsed} />
         ) : viewMode === "executive" ? (
           /* ── EXECUTIVE SUMMARY MODE ── */
           <div className="space-y-5">
@@ -254,12 +221,12 @@ export function DocumentView({
                         {section.heading.replace(/^(External Data:|Marketplace:)\s*/, "")}
                       </h3>
                     </div>
-                    <MarkdownContent text={section.content} />
+                    <MarkdownContent text={section.content} sources={doc.sources} />
                   </div>
                 ) : (
                   <div key={i}>
                     <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>{section.heading}</h3>
-                    <MarkdownContent text={section.content} />
+                    <MarkdownContent text={section.content} sources={doc.sources} />
                   </div>
                 );
               })}

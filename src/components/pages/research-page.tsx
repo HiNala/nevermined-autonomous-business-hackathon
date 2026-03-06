@@ -8,6 +8,8 @@ import { ToolSettingsButton } from "@/components/ui/tool-settings-panel";
 import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
 import type { ResearchSource, ResearchDocument } from "@/types/pipeline";
 import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
+import { MarkdownContent } from "@/components/ui/markdown-content";
+import { SourcesPanel } from "@/components/ui/sources-panel";
 
 interface AgentEvent {
   id: string;
@@ -71,11 +73,12 @@ function EmptyState() {
 
 function DocumentView({ doc }: { doc: ResearchDocument }) {
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<"report" | "sources">("report");
 
   const buildMarkdown = useCallback(() => [
     `# ${doc.title}`, "", doc.summary, "",
     ...doc.sections.flatMap((s) => [`## ${s.heading}`, "", s.content, ""]),
-    "## Sources", ...doc.sources.map((s) => `- [${s.title}](${s.url})`),
+    "## Sources", ...doc.sources.map((s, i) => `${i + 1}. [${s.title}](${s.url})`),
   ].join("\n"), [doc]);
 
   const handleCopy = useCallback(() => {
@@ -114,10 +117,34 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
               <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
                 {(doc.durationMs / 1000).toFixed(1)}s
               </span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                {doc.sources.length} sources
+              </span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Report / Sources toggle */}
+          <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-default)", background: "var(--bg-elevated)" }}>
+            {(["report", "sources"] as const).map((m) => {
+              const labels = { report: "Report", sources: "Sources" };
+              const active = viewMode === m;
+              return (
+                <button
+                  key={m}
+                  onClick={() => setViewMode(m)}
+                  className="px-2.5 py-1 font-mono text-[9px] font-semibold transition-all"
+                  style={{
+                    background: active ? "rgba(201,125,78,0.12)" : "transparent",
+                    color: active ? "var(--accent-400)" : "var(--gray-400)",
+                    borderRight: m === "report" ? "1px solid var(--border-default)" : "none",
+                  }}
+                >
+                  {labels[m]}
+                </button>
+              );
+            })}
+          </div>
           <button
             onClick={handleDownload}
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors"
@@ -139,60 +166,76 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
 
       {/* Document body */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        {/* Summary */}
-        <div className="mb-6 rounded-xl p-4" style={{ background: "rgba(201, 125, 78, 0.04)", border: "1px solid rgba(201, 125, 78, 0.12)" }}>
-          <p className="text-[13px] leading-relaxed" style={{ color: "var(--gray-600)" }}>
-            {doc.summary}
-          </p>
-        </div>
-
-        {/* Sections */}
-        <div className="space-y-6">
-          {doc.sections.map((section, i) => (
-            <div key={i}>
-              <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>
-                {section.heading}
-              </h3>
-              <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--gray-500)" }}>
-                {section.content}
+        {viewMode === "sources" ? (
+          <SourcesPanel sources={doc.sources} toolsUsed={doc.toolsUsed} />
+        ) : (
+          <>
+            {/* Summary */}
+            <div className="mb-6 rounded-xl p-4" style={{ background: "rgba(201, 125, 78, 0.04)", border: "1px solid rgba(201, 125, 78, 0.12)" }}>
+              <p className="text-[13px] leading-relaxed" style={{ color: "var(--gray-600)" }}>
+                {doc.summary}
               </p>
             </div>
-          ))}
-        </div>
 
-        <ZeroClickAd query={doc.query || doc.title} muted={false} />
-
-        {/* Sources */}
-        {doc.sources.length > 0 && (
-          <div className="mt-8 border-t pt-5" style={{ borderColor: "var(--border-default)" }}>
-            <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
-              Sources ({doc.sources.length})
-            </p>
-            <div className="space-y-2">
-              {doc.sources.map((source, i) => (
-                <a
-                  key={i}
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-2 rounded-lg p-2 transition-colors"
-                  style={{ background: "transparent" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <ExternalLink size={12} className="mt-0.5 shrink-0" style={{ color: "var(--gray-400)" }} />
-                  <div className="min-w-0">
-                    <p className="truncate text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>
-                      {source.title}
-                    </p>
-                    <p className="truncate font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                      {source.url}
-                    </p>
-                  </div>
-                </a>
+            {/* Sections with inline citations */}
+            <div className="space-y-6">
+              {doc.sections.map((section, i) => (
+                <div key={i}>
+                  <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>
+                    {section.heading}
+                  </h3>
+                  <MarkdownContent text={section.content} sources={doc.sources} />
+                </div>
               ))}
             </div>
-          </div>
+
+            <ZeroClickAd query={doc.query || doc.title} muted={false} />
+
+            {/* Inline sources footer with citations */}
+            {doc.sources.length > 0 && (
+              <div className="mt-8 border-t pt-5" style={{ borderColor: "var(--border-default)" }}>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+                    Sources ({doc.sources.length})
+                  </p>
+                  <button
+                    onClick={() => setViewMode("sources")}
+                    className="font-mono text-[9px] font-semibold transition-colors"
+                    style={{ color: "var(--accent-400)" }}
+                  >
+                    View details →
+                  </button>
+                </div>
+                <div className="space-y-1.5">
+                  {doc.sources.map((source, i) => (
+                    <a
+                      key={i}
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-start gap-2 rounded-lg p-1.5 transition-colors hover:bg-black/3"
+                    >
+                      <span
+                        className="flex size-5 shrink-0 items-center justify-center rounded font-mono text-[9px] font-bold mt-0.5"
+                        style={{ background: "rgba(14,165,233,0.08)", color: "#0EA5E9" }}
+                      >
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[11px] font-medium" style={{ color: "var(--gray-600)" }}>
+                          {source.title}
+                        </p>
+                        <p className="truncate font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+                          {source.url}
+                        </p>
+                      </div>
+                      <ExternalLink size={10} className="mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--gray-400)" }} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

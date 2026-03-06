@@ -1308,6 +1308,7 @@ export function StudioPage() {
                     onAdServed={handleAdServed}
                     visionResult={visionResult}
                     isGeneratingImage={isGeneratingImage}
+                    toolsUsed={result.toolsUsed ?? result.document?.toolsUsed}
                   />
                 </div>
                 {/* Action panel + follow-up below document */}
