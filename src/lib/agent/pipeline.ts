@@ -10,6 +10,8 @@ import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
 import type { SponsorToolUsage, EnrichmentSummary, ProcurementStatus } from "@/types/pipeline";
 import { logNeverminedTask } from "@/lib/nevermined/server";
+import { runVisionAgent } from "@/lib/agents/vision";
+import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
 export type { SponsorToolUsage };
 
 export type PipelineStage =
@@ -27,6 +29,7 @@ export type PipelineStage =
   | "seller_planning"
   | "seller_fulfilling"
   | "seller_complete"
+  | "vision_complete"
   | "complete"
   | "error";
 
@@ -34,7 +37,7 @@ export interface PipelineEvent {
   id: string;
   timestamp: string;
   stage: PipelineStage;
-  agent: "strategist" | "researcher" | "buyer" | "seller" | "pipeline";
+  agent: "strategist" | "researcher" | "buyer" | "seller" | "vision" | "pipeline";
   message: string;
   data?: Record<string, unknown>;
 }
@@ -56,6 +59,13 @@ export interface PipelineResult {
   toolsUsed: SponsorToolUsage[];
   provenance?: import("@/types/pipeline").ProvenanceInfo;
   workspaceId?: string;
+  visionResult?: {
+    imageUrl: string;
+    attempts: number;
+    passedQuality: boolean;
+    qualityScore: number;
+    finalPrompt: string;
+  };
 }
 
 type EventCallback = (event: PipelineEvent) => void;
@@ -402,6 +412,51 @@ export async function runPipeline(
       emit("buyer_complete", "buyer", "External marketplace trading is disabled — skipping buyer agent");
     }
 
+    // ── Stage 5: VISION — generate hero image (non-blocking, best-effort) ──
+    const visionEnabled = toolSettings?.trading?.visionEnabled ?? true;
+    let visionResult: import("@/types/pipeline").PipelineResult["visionResult"] | undefined;
+    if (visionEnabled && (isNanobananaConfigured() || true)) {
+      try {
+        const vr = await runVisionAgent({
+          brief: `${document.title}. ${document.summary.slice(0, 200)}`,
+          outputContext: "research_report",
+          requirements: ["Professional quality", "No text overlay", "Relevant to topic"],
+          aspectRatio: "16:9",
+          style: { mood: "professional" },
+          calledBy: "composer",
+        });
+        if (vr.imageUrl) {
+          visionResult = {
+            imageUrl: vr.imageUrl,
+            attempts: vr.attempts,
+            passedQuality: vr.passedQuality,
+            qualityScore: vr.qualityReport?.score ?? 0,
+            finalPrompt: vr.finalPrompt,
+          };
+          toolsUsed.push({
+            tool: "nanobanana-generate",
+            label: `VISION — NanoBanana image generation`,
+            sponsor: "NanoBanana",
+            timestamp: new Date().toISOString(),
+            detail: `${vr.attempts} attempt${vr.attempts !== 1 ? "s" : ""} · score ${vr.qualityReport?.score ?? "?"}/100`,
+          });
+          if (vr.attempts > 1) {
+            toolsUsed.push({
+              tool: "nanobanana-judge",
+              label: "VISION quality judge",
+              sponsor: "NanoBanana",
+              timestamp: new Date().toISOString(),
+              detail: `GPT-4o-mini vision · ${vr.passedQuality ? "passed" : "best-of-" + vr.attempts}`,
+            });
+          }
+          emit("vision_complete", "vision", `[IMAGE] Generated in ${vr.attempts} attempt${vr.attempts !== 1 ? "s" : ""} · quality ${vr.qualityReport?.score ?? "?"}/100`, {
+            imageUrl: vr.imageUrl,
+            passedQuality: vr.passedQuality,
+          });
+        }
+      } catch { /* VISION is non-critical — never fail the pipeline */ }
+    }
+
     // ── Complete ────────────────────────────────────────────────────
     const totalCredits = transactions
       .filter((tx) => tx.status === "completed")
@@ -459,6 +514,7 @@ export async function runPipeline(
       toolsUsed,
       provenance,
       workspaceId,
+      visionResult,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Pipeline failed";
@@ -574,7 +630,44 @@ export async function runResearcherStandalone(
     await logNeverminedTask({ credits: document.creditsUsed, description: `Research: "${query.slice(0, 60)}"`, tag: "researcher" });
   }
 
-  return { document, transaction: txR, events, toolsUsed: document.toolsUsed ?? [] };
+  const resToolsUsed: SponsorToolUsage[] = [...(document.toolsUsed ?? [])];
+
+  // VISION — generate hero image after research (non-blocking, best-effort)
+  let visionResult: PipelineResult["visionResult"] | undefined;
+  if (toolSettings?.trading?.visionEnabled !== false) {
+    try {
+      const vr = await runVisionAgent({
+        brief: `${document.title}. ${document.summary.slice(0, 200)}`,
+        outputContext: "research_report",
+        requirements: ["Professional quality", "No text overlay", "Relevant to topic"],
+        aspectRatio: "16:9",
+        style: { mood: "professional" },
+        calledBy: "composer",
+      });
+      if (vr.imageUrl) {
+        visionResult = {
+          imageUrl: vr.imageUrl,
+          attempts: vr.attempts,
+          passedQuality: vr.passedQuality,
+          qualityScore: vr.qualityReport?.score ?? 0,
+          finalPrompt: vr.finalPrompt,
+        };
+        resToolsUsed.push({
+          tool: "nanobanana-generate",
+          label: `VISION — NanoBanana image generation`,
+          sponsor: "NanoBanana",
+          timestamp: new Date().toISOString(),
+          detail: `${vr.attempts} attempt${vr.attempts !== 1 ? "s" : ""} · score ${vr.qualityReport?.score ?? "?"}/100`,
+        });
+        emit("vision_complete", "vision", `[IMAGE] Generated in ${vr.attempts} attempt${vr.attempts !== 1 ? "s" : ""} · quality ${vr.qualityReport?.score ?? "?"}/100`, {
+          imageUrl: vr.imageUrl,
+          passedQuality: vr.passedQuality,
+        });
+      }
+    } catch { /* VISION is non-critical */ }
+  }
+
+  return { document, transaction: txR, events, toolsUsed: resToolsUsed, visionResult };
 }
 
 // ─── Reverse Pipeline: Fulfill External Seller Order ─────────────────
