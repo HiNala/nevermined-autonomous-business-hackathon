@@ -3,7 +3,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe } from "@/components/ui/globe";
-import { ArrowRight, Brain, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Brain, ImageIcon, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 
 const PIPELINE_STEPS = [
@@ -12,12 +12,13 @@ const PIPELINE_STEPS = [
   { label: "Composer",    sublabel: "builds it",      color: "#0EA5E9", icon: PenLine },
   { label: "Buyer",       sublabel: "enriches (opt)", color: "#F59E0B", icon: ShoppingBag, optional: true },
   { label: "Seller",      sublabel: "delivers it",    color: "#EF4444", icon: PackageCheck },
+  { label: "VISION",      sublabel: "image (opt)",    color: "#CA8A04", icon: ImageIcon, optional: true },
 ];
 
 const PROOF_CARDS = [
   { color: "#7C3AED", icon: Brain,       title: "Clarification-aware", body: "Interpreter scores brief quality and asks 1–2 targeted questions before ambiguous jobs run. Workspace context applied automatically." },
   { color: "#0EA5E9", icon: PenLine,     title: "2-pass composition",  body: "Composer builds a full outline first, then expands each section with source attribution, contradiction detection, and confidence scoring." },
-  { color: "#EF4444", icon: PackageCheck,title: "Provenance + delivery", body: "Seller quality-gates every report, packages 3 delivery variants, and saves each run to your artifact library for restore and re-run." },
+  { color: "#CA8A04", icon: ImageIcon,   title: "VISION image loop",   body: "After every report, VISION generates a hero image via NanoBanana with a GPT-4o-mini quality judge — up to 3 attempts, automatically refined." },
 ];
 
 const TRUST_BADGES = [
@@ -110,7 +111,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.16 }}
           >
-            Send a request from Studio, the Store, or directly via API. Four agents handle intake, structuring, research, enrichment, and delivery — with full provenance and quality gates.
+            Send a request from Studio, the Store, or directly via API. Five agents handle intake, structuring, research, enrichment, delivery, and image generation — with full provenance and quality gates.
           </motion.p>
 
           {/* Animated pipeline flow */}
