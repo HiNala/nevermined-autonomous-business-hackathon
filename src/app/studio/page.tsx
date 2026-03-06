@@ -3,7 +3,7 @@ import { StudioPage } from "@/components/pages/studio-page";
 
 export const metadata: Metadata = {
   title: "Studio",
-  description: "Describe any business task. Five AI agents — Strategist, Researcher, Buyer, Seller, and VISION — deliver structured research, plans, and images in minutes.",
+  description: "Describe any business task. Five AI agents — Strategist, Researcher, Buyer, Seller, and VISION — deliver structured research, plans, and images.",
   openGraph: {
     title: "Auto Business Studio — AI Agent Pipeline",
     description: "Describe any business task. Five AI agents deliver structured research, plans, and images in minutes.",

@@ -36,6 +36,14 @@ export const metadata: Metadata = {
     siteName: "Auto Business",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Auto Business — AI Agent Studio",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

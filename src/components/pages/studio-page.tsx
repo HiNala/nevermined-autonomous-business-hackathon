@@ -779,7 +779,7 @@ export function StudioPage() {
                     AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
                 }}
               >
-                {mode === "pipeline" ? "âš¡ Full Pipeline" : mode === "strategist" ? "â—† Interpreter" : mode === "researcher" ? "â—ˆ Composer" : "â—‡ Seller"}
+                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Interpreter" : mode === "researcher" ? "◈ Composer" : "◇ Seller"}
               </span>
               {mode !== "pipeline" && (
                 <button
@@ -885,7 +885,7 @@ export function StudioPage() {
                 DEMO
               </span>
               <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
-                Seller orchestration visible â€” external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
+                Seller orchestration visible â€“ external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
               </p>
             </div>
           )}
