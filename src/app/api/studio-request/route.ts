@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPaymentStatus, getPaymentsClient, getSellerConfig } from "@/lib/nevermined/server";
 import { buildStudioPreview, getStudioService } from "@/lib/studio";
+import { checkRateLimit, getClientId } from "@/lib/security";
 
 interface StudioRequestBody {
   serviceId?: string;
@@ -9,7 +10,22 @@ interface StudioRequestBody {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as StudioRequestBody;
+  const clientId = getClientId(request);
+  const rateCheck = checkRateLimit(`studio-request:${clientId}`, 10, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
+  let body: StudioRequestBody;
+  try {
+    body = (await request.json()) as StudioRequestBody;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
   const serviceId = body.serviceId?.trim();
   const brief = body.brief?.trim();
   const contextUrl = body.contextUrl?.trim();

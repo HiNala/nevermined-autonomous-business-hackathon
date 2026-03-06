@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createJob, getJob, listJobs, updateJob, getRecentJobs } from "@/lib/workspace/jobs";
+import { checkRateLimit, getClientId } from "@/lib/security";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,12 +24,21 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as {
-    workspaceId?: string;
-    mode: "pipeline" | "strategist" | "researcher" | "seller";
-    input: string;
-    idempotencyKey?: string;
-  };
+  const clientId = getClientId(request);
+  const rateCheck = checkRateLimit(`workspace-jobs:${clientId}`, 30, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
+  let body: { workspaceId?: string; mode: "pipeline" | "strategist" | "researcher" | "seller"; input: string; idempotencyKey?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
   if (!body.mode || !body.input) {
     return NextResponse.json({ error: "mode and input are required" }, { status: 400 });
@@ -47,7 +59,12 @@ export async function PATCH(request: Request) {
   const jobId = searchParams.get("jobId");
   if (!jobId) return NextResponse.json({ error: "jobId required" }, { status: 400 });
 
-  const updates = (await request.json()) as Record<string, unknown>;
+  let updates: Record<string, unknown>;
+  try {
+    updates = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   const updated = updateJob(jobId, updates);
   if (!updated) return NextResponse.json({ error: "Job not found" }, { status: 404 });
 

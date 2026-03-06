@@ -2,8 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { runVisionAgent } from "@/lib/agents/vision";
 import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
 import type { VisionRequest } from "@/lib/agents/vision/types";
+import { checkRateLimit, getClientId } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
+  const clientId = getClientId(req);
+  const rateCheck = checkRateLimit(`vision:${clientId}`, 10, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
+  let body: VisionRequest;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
   try {
     if (!isNanobananaConfigured()) {
       return NextResponse.json(
@@ -26,8 +43,6 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     }
-
-    const body: VisionRequest = await req.json();
 
     if (!body.brief || !body.calledBy) {
       return NextResponse.json(

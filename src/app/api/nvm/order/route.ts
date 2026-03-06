@@ -1,31 +1,37 @@
 import { NextResponse } from "next/server";
 import { orderOwnPlan, getPlanBalance, logNeverminedTask } from "@/lib/nevermined/server";
+import { checkRateLimit, getClientId } from "@/lib/security";
 
 /**
  * POST /api/nvm/order — Order our own plan to register a real sale + log a task.
  * This creates visible metrics on the Nevermined dashboard.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const clientId = getClientId(request);
+  const rateCheck = checkRateLimit(`nvm-order:${clientId}`, 5, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
   const results: Record<string, unknown> = {};
 
-  // 1. Check balance first
   const balance = await getPlanBalance();
   results.balance = balance;
-  console.log("[NVM/order] Balance:", JSON.stringify(balance));
 
-  // 2. Order our own plan (creates a real "sale" on the dashboard)
   const order = await orderOwnPlan();
   results.order = order;
-  console.log("[NVM/order] Order result:", JSON.stringify(order));
+  if (!order.success) console.error("[NVM/order] Order failed:", order.error);
 
-  // 3. Log an agent task via simulation (creates an "API call" on the dashboard)
   const task = await logNeverminedTask({
     credits: 5,
     description: "Agent pipeline execution — ordered via API",
     tag: "pipeline",
   });
   results.task = task;
-  console.log("[NVM/order] Task result:", JSON.stringify(task));
+  if (!task.success) console.error("[NVM/order] Task failed:", task.error);
 
   const anySuccess = order.success || task.success;
 

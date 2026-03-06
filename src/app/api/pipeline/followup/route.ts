@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { complete } from "@/lib/ai/providers";
+import { checkRateLimit, getClientId } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
+  const clientId = getClientId(req);
+  const rateCheck = checkRateLimit(`followup:${clientId}`, 20, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
+  let body: { question?: string; context?: string; history?: { role: string; content: string }[] };
   try {
-    const { question, context, history = [] } = await req.json();
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  try {
+    const { question, context, history = [] } = body;
 
     if (!question?.trim()) {
       return NextResponse.json({ error: "question is required" }, { status: 400 });
