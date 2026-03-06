@@ -85,7 +85,7 @@ export function VisionImageBanner({
 
       {expanded && (
         <div
-          className="fixed inset-0 z-100 flex items-center justify-center p-6"
+          className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6"
           style={{ background: "rgba(0,0,0,0.85)" }}
           onClick={() => setExpanded(false)}
           role="dialog"
@@ -93,14 +93,14 @@ export function VisionImageBanner({
           aria-label="Image lightbox"
         >
           <div
-            className="relative max-w-5xl w-full overflow-hidden rounded-2xl"
+            className="relative w-full max-w-5xl overflow-hidden rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={visionResult.imageUrl}
               alt={title || "VISION generated image"}
               className="w-full object-contain rounded-t-2xl"
-              style={{ maxHeight: "80vh" }}
+              style={{ maxHeight: "60vh" }}
             />
             <div
               className="flex items-center gap-3 px-4 py-3 rounded-b-2xl"

@@ -136,11 +136,11 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
         style={{ background: `linear-gradient(90deg, transparent, ${agent.accentColor}70, transparent)` }}
       />
 
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
 
           {/* Left column: Identity */}
-          <div className="flex flex-col gap-5 lg:w-72 lg:shrink-0">
+          <div className="flex flex-col gap-5 lg:w-72 lg:shrink-0 w-full">
             {/* Stage badge */}
             <div className="flex items-center gap-2">
               <span

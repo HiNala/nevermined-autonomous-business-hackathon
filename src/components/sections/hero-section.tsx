@@ -46,7 +46,7 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative flex min-h-[82vh] flex-col overflow-hidden">
+    <section className="relative flex min-h-[70vh] sm:min-h-[82vh] flex-col overflow-hidden">
       {/* Multi-layer radial glow */}
       <div className="geo-radial-hero absolute inset-0 pointer-events-none" />
 
@@ -71,9 +71,9 @@ export function HeroSection() {
       />
 
       {/* Main content */}
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 items-center gap-12 px-6 pb-16 pt-24 lg:pt-28">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-start gap-8 px-4 pb-12 pt-20 sm:px-6 sm:pt-24 lg:flex-row lg:items-center lg:gap-12 lg:pb-16 lg:pt-28">
         {/* Left — copy */}
-        <div className="flex max-w-2xl flex-1 flex-col gap-7">
+        <div className="flex w-full max-w-2xl flex-col gap-6 sm:gap-7 lg:flex-1">
 
           {/* Pill badge */}
           <motion.div
@@ -95,10 +95,10 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="block text-[3.2rem] sm:text-[4.5rem]" style={{ color: "var(--gray-900)" }}>
+            <span className="block text-[2.6rem] sm:text-[3.6rem] lg:text-[4.5rem]" style={{ color: "var(--gray-900)" }}>
               Describe the work.
             </span>
-            <span className="block text-[3.2rem] sm:text-[4.5rem] text-gradient-accent">
+            <span className="block text-[2.6rem] sm:text-[3.6rem] lg:text-[4.5rem] text-gradient-accent">
               Agents build it.
             </span>
           </motion.h1>
