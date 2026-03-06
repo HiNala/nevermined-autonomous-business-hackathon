@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CreditCard } from "lucide-react";
 import Link from "next/link";
 
 export function CtaSection() {
@@ -53,6 +53,27 @@ export function CtaSection() {
               size={15}
               className="transition-transform group-hover:translate-x-0.5"
             />
+          </Link>
+
+          <Link
+            href="/studio?checkout=true"
+            className="flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-medium transition-all duration-200"
+            style={{
+              background: "rgba(201, 125, 78, 0.08)",
+              color: "var(--accent-400)",
+              border: "1px solid rgba(201, 125, 78, 0.22)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(201, 125, 78, 0.14)";
+              e.currentTarget.style.boxShadow = "0 4px 16px -4px rgba(201, 125, 78, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(201, 125, 78, 0.08)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            <CreditCard size={14} />
+            Buy Credits
           </Link>
 
           <Link

@@ -28,6 +28,7 @@ import {
   Download,
   Award,
   ChevronDown,
+  CreditCard,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -35,6 +36,7 @@ import { loadToolSettings, saveToolSettings, type ToolSettings } from "@/lib/too
 import { PurchasedAssetGrid } from "@/components/ui/purchased-asset-card";
 import { SponsorRail } from "@/components/ui/sponsor-rail";
 import { JudgeMode, type JudgePreset } from "@/components/ui/judge-mode";
+import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
 import type {
   ResearchSource,
   ResearchDocument,
@@ -1010,6 +1012,7 @@ export function StudioPage() {
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
   const [judgeMode, setJudgeMode] = useState(false);
   const [adToolsUsed, setAdToolsUsed] = useState<SponsorToolUsage[]>([]);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const handleAdServed = useCallback(() => {
     setAdToolsUsed((prev) => {
@@ -1060,6 +1063,11 @@ export function StudioPage() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
     if (m === "strategist" || m === "researcher" || m === "seller") setMode(m);
+    if (params.get("checkout") === "true") {
+      setCheckoutOpen(true);
+      // Clean up URL without reload
+      window.history.replaceState({}, "", "/studio" + (q ? `?q=${encodeURIComponent(q)}` : "") + (m ? `${q ? "&" : "?"}mode=${m}` : ""));
+    }
 
     // Restore last result from localStorage
     try {
@@ -1576,19 +1584,34 @@ export function StudioPage() {
                 {result?.purchasedAssets?.length ?? 0}
               </span>
             </div>
-            <button
-              onClick={toggleAdsMuted}
-              title={adsMuted ? "Ads muted — click to enable" : "Click to mute ads"}
-              className="ml-auto flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all"
-              style={{
-                background: adsMuted ? "rgba(239, 68, 68, 0.06)" : "transparent",
-                border: `1px solid ${adsMuted ? "rgba(239, 68, 68, 0.15)" : "var(--border-default)"}`,
-                color: adsMuted ? "#EF4444" : "var(--gray-400)",
-              }}
-            >
-              {adsMuted ? <VolumeX size={10} /> : <Volume2 size={10} />}
-              <span>{adsMuted ? "off" : "ads"}</span>
-            </button>
+            <div className="ml-auto flex items-center gap-1.5">
+              <button
+                onClick={() => setCheckoutOpen(true)}
+                title="Buy credits with card (VGS secure checkout)"
+                className="flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold transition-all hover:scale-[1.02]"
+                style={{
+                  background: "rgba(201, 125, 78, 0.08)",
+                  border: "1px solid rgba(201, 125, 78, 0.18)",
+                  color: "var(--accent-400)",
+                }}
+              >
+                <CreditCard size={10} />
+                <span>buy credits</span>
+              </button>
+              <button
+                onClick={toggleAdsMuted}
+                title={adsMuted ? "Ads muted — click to enable" : "Click to mute ads"}
+                className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all"
+                style={{
+                  background: adsMuted ? "rgba(239, 68, 68, 0.06)" : "transparent",
+                  border: `1px solid ${adsMuted ? "rgba(239, 68, 68, 0.15)" : "var(--border-default)"}`,
+                  color: adsMuted ? "#EF4444" : "var(--gray-400)",
+                }}
+              >
+                {adsMuted ? <VolumeX size={10} /> : <Volume2 size={10} />}
+                <span>{adsMuted ? "off" : "ads"}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1686,6 +1709,14 @@ export function StudioPage() {
         </div>
       </div>
     </div>
+    <VGSCheckoutModal
+      open={checkoutOpen}
+      onClose={() => setCheckoutOpen(false)}
+      onSuccess={(credits, paymentId) => {
+        console.log(`[VGS] Payment success: ${credits} credits, ID: ${paymentId}`);
+        setCheckoutOpen(false);
+      }}
+    />
     </>
   );
 }

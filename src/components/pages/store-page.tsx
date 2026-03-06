@@ -23,6 +23,7 @@ import {
   Search,
 } from "lucide-react";
 import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
+import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -449,6 +450,7 @@ export function StorePage() {
   const [orderingProductId, setOrderingProductId] = useState<string | null>(null);
   const [toolSettings, setToolSettings] = useState<ToolSettings | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     setToolSettings(loadToolSettings());
@@ -595,14 +597,24 @@ export function StorePage() {
                 {inventory.counts.thirdPartyServices} third-party services
               </span>
             </div>
-            <button
-              onClick={fetchInventory}
-              className="ml-auto flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-[10px] transition-all hover:opacity-80"
-              style={{ border: "1px solid var(--border-default)", color: "var(--gray-400)" }}
-            >
-              <RefreshCw size={10} />
-              Refresh
-            </button>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() => setCheckoutOpen(true)}
+                className="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-[10px] font-semibold transition-all hover:scale-[1.02]"
+                style={{ background: "rgba(201, 125, 78, 0.08)", border: "1px solid rgba(201, 125, 78, 0.18)", color: "var(--accent-400)" }}
+              >
+                <CreditCard size={10} />
+                Buy Credits
+              </button>
+              <button
+                onClick={fetchInventory}
+                className="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-[10px] transition-all hover:opacity-80"
+                style={{ border: "1px solid var(--border-default)", color: "var(--gray-400)" }}
+              >
+                <RefreshCw size={10} />
+                Refresh
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -740,6 +752,14 @@ export function StorePage() {
       </AnimatePresence>
     </main>
     <Footer />
+    <VGSCheckoutModal
+      open={checkoutOpen}
+      onClose={() => setCheckoutOpen(false)}
+      onSuccess={(credits, paymentId) => {
+        console.log(`[VGS] Store payment: ${credits} credits, ID: ${paymentId}`);
+        setCheckoutOpen(false);
+      }}
+    />
     </>
   );
 }

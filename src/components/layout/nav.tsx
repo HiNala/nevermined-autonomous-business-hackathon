@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useScroll } from "@/hooks/use-scroll";
 import { SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X, CreditCard } from "lucide-react";
 
 const PAGE_LINKS = [
   { label: "Studio", href: "/studio" },
+  { label: "Research", href: "/research" },
   { label: "Store", href: "/store" },
   { label: "Services", href: "/services" },
   { label: "Agents", href: "/agents" },
@@ -62,6 +63,24 @@ export function Nav() {
       {/* Right: CTA + mobile toggle */}
       <div className="flex items-center gap-3">
         <Link
+          href="/studio?checkout=true"
+          className="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-200 sm:flex"
+          style={{
+            background: "rgba(201, 125, 78, 0.08)",
+            border: "1px solid rgba(201, 125, 78, 0.18)",
+            color: "var(--accent-400)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "rgba(201, 125, 78, 0.14)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "rgba(201, 125, 78, 0.08)";
+          }}
+        >
+          <CreditCard size={12} />
+          Buy Credits
+        </Link>
+        <Link
           href="/studio"
           className="hidden rounded-lg px-4 py-1.5 text-[13px] font-medium text-white transition-all duration-200 sm:block"
           style={{
@@ -108,7 +127,16 @@ export function Nav() {
             {link.label}
           </Link>
         ))}
-        <div className="mt-2 border-t pt-3" style={{ borderColor: "var(--border-default)" }}>
+        <div className="mt-2 flex flex-col gap-2 border-t pt-3" style={{ borderColor: "var(--border-default)" }}>
+          <Link
+            href="/studio?checkout=true"
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[14px] font-medium transition-all"
+            style={{ background: "rgba(201, 125, 78, 0.08)", border: "1px solid rgba(201, 125, 78, 0.18)", color: "var(--accent-400)" }}
+            onClick={() => setMobileOpen(false)}
+          >
+            <CreditCard size={14} />
+            Buy Credits
+          </Link>
           <Link
             href="/studio"
             className="flex w-full items-center justify-center rounded-xl py-2.5 text-[14px] font-medium text-white"
