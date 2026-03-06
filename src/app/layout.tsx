@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.svg",
         width: 1200,
         height: 630,
         alt: "Auto Business — AI Agent Studio",
@@ -49,6 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Auto Business — AI Agent Studio",
     description: "Describe the work. Agents build it. Powered by Nevermined.",
+    images: ["/og-image.svg"],
   },
   keywords: ["AI agents", "autonomous business", "Nevermined", "AI research", "agent commerce", "x402 payments", "AI pipeline", "business automation"],
   robots: {
