@@ -3,6 +3,7 @@ import { buildPaymentRequired } from "@nevermined-io/payments";
 import { buildContext } from "@/lib/agent/context-builder";
 import { agentEvents } from "@/lib/agent/event-store";
 import { getPaymentsClient } from "@/lib/nevermined/server";
+import { checkRateLimit, getClientId, sanitizeError } from "@/lib/security";
 
 const CREDITS = BigInt(2);
 const ENDPOINT = "/api/agent/context-builder";
@@ -32,7 +33,22 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { query?: string };
+  const clientId = getClientId(request);
+  const rateCheck = checkRateLimit(`context-builder:${clientId}`, 15, 60_000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
+  let body: { query?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
   const query = body.query?.trim();
 
   if (!query) {
@@ -157,7 +173,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ status: "success", contextDoc });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Context building failed";
+    const msg = sanitizeError(error);
     agentEvents.push({
       id: genId(),
       type: "error",

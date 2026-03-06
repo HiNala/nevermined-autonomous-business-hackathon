@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runVisionAgent } from "@/lib/agents/vision";
 import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
 import type { VisionRequest } from "@/lib/agents/vision/types";
-import { checkRateLimit, getClientId } from "@/lib/security";
+import { checkRateLimit, getClientId, sanitizeError } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   const clientId = getClientId(req);
@@ -61,8 +61,7 @@ export async function POST(req: NextRequest) {
     const result = await runVisionAgent(body);
     return NextResponse.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeError(err) }, { status: 500 });
   }
 }
 

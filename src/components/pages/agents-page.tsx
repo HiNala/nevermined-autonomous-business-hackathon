@@ -827,8 +827,8 @@ export function AgentsPage() {
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <Nav />
       <ErrorBoundary>
-      <main className="pt-24 pb-20">
-        <div className="mx-auto max-w-6xl px-6">
+      <main className="pt-20 pb-16 sm:pt-24 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
 
           {/* Page header */}
           <motion.div

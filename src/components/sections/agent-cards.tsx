@@ -186,7 +186,7 @@ export function AgentCards() {
   }, []);
 
   return (
-    <section id="agents" className="mx-auto max-w-6xl px-6 pb-16">
+    <section id="agents" className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 sm:pb-16">
       <div className="mb-10">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
