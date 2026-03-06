@@ -82,6 +82,9 @@ export function getPaymentsClient(): Payments | null {
 /**
  * Build a PaymentRequired spec for a given endpoint.
  * Used by seller endpoints to produce proper 402 responses.
+ *
+ * The endpoint must match the full URL registered in the Nevermined dashboard,
+ * otherwise x402 token verification/settlement will fail with a mismatch error.
  */
 export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X402PaymentRequired | null {
   const planId = normalizeNeverminedId(process.env.NVM_PLAN_ID);
@@ -89,8 +92,14 @@ export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X
 
   if (!planId || !agentId) return null;
 
+  // Resolve full URL — the endpoint registered in Nevermined is the full URL
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NVM_SELLER_ENDPOINT?.replace(/\/api\/agent\/research$/, "") || "";
+  const fullEndpoint = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`;
+
+  console.log(`[NVM] buildPaymentSpec: planId=${planId}, agentId=${agentId}, endpoint=${fullEndpoint}`);
+
   return buildPaymentRequired(planId, {
-    endpoint,
+    endpoint: fullEndpoint,
     agentId,
     httpVerb,
   });
