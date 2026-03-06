@@ -55,7 +55,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
 
-  const isInternal = request.headers.get("x-internal-request") === "true";
+  // Internal requests: must come from same-origin (browser UI) or include server secret
+  const internalHeader = request.headers.get("x-internal-request") === "true";
+  const internalSecret = process.env.INTERNAL_API_SECRET || "";
+  const hasServerSecret = internalSecret.length > 0 && request.headers.get("x-internal-secret") === internalSecret;
+  const reqOrigin = request.headers.get("origin") || request.headers.get("referer") || "";
+  const appBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const isSameOrigin = appBaseUrl.length > 0 && reqOrigin.startsWith(appBaseUrl);
+  const isLocalDev = reqOrigin.includes("localhost") || reqOrigin.includes("127.0.0.1");
+  const isInternal = internalHeader && (hasServerSecret || isSameOrigin || isLocalDev);
   const token = request.headers.get("payment-signature");
 
   // ── Step 1: No token on external request → 402 ──────────────────────────

@@ -41,7 +41,15 @@ export async function POST(request: Request) {
 
   const depth = body.depth ?? "standard";
   const credits = CREDIT_COSTS[depth];
-  const isInternalRequest = request.headers.get("x-internal-request") === "true";
+  // Internal requests: must come from same-origin (browser UI) or include server secret
+  const internalHeader = request.headers.get("x-internal-request") === "true";
+  const internalSecret = process.env.INTERNAL_API_SECRET || "";
+  const hasServerSecret = internalSecret.length > 0 && request.headers.get("x-internal-secret") === internalSecret;
+  const origin = request.headers.get("origin") || request.headers.get("referer") || "";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const isSameOrigin = baseUrl.length > 0 && origin.startsWith(baseUrl);
+  const isLocalhost = origin.includes("localhost") || origin.includes("127.0.0.1");
+  const isInternalRequest = internalHeader && (hasServerSecret || isSameOrigin || isLocalhost);
   const paymentSignature = request.headers.get("payment-signature");
 
   // ── x402 Flow for external agent-to-agent calls ────────────────────
@@ -76,16 +84,25 @@ export async function POST(request: Request) {
   if (!isInternalRequest && paymentSignature) {
     caller = paymentSignature.slice(0, 12) + "...";
 
-    // Step 2: Verify token (best-effort — settle is what actually burns credits)
-    // We log the verification attempt but do NOT block on failure,
-    // because the facilitator may reject verify while settle still works.
+    // Step 2: Verify token — BLOCK on failure to prevent free usage
     let verifyResult = "skipped";
     try {
       const verification = await verifyX402Token(paymentSignature, ENDPOINT, credits);
       verifyResult = verification.valid ? "valid" : (verification.reason ?? "invalid");
+      if (!verification.valid) {
+        console.warn(`[x402] Verification REJECTED:`, verifyResult);
+        return NextResponse.json(
+          { error: "Payment verification failed", reason: verifyResult },
+          { status: 402 }
+        );
+      }
     } catch (e) {
       verifyResult = `error: ${e instanceof Error ? e.message : e}`;
-      console.warn(`[x402] Verify error (non-blocking):`, verifyResult);
+      console.warn(`[x402] Verify error:`, verifyResult);
+      return NextResponse.json(
+        { error: "Payment verification error", reason: verifyResult },
+        { status: 402 }
+      );
     }
 
     agentEvents.push({
