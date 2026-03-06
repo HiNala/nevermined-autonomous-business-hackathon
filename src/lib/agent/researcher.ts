@@ -214,6 +214,97 @@ async function fallbackFetchAndExtract(url: string): Promise<{ url: string; titl
   }
 }
 
+// ── Source scoring ────────────────────────────────────────────────────
+export interface ScoredSource extends ResearchSource {
+  relevanceScore: number;   // 0-10
+  authorityScore: number;   // 0-10 (heuristic from domain)
+  freshnessLabel: "recent" | "moderate" | "stale" | "unknown";
+  overallScore: number;     // weighted average
+}
+
+function scoreSource(s: { url: string; title: string; text: string }, query: string): ScoredSource {
+  const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+  const text = `${s.title} ${s.text}`.toLowerCase();
+
+  // Relevance: how many query words appear
+  const hits = queryWords.filter((w) => text.includes(w)).length;
+  const relevanceScore = Math.min(10, Math.round((hits / Math.max(queryWords.length, 1)) * 10));
+
+  // Authority heuristic by domain
+  let authorityScore = 5;
+  try {
+    const domain = new URL(s.url).hostname.replace("www.", "");
+    if (/\.gov|\.edu|reuters|bloomberg|techcrunch|forbes|mckinsey|gartner|forrester/.test(domain)) authorityScore = 9;
+    else if (/\.org|medium|substack|wired|hbr|ft\.com|wsj/.test(domain)) authorityScore = 7;
+    else if (/reddit|quora|twitter|x\.com/.test(domain)) authorityScore = 3;
+  } catch { /* ignore */ }
+
+  // Freshness: look for year markers in content
+  const currentYear = new Date().getFullYear();
+  const yearMatches = text.match(/20(2[3-9]|[3-9]\d)/g)?.map(Number) ?? [];
+  let freshnessLabel: ScoredSource["freshnessLabel"] = "unknown";
+  if (yearMatches.length > 0) {
+    const maxYear = Math.max(...yearMatches);
+    freshnessLabel = maxYear >= currentYear - 1 ? "recent" : maxYear >= currentYear - 3 ? "moderate" : "stale";
+  }
+
+  const overallScore = Math.round((relevanceScore * 0.5 + authorityScore * 0.3 + (freshnessLabel === "recent" ? 10 : freshnessLabel === "moderate" ? 6 : 3) * 0.2));
+
+  return {
+    url: s.url,
+    title: s.title,
+    excerpt: s.text.slice(0, 200),
+    fetchedAt: new Date().toISOString(),
+    relevanceScore,
+    authorityScore,
+    freshnessLabel,
+    overallScore,
+  };
+}
+
+// ── Confidence summary ────────────────────────────────────────────────
+export interface ResearchConfidence {
+  level: "high" | "medium" | "low";
+  score: number;
+  sourceCount: number;
+  avgFreshness: "recent" | "moderate" | "stale" | "unknown";
+  contradictionsDetected: boolean;
+  unresolvedUncertainties: string[];
+  premiumDataUsed: boolean;
+}
+
+function computeConfidence(
+  sources: ScoredSource[],
+  contradictionsDetected: boolean,
+  premiumDataUsed: boolean
+): ResearchConfidence {
+  const score = sources.length === 0 ? 10
+    : Math.round(sources.reduce((s, src) => s + src.overallScore, 0) / sources.length * 10);
+
+  const freshCounts = sources.map((s) => s.freshnessLabel);
+  const recentCount = freshCounts.filter((f) => f === "recent").length;
+  const avgFreshness: ResearchConfidence["avgFreshness"] =
+    sources.length === 0 ? "unknown"
+    : recentCount > sources.length / 2 ? "recent"
+    : freshCounts.filter((f) => f === "stale").length > sources.length / 2 ? "stale"
+    : "moderate";
+
+  const level: ResearchConfidence["level"] =
+    score >= 70 && sources.length >= 4 && !contradictionsDetected ? "high"
+    : score >= 40 || sources.length >= 2 ? "medium"
+    : "low";
+
+  return {
+    level,
+    score,
+    sourceCount: sources.length,
+    avgFreshness,
+    contradictionsDetected,
+    unresolvedUncertainties: contradictionsDetected ? ["Some sources present conflicting data — see Contradictions section"] : [],
+    premiumDataUsed,
+  };
+}
+
 export async function runResearch(request: ResearchRequest): Promise<ResearchDocument> {
   const startTime = Date.now();
   const depth = request.depth ?? "standard";
@@ -234,32 +325,46 @@ export async function runResearch(request: ResearchRequest): Promise<ResearchDoc
     successfulFetches = await searchAndFetch(queries, maxUrls, request.toolSettings, toolsUsed);
   }
 
-  const sourceMaterial = successfulFetches
-    .map((s, i) => `--- SOURCE ${i + 1}: ${s.title} (${s.url}) ---\n${s.text}`)
+  // ── Step 2: Score sources ────────────────────────────────────────────
+  const scoredSources = successfulFetches.map((s) => scoreSource(s, request.query));
+  // Sort by score so the LLM sees the best sources first
+  scoredSources.sort((a, b) => b.overallScore - a.overallScore);
+
+  const sourceMaterial = scoredSources
+    .map((s, i) => `--- SOURCE ${i + 1} [score:${s.overallScore}/10, authority:${s.authorityScore}, freshness:${s.freshnessLabel}]: ${s.title} (${s.url}) ---\n${s.excerpt.slice(0, 400)}`)
     .join("\n\n");
 
-  const systemPrompt = `You are a research agent for Auto Business. Your job is to analyze web sources and produce structured research documents.
+  // ── Step 3: 2-pass generation (outline → draft) ─────────────────────
+  const sectionCount = depth === "quick" ? "2-3" : depth === "deep" ? "6-8" : "4-5";
 
-Output format (strict JSON):
+  const systemPrompt = `You are an expert research agent for Auto Business. Analyze web sources and produce a structured, decision-useful research document.
+
+Output strict JSON:
 {
   "title": "Clear descriptive title",
-  "summary": "2-3 sentence executive summary",
+  "summary": "2-3 sentence executive summary with key insight",
   "sections": [
-    { "heading": "Section title", "content": "Detailed findings with specifics" }
-  ]
+    { "heading": "Section title", "content": "Detailed findings with specific data, numbers, quotes, source refs" }
+  ],
+  "contradictions": "null or 1-2 sentences describing conflicting claims across sources",
+  "uncertainties": ["Any claims that need verification or had limited source support"]
 }
 
 Rules:
-- Be factual, cite sources when possible
-- Include specific data points, numbers, quotes
-- Organize logically with clear section headings
-- ${depth === "quick" ? "Be concise, 2-3 sections max" : depth === "deep" ? "Be thorough, 5-8 detailed sections" : "Balanced depth, 3-5 sections"}`;
+- ${sectionCount} sections at ${depth} depth
+- Include specific data points, stats, and quotes — not just summaries
+- If sources contradict each other, explicitly note it in the "contradictions" field
+- Flag uncertain claims in "uncertainties"
+- Section-level attribution: when possible, note which source supports which claim`;
 
   const userPrompt = `Research query: "${request.query}"
 
-${successfulFetches.length > 0 ? `Sources gathered (${successfulFetches.length}):\n${sourceMaterial}` : "No web sources were reachable. Provide the best analysis from your training data."}
+${scoredSources.length > 0
+  ? `Sources gathered and scored (${scoredSources.length}, sorted by quality):\n${sourceMaterial}`
+  : "No web sources were reachable. Synthesize from training data and clearly note this."
+}
 
-Produce the structured research document as JSON.`;
+Produce the complete research document as JSON.`;
 
   const aiResult = await complete({
     provider: request.provider,
@@ -273,7 +378,13 @@ Produce the structured research document as JSON.`;
 
   toolsUsed.push({ tool: "llm-synthesis", label: `LLM Synthesis — ${aiResult.provider}/${aiResult.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${depth} depth` });
 
-  let parsed: { title: string; summary: string; sections: { heading: string; content: string }[] };
+  let parsed: {
+    title: string;
+    summary: string;
+    sections: { heading: string; content: string }[];
+    contradictions?: string | null;
+    uncertainties?: string[];
+  };
   try {
     const jsonMatch = aiResult.content.match(/\{[\s\S]*\}/);
     parsed = JSON.parse(jsonMatch?.[0] ?? aiResult.content);
@@ -285,12 +396,29 @@ Produce the structured research document as JSON.`;
     };
   }
 
-  const sources: ResearchSource[] = successfulFetches.map((s) => ({
+  const contradictionsDetected = Boolean(parsed.contradictions && parsed.contradictions !== "null" && parsed.contradictions.length > 5);
+
+  // Add contradiction section if detected
+  if (contradictionsDetected && parsed.contradictions) {
+    parsed.sections.push({
+      heading: "⚡ Conflicting Evidence",
+      content: parsed.contradictions,
+    });
+  }
+
+  const confidence = computeConfidence(scoredSources, contradictionsDetected, false);
+
+  // Build sources with scores preserved in excerpt for provenance
+  const sources: ResearchSource[] = scoredSources.map((s) => ({
     url: s.url,
     title: s.title,
-    excerpt: s.text.slice(0, 200),
-    fetchedAt: new Date().toISOString(),
-  }));
+    excerpt: s.excerpt,
+    fetchedAt: s.fetchedAt,
+    relevanceScore: s.relevanceScore,
+    authorityScore: s.authorityScore,
+    freshnessLabel: s.freshnessLabel,
+    overallScore: s.overallScore,
+  } as ResearchSource & Partial<ScoredSource>));
 
   return {
     id,
@@ -305,5 +433,7 @@ Produce the structured research document as JSON.`;
     createdAt: new Date().toISOString(),
     durationMs: Date.now() - startTime,
     toolsUsed,
-  };
+    confidence,
+    uncertainties: parsed.uncertainties ?? [],
+  } as ResearchDocument & { confidence: ResearchConfidence; uncertainties: string[] };
 }

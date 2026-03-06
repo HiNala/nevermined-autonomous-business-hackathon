@@ -35,15 +35,40 @@ export interface BuyerRequest {
   maxCredits?: number;
   preferredTypes?: MarketplaceAsset["type"][];
   targetDids?: string[];
+  /** Credit threshold above which to flag for approval instead of auto-buying */
+  approvalThreshold?: number;
+}
+
+export interface PurchaseRationale {
+  assetId: string;
+  assetName: string;
+  gapFilled: string;
+  whyWorthIt: string;
+  expectedImprovement: string;
+  priceValueScore: number; // 0-10
 }
 
 export interface BuyerResult {
   id: string;
   query: string;
   discovered: MarketplaceAsset[];
+  /** Ranked + scored candidates before purchase decision */
+  rankedCandidates: RankedAsset[];
   purchased: PurchasedAsset[];
+  rationales: PurchaseRationale[];
   totalCreditsSpent: number;
   durationMs: number;
+  /** Set when cost exceeds approvalThreshold */
+  requiresApproval?: { assets: MarketplaceAsset[]; totalCost: number; reason: string };
+}
+
+export interface RankedAsset {
+  asset: MarketplaceAsset;
+  relevanceScore: number;  // 0-10
+  priceValueScore: number; // 0-10
+  informationGainScore: number; // 0-10
+  compositeScore: number;  // weighted total
+  rankReason: string;
 }
 
 // ─── Nevermined marketplace interaction ──────────────────────────────
@@ -207,25 +232,72 @@ async function purchaseAsset(asset: MarketplaceAsset): Promise<PurchasedAsset> {
   }
 }
 
+// ─── Value-based ranking ──────────────────────────────────────────────
+
+function rankAssets(assets: MarketplaceAsset[], query: string, maxCredits: number): RankedAsset[] {
+  const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
+
+  return assets.map((asset) => {
+    const text = `${asset.name} ${asset.description}`.toLowerCase();
+
+    // Relevance: word overlap
+    const hits = queryWords.filter((w) => text.includes(w)).length;
+    const relevanceScore = Math.min(10, Math.round((hits / Math.max(queryWords.length, 1)) * 10));
+
+    // Price-value: cheaper relative to budget = better value
+    const priceValueScore = Math.min(10, Math.round((1 - asset.price.credits / Math.max(maxCredits, 1)) * 10));
+
+    // Information gain: report/dataset types score higher
+    const informationGainScore = asset.type === "report" ? 9 : asset.type === "dataset" ? 8 : asset.type === "model" ? 7 : 5;
+
+    const compositeScore = Math.round(relevanceScore * 0.5 + priceValueScore * 0.25 + informationGainScore * 0.25);
+
+    const rankReason = [
+      `${relevanceScore}/10 relevance`,
+      `${priceValueScore}/10 price-value (${asset.price.credits}cr)`,
+      `${informationGainScore}/10 info gain (${asset.type})`,
+    ].join(" · ");
+
+    return { asset, relevanceScore, priceValueScore, informationGainScore, compositeScore, rankReason };
+  }).sort((a, b) => b.compositeScore - a.compositeScore);
+}
+
+function buildRationale(asset: MarketplaceAsset, query: string): PurchaseRationale {
+  const type = asset.type;
+  const gapFilled = type === "report" ? `External research report on ${asset.name}` :
+    type === "dataset" ? `Structured dataset: ${asset.name}` :
+    `Specialized ${type} capability: ${asset.name}`;
+
+  return {
+    assetId: asset.did,
+    assetName: asset.name,
+    gapFilled,
+    whyWorthIt: `${asset.provider} provides specialized data not available through standard web research`,
+    expectedImprovement: `Adds authoritative external evidence to strengthen report conclusions`,
+    priceValueScore: Math.min(10, Math.round((1 - asset.price.credits / 20) * 10)),
+  };
+}
+
 // ─── Main buyer flow ─────────────────────────────────────────────────
 
 /**
  * Run the Buyer Agent:
  * 1. Discover relevant assets on the NVM marketplace
- * 2. Filter by budget and preferences
- * 3. Purchase top matches
- * 4. Return purchased content for the Researcher to incorporate
+ * 2. Rank by value (relevance × price-value × info-gain)
+ * 3. Check approval threshold
+ * 4. Purchase top ranked assets within budget
+ * 5. Return purchased content + rationales for Researcher
  */
 export async function runBuyer(request: BuyerRequest): Promise<BuyerResult> {
   const startTime = Date.now();
   const id = `buy-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const maxCredits = request.maxCredits ?? 20;
+  const approvalThreshold = request.approvalThreshold ?? 15;
 
   // Step 1: Discover
   let discovered: MarketplaceAsset[];
 
   if (request.targetDids?.length) {
-    // If specific DIDs are provided, create synthetic assets for them
     discovered = request.targetDids.map((did) => ({
       did,
       name: `Asset ${did.slice(-8)}`,
@@ -236,8 +308,6 @@ export async function runBuyer(request: BuyerRequest): Promise<BuyerResult> {
     }));
   } else {
     discovered = await discoverAssets(request.query);
-
-    // No fallback — only real marketplace assets are used
   }
 
   if (discovered.length === 0) {
@@ -245,22 +315,50 @@ export async function runBuyer(request: BuyerRequest): Promise<BuyerResult> {
       id,
       query: request.query,
       discovered: [],
+      rankedCandidates: [],
       purchased: [],
+      rationales: [],
       totalCreditsSpent: 0,
       durationMs: Date.now() - startTime,
     };
   }
 
-  // Step 2: Filter by budget
-  let budget = maxCredits;
-  const affordable = discovered.filter((a) => a.price.credits <= budget);
+  // Step 2: Rank by value
+  const ranked = rankAssets(discovered, request.query, maxCredits);
+  const affordable = ranked.filter((r) => r.asset.price.credits <= maxCredits);
 
-  // Step 3: Purchase (sequentially, respecting budget)
+  // Step 3: Check approval threshold — if top pick is too expensive, flag for approval
+  const topAssets = affordable.slice(0, 3).map((r) => r.asset);
+  const totalTopCost = topAssets.reduce((s, a) => s + a.price.credits, 0);
+
+  if (totalTopCost > approvalThreshold && totalTopCost > maxCredits * 0.8) {
+    return {
+      id,
+      query: request.query,
+      discovered,
+      rankedCandidates: ranked.slice(0, 5),
+      purchased: [],
+      rationales: [],
+      totalCreditsSpent: 0,
+      durationMs: Date.now() - startTime,
+      requiresApproval: {
+        assets: topAssets,
+        totalCost: totalTopCost,
+        reason: `Purchasing top ${topAssets.length} asset(s) costs ${totalTopCost}cr which exceeds the ${approvalThreshold}cr approval threshold`,
+      },
+    };
+  }
+
+  // Step 4: Purchase top ranked assets (sequentially, respecting budget)
   const purchased: PurchasedAsset[] = [];
+  const rationales: PurchaseRationale[] = [];
+  let budget = maxCredits;
 
-  for (const asset of affordable.slice(0, 3)) {
+  for (const ranked_item of affordable.slice(0, 3)) {
+    const asset = ranked_item.asset;
     if (budget < asset.price.credits) break;
 
+    rationales.push(buildRationale(asset, request.query));
     const result = await purchaseAsset(asset);
     purchased.push(result);
 
@@ -273,7 +371,9 @@ export async function runBuyer(request: BuyerRequest): Promise<BuyerResult> {
     id,
     query: request.query,
     discovered,
+    rankedCandidates: ranked.slice(0, 5),
     purchased,
+    rationales,
     totalCreditsSpent: purchased
       .filter((p) => p.status === "success")
       .reduce((sum, p) => sum + p.creditsPaid, 0),

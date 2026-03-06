@@ -7,6 +7,53 @@ export interface ResearchSource {
   title: string;
   excerpt: string;
   fetchedAt: string;
+  /** Source quality scores from Researcher agent */
+  relevanceScore?: number;
+  authorityScore?: number;
+  freshnessLabel?: "recent" | "moderate" | "stale" | "unknown";
+  overallScore?: number;
+}
+
+export interface ResearchConfidence {
+  level: "high" | "medium" | "low";
+  score: number;
+  sourceCount: number;
+  avgFreshness: "recent" | "moderate" | "stale" | "unknown";
+  contradictionsDetected: boolean;
+  unresolvedUncertainties: string[];
+  premiumDataUsed: boolean;
+}
+
+export interface BriefScore {
+  clarity: number;
+  specificity: number;
+  answerability: number;
+  sourceability: number;
+  deliverableCompleteness: number;
+  total: number;
+  grade: "A" | "B" | "C" | "D";
+  weaknesses: string[];
+}
+
+export interface BriefRouting {
+  recommendedMode: "pipeline" | "researcher" | "strategist";
+  recommendedDepth: "quick" | "standard" | "deep";
+  enrichmentLikelihood: "high" | "medium" | "low";
+  candidateTemplates: string[];
+  isClarificationNeeded: boolean;
+  clarificationQuestions: string[];
+}
+
+export interface ProvenanceInfo {
+  jobId?: string;
+  agentsInvolved: string[];
+  modelsUsed: { agent: string; provider: string; model: string }[];
+  sourcesFetchedAt?: string;
+  externalDataPurchased: boolean;
+  confidenceSummary?: ResearchConfidence;
+  generatedAt: string;
+  durationMs?: number;
+  creditsUsed?: number;
 }
 
 export interface SponsorToolUsage {
@@ -30,6 +77,10 @@ export interface ResearchDocument {
   createdAt: string;
   durationMs: number;
   toolsUsed?: SponsorToolUsage[];
+  /** NEW: confidence summary from source scoring */
+  confidence?: ResearchConfidence;
+  /** NEW: unresolved uncertainties flagged by researcher */
+  uncertainties?: string[];
 }
 
 export interface StructuredBrief {
@@ -49,6 +100,12 @@ export interface StructuredBrief {
   creditsUsed: number;
   createdAt: string;
   durationMs: number;
+  /** NEW: brief quality score */
+  score?: BriefScore;
+  /** NEW: routing recommendations */
+  routing?: BriefRouting;
+  /** NEW: whether workspace profile was applied */
+  workspaceApplied?: boolean;
 }
 
 export interface AgentTransaction {
@@ -119,4 +176,10 @@ export interface PipelineResult {
   followUpBriefs?: StructuredBrief[];
   transaction?: AgentTransaction;
   toolsUsed?: SponsorToolUsage[];
+  /** NEW: full provenance for this run */
+  provenance?: ProvenanceInfo;
+  /** NEW: job ID for async tracking */
+  jobId?: string;
+  /** NEW: workspace ID that was used */
+  workspaceId?: string;
 }

@@ -1,11 +1,35 @@
 import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
+import { getProfile, buildProfileContext } from "@/lib/workspace/profile";
 
 export interface StrategistRequest {
   userInput: string;
   outputType?: "research" | "prd" | "plan" | "analysis" | "general";
   provider?: AIProvider;
+  workspaceId?: string;
+  /** Skip workspace context injection (e.g. seller-mode requests) */
+  skipWorkspaceContext?: boolean;
+}
+
+export interface BriefScore {
+  clarity: number;        // 0-10
+  specificity: number;    // 0-10
+  answerability: number;  // 0-10
+  sourceability: number;  // 0-10
+  deliverableCompleteness: number; // 0-10
+  total: number;          // 0-50
+  grade: "A" | "B" | "C" | "D";
+  weaknesses: string[];
+}
+
+export interface BriefRouting {
+  recommendedMode: "pipeline" | "researcher" | "strategist";
+  recommendedDepth: "quick" | "standard" | "deep";
+  enrichmentLikelihood: "high" | "medium" | "low";
+  candidateTemplates: string[];
+  isClarificationNeeded: boolean;
+  clarificationQuestions: string[];
 }
 
 export interface StructuredBrief {
@@ -25,6 +49,12 @@ export interface StructuredBrief {
   creditsUsed: number;
   createdAt: string;
   durationMs: number;
+  /** NEW: brief quality score */
+  score?: BriefScore;
+  /** NEW: routing recommendations */
+  routing?: BriefRouting;
+  /** NEW: whether workspace profile was applied */
+  workspaceApplied?: boolean;
 }
 
 const OUTPUT_TYPE_LABELS: Record<string, string> = {
@@ -35,19 +65,75 @@ const OUTPUT_TYPE_LABELS: Record<string, string> = {
   general: "Structured Document",
 };
 
-export async function runStrategist(request: StrategistRequest): Promise<StructuredBrief> {
-  const startTime = Date.now();
-  const id = `brief-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  const outputType = request.outputType ?? "general";
-  const typeLabel = OUTPUT_TYPE_LABELS[outputType] ?? "Structured Document";
+// ── Brief scoring ────────────────────────────────────────────────────
+function scoreBrief(brief: Omit<StructuredBrief, "id" | "score" | "routing" | "workspaceApplied" | "provider" | "model" | "creditsUsed" | "createdAt" | "durationMs">): BriefScore {
+  const weaknesses: string[] = [];
+  let clarity = 8;
+  let specificity = 8;
+  let answerability = 8;
+  let sourceability = 8;
+  let deliverableCompleteness = 8;
 
-  const systemPrompt = `You are the Strategist Agent for Auto Business. Your role is to take a user's raw, potentially vague input and transform it into a comprehensive, structured brief that a Research Agent can execute on.
+  if (!brief.title || brief.title.length < 10) { clarity -= 3; weaknesses.push("Title is too short or generic"); }
+  if (!brief.objective || brief.objective.length < 20) { clarity -= 2; weaknesses.push("Objective lacks detail"); }
+  if (brief.scope.length < 2) { specificity -= 3; weaknesses.push("Scope is too narrow"); }
+  if (brief.searchQueries.length < 3) { sourceability -= 3; weaknesses.push("Too few search queries"); }
+  if (brief.keyQuestions.length < 2) { answerability -= 2; weaknesses.push("Key questions are insufficient"); }
+  if (brief.deliverables.length < 2) { deliverableCompleteness -= 3; weaknesses.push("Deliverables not well-defined"); }
+  if (!brief.context || brief.context.length < 30) { specificity -= 2; weaknesses.push("Context is thin"); }
 
-You must output strict JSON in this format:
+  const total = clarity + specificity + answerability + sourceability + deliverableCompleteness;
+  const grade = total >= 42 ? "A" : total >= 35 ? "B" : total >= 25 ? "C" : "D";
+
+  return { clarity, specificity, answerability, sourceability, deliverableCompleteness, total, grade, weaknesses };
+}
+
+// ── Routing inference ────────────────────────────────────────────────
+function inferRouting(
+  input: string,
+  outputType: string,
+  brief: { searchQueries: string[]; scope: string[] }
+): BriefRouting {
+  const lower = input.toLowerCase();
+  const isComplex = input.length > 80 || brief.scope.length >= 4;
+  const needsData = /market|competitor|analysis|research|trend|benchmark|comparison/i.test(lower);
+  const isQuick = /quick|brief|summary|tldr|fast/i.test(lower);
+
+  const candidateTemplates: string[] = [];
+  if (/market|industry|tam|sam|som/.test(lower)) candidateTemplates.push("market_scan");
+  if (/competitor|competitive|versus|vs\./.test(lower)) candidateTemplates.push("competitive_brief");
+  if (/prd|product requirement|user stor/.test(lower)) candidateTemplates.push("prd");
+  if (/gtm|go.to.market|launch/.test(lower)) candidateTemplates.push("gtm_plan");
+  if (/technical|architecture|stack|engineering/.test(lower)) candidateTemplates.push("technical_evaluation");
+
+  const isClarificationNeeded = input.length < 15 || /^(research|analyze|write|tell me about)\s+\w{1,10}$/i.test(input.trim());
+  const clarificationQuestions: string[] = [];
+  if (isClarificationNeeded) {
+    clarificationQuestions.push("Do you want a fast brief or a board-ready report?");
+    if (needsData) clarificationQuestions.push("Should this focus on a specific geography or market segment?");
+    else clarificationQuestions.push("What is the primary audience for this document?");
+  }
+
+  return {
+    recommendedMode: isComplex ? "pipeline" : needsData ? "researcher" : "strategist",
+    recommendedDepth: isQuick ? "quick" : isComplex ? "deep" : "standard",
+    enrichmentLikelihood: needsData && !isQuick ? "high" : needsData ? "medium" : "low",
+    candidateTemplates,
+    isClarificationNeeded,
+    clarificationQuestions,
+  };
+}
+
+function buildBriefPrompt(typeLabel: string, profileContext: string): string {
+  return `You are the Strategist Agent for Auto Business — a world-class request intelligence engine.
+
+Your role: take raw, potentially vague user input and transform it into a precise, actionable brief that the Research Agent can execute on perfectly.
+
+Output strict JSON:
 {
   "title": "Clear, professional title for the deliverable",
   "objective": "1-2 sentence statement of what needs to be produced",
-  "scope": ["Specific area 1 to cover", "Specific area 2 to cover", ...],
+  "scope": ["Specific area 1 to cover", "Specific area 2", ...],
   "searchQueries": ["Optimized search query 1", "Optimized search query 2", ...],
   "keyQuestions": ["Key question the report must answer 1", ...],
   "deliverables": ["Expected section/output 1", "Expected section/output 2", ...],
@@ -56,57 +142,97 @@ You must output strict JSON in this format:
 }
 
 Rules:
-- The output type is: ${typeLabel}
-- Generate 3-6 optimized search queries that would yield the best web results
-- Identify 3-5 key questions the final document must answer
-- Define clear deliverables/sections expected in the final output
-- Add relevant context even if the user didn't provide it — infer from the topic
-- Be specific and actionable — the Research Agent will use this as its complete instruction set
-- If the request is vague, expand it intelligently with reasonable assumptions
-- Search queries should be diverse: mix broad overview queries with specific detail queries`;
+- Output type: ${typeLabel}
+- Generate 4-6 optimized, diverse search queries (mix broad + specific)
+- Identify 3-5 key questions the final document MUST answer
+- Define 4-6 clear deliverable sections
+- Add substantial context even when the user didn't provide it — infer intelligently
+- Be highly specific and actionable — the Research Agent depends entirely on your brief quality${profileContext}`;
+}
 
+export async function runStrategist(request: StrategistRequest): Promise<StructuredBrief> {
+  const startTime = Date.now();
+  const id = `brief-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const outputType = request.outputType ?? "general";
+  const typeLabel = OUTPUT_TYPE_LABELS[outputType] ?? "Structured Document";
+
+  // Build workspace context string
+  let profileContext = "";
+  let workspaceApplied = false;
+  if (!request.skipWorkspaceContext) {
+    const profile = getProfile(request.workspaceId ?? "default");
+    profileContext = buildProfileContext(profile);
+    workspaceApplied = profileContext.length > 0;
+  }
+
+  const systemPrompt = buildBriefPrompt(typeLabel, profileContext);
   const userPrompt = `User's raw input: "${request.userInput}"
 
 Requested output type: ${typeLabel}
 
-Transform this into a comprehensive structured brief. Be thorough — the Research Agent depends entirely on the quality of your brief.`;
+Transform this into a comprehensive structured brief. Be thorough — higher quality briefs produce better reports.`;
 
-  const aiResult = await complete({
-    provider: request.provider,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-    maxTokens: 2048,
-    temperature: 0.4,
-  });
+  async function generateBrief(temp = 0.4) {
+    const aiResult = await complete({
+      provider: request.provider,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      maxTokens: 2048,
+      temperature: temp,
+    });
 
-  let parsed: {
-    title: string;
-    objective: string;
-    scope: string[];
-    searchQueries: string[];
-    keyQuestions: string[];
-    deliverables: string[];
-    constraints: string[];
-    context: string;
-  };
-
-  try {
-    const jsonMatch = aiResult.content.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(jsonMatch?.[0] ?? aiResult.content);
-  } catch {
-    parsed = {
-      title: `${typeLabel}: ${request.userInput.slice(0, 60)}`,
-      objective: request.userInput,
-      scope: [request.userInput],
-      searchQueries: [request.userInput],
-      keyQuestions: [`What are the key findings about: ${request.userInput}?`],
-      deliverables: ["Overview", "Key Findings", "Recommendations"],
-      constraints: [],
-      context: request.userInput,
+    let parsed: {
+      title: string; objective: string; scope: string[]; searchQueries: string[];
+      keyQuestions: string[]; deliverables: string[]; constraints: string[]; context: string;
     };
+
+    try {
+      const jsonMatch = aiResult.content.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch?.[0] ?? aiResult.content);
+    } catch {
+      parsed = {
+        title: `${typeLabel}: ${request.userInput.slice(0, 60)}`,
+        objective: request.userInput,
+        scope: [request.userInput],
+        searchQueries: [request.userInput, `${request.userInput} overview`, `${request.userInput} analysis`],
+        keyQuestions: [`What are the key findings about: ${request.userInput}?`],
+        deliverables: ["Overview", "Key Findings", "Analysis", "Recommendations"],
+        constraints: [],
+        context: request.userInput,
+      };
+    }
+
+    return { parsed, aiResult };
   }
+
+  let { parsed, aiResult } = await generateBrief(0.4);
+
+  // Score the brief and regenerate once if below threshold
+  const scoreInput = {
+    originalInput: request.userInput, outputType, title: parsed.title, objective: parsed.objective,
+    scope: parsed.scope ?? [], searchQueries: parsed.searchQueries ?? [],
+    keyQuestions: parsed.keyQuestions ?? [], deliverables: parsed.deliverables ?? [],
+    constraints: parsed.constraints ?? [], context: parsed.context ?? "",
+  };
+  let score = scoreBrief(scoreInput);
+
+  if (score.grade === "C" || score.grade === "D") {
+    // Regenerate with higher temperature for more diverse output
+    const retry = await generateBrief(0.6);
+    const retryScore = scoreBrief({ ...scoreInput, ...retry.parsed });
+    if (retryScore.total > score.total) {
+      parsed = retry.parsed;
+      aiResult = retry.aiResult;
+      score = retryScore;
+    }
+  }
+
+  const routing = inferRouting(request.userInput, outputType, {
+    searchQueries: parsed.searchQueries ?? [],
+    scope: parsed.scope ?? [],
+  });
 
   return {
     id,
@@ -125,6 +251,9 @@ Transform this into a comprehensive structured brief. Be thorough — the Resear
     creditsUsed: 2,
     createdAt: new Date().toISOString(),
     durationMs: Date.now() - startTime,
+    score,
+    routing,
+    workspaceApplied,
   };
 }
 

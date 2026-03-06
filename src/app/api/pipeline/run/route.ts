@@ -16,6 +16,7 @@ interface RequestBody {
   mode?: "pipeline" | "strategist" | "researcher" | "seller";
   depth?: "quick" | "standard" | "deep";
   toolSettings?: ToolSettings;
+  workspaceId?: string;
 }
 
 export async function POST(request: Request) {
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
   const outputType = body.outputType ?? "general";
   const provider = body.provider;
   const toolSettings = body.toolSettings;
+  const workspaceId = body.workspaceId ?? "default";
 
   try {
     if (mode === "strategist") {
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
         iterations: 1,
         transactions: [result.transaction],
         toolsUsed: result.toolsUsed,
+        workspaceId,
       });
     }
 
@@ -71,6 +74,7 @@ export async function POST(request: Request) {
         iterations: 1,
         transactions: [result.transaction],
         toolsUsed: result.toolsUsed,
+        workspaceId,
       });
     }
 
@@ -87,11 +91,12 @@ export async function POST(request: Request) {
         ...result,
         totalCredits: result.totalCredits,
         totalDurationMs: result.totalDurationMs,
+        workspaceId,
       });
     }
 
     // Default: full pipeline
-    const result = await runPipeline(input, outputType, provider, undefined, 2, toolSettings);
+    const result = await runPipeline(input, outputType, provider, undefined, 2, toolSettings, workspaceId);
     return NextResponse.json({ mode: "pipeline", ...result });
   } catch (error) {
     return NextResponse.json({ error: sanitizeError(error) }, { status: 500 });

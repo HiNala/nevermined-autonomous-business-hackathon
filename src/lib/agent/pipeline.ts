@@ -54,6 +54,8 @@ export interface PipelineResult {
   totalDurationMs: number;
   iterations: number;
   toolsUsed: SponsorToolUsage[];
+  provenance?: import("@/types/pipeline").ProvenanceInfo;
+  workspaceId?: string;
 }
 
 type EventCallback = (event: PipelineEvent) => void;
@@ -135,7 +137,8 @@ export async function runPipeline(
   provider?: AIProvider,
   onEvent?: EventCallback,
   maxIterations: number = 2,
-  toolSettings?: ToolSettings
+  toolSettings?: ToolSettings,
+  workspaceId?: string
 ): Promise<PipelineResult> {
   const pipelineId = `pipe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const startTime = Date.now();
@@ -179,6 +182,7 @@ export async function runPipeline(
       userInput,
       outputType: outputType as StrategistRequest["outputType"],
       provider,
+      workspaceId,
     });
 
     // Record transaction: user → strategist
@@ -403,6 +407,27 @@ export async function runPipeline(
       .filter((tx) => tx.status === "completed")
       .reduce((sum, tx) => sum + tx.credits, 0);
 
+    const totalDurationMs = Date.now() - startTime;
+
+    // Build provenance block
+    const agentsInvolved = ["Strategist", "Researcher"];
+    if (externalTrading) agentsInvolved.push("Buyer");
+    const modelsUsed = [
+      { agent: "Strategist", provider: brief.provider, model: brief.model },
+      { agent: "Researcher", provider: document.provider, model: document.model },
+    ];
+    const provenance = {
+      jobId: pipelineId,
+      agentsInvolved,
+      modelsUsed,
+      sourcesFetchedAt: document.createdAt,
+      externalDataPurchased: purchasedAssets.length > 0,
+      confidenceSummary: (document as ResearchDocument & { confidence?: import("@/types/pipeline").ResearchConfidence }).confidence,
+      generatedAt: new Date().toISOString(),
+      durationMs: totalDurationMs,
+      creditsUsed: totalCredits,
+    };
+
     emit("complete", "pipeline", `Pipeline complete — ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} purchases, ${totalCredits}cr total`);
 
     // Log this pipeline run on the Nevermined network
@@ -429,9 +454,11 @@ export async function runPipeline(
       transactions,
       events,
       totalCredits,
-      totalDurationMs: Date.now() - startTime,
+      totalDurationMs,
       iterations,
       toolsUsed,
+      provenance,
+      workspaceId,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Pipeline failed";
