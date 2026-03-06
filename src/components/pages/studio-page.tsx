@@ -31,6 +31,10 @@ import {
   CreditCard,
   GitBranch,
   PackageCheck,
+  Brain,
+  PenLine,
+  ShoppingBag,
+  ShoppingCart,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -2154,6 +2158,12 @@ export function StudioPage() {
                 }}
               >
                 <FileText size={12} /> Report
+                <span
+                  className="rounded px-1 py-0.5 font-mono text-[7px]"
+                  style={{ background: "rgba(14,165,233,0.10)", color: "#0EA5E9" }}
+                >
+                  Composer
+                </span>
               </button>
             )}
             {result?.brief && (
@@ -2190,6 +2200,12 @@ export function StudioPage() {
                 }}
               >
                 <PackageCheck size={12} /> Delivery
+                <span
+                  className="rounded px-1 py-0.5 font-mono text-[7px]"
+                  style={{ background: "rgba(239,68,68,0.10)", color: "#EF4444" }}
+                >
+                  Seller
+                </span>
                 {result.deliveryPackage.qualityGate.passed ? (
                   <span className="ml-0.5 size-1.5 rounded-full" style={{ background: "#22C55E", display: "inline-block" }} />
                 ) : (
@@ -2197,7 +2213,7 @@ export function StudioPage() {
                 )}
               </button>
             )}
-            {result && (result.provenance || result.buyerResult) && (
+            {result && (
               <button
                 onClick={() => setRightTab("provenance")}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
@@ -2262,7 +2278,79 @@ export function StudioPage() {
                 enrichmentSummary={result.enrichmentSummary as EnrichmentSummary | undefined}
               />
             ) : rightTab === "provenance" ? (
-              <div className="h-full overflow-y-auto p-4 space-y-3">
+              <div className="h-full overflow-y-auto p-4 space-y-4">
+                {/* Agent chain timeline — APP_LOGIC_REVIEW §21 UX */}
+                <div
+                  className="rounded-xl p-4"
+                  style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+                >
+                  <p className="mb-3 font-mono text-[8px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+                    Agent chain
+                  </p>
+                  <div className="flex flex-col gap-0">
+                    {[
+                      { agent: "Seller", role: "Intake & payment", color: "#EF4444", icon: ShoppingCart, always: true },
+                      { agent: "Interpreter", role: "Structured brief", color: "#7C3AED", icon: Brain, always: !!result.brief },
+                      { agent: "Composer", role: "Document composed", color: "#0EA5E9", icon: PenLine, always: !!result.document },
+                      { agent: "Buyer", role: "Enrichment", color: "#F59E0B", icon: ShoppingBag, always: (result.purchasedAssets?.length ?? 0) > 0, optional: true },
+                      { agent: "Seller", role: "Quality gate + delivery", color: "#EF4444", icon: PackageCheck, always: !!result.deliveryPackage },
+                    ].map((step, i, arr) => {
+                      if (!step.always && !step.optional) return null;
+                      const skipped = step.optional && !step.always;
+                      return (
+                        <div key={`${step.agent}-${i}`}>
+                          <div className="flex items-center gap-3 py-2">
+                            <div
+                              className="flex size-6 shrink-0 items-center justify-center rounded-md"
+                              style={{
+                                background: skipped ? "var(--bg-elevated)" : `${step.color}12`,
+                                border: `1px solid ${skipped ? "var(--border-default)" : `${step.color}25`}`,
+                                opacity: skipped ? 0.4 : 1,
+                              }}
+                            >
+                              <step.icon size={11} style={{ color: skipped ? "var(--gray-400)" : step.color }} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-[10px] font-semibold" style={{ color: skipped ? "var(--gray-400)" : step.color }}>
+                                  {step.agent}
+                                </span>
+                                <span className="text-[10px]" style={{ color: "var(--gray-500)" }}>{step.role}</span>
+                                {skipped && (
+                                  <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>skipped</span>
+                                )}
+                                {step.agent === "Interpreter" && result.brief && (
+                                  <span className="ml-auto font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                                    {result.brief.creditsUsed}cr · {(result.brief.durationMs / 1000).toFixed(1)}s
+                                  </span>
+                                )}
+                                {step.agent === "Composer" && result.document && (
+                                  <span className="ml-auto font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                                    {result.document.creditsUsed}cr · {(result.document.durationMs / 1000).toFixed(1)}s · {result.document.sources.length} sources
+                                  </span>
+                                )}
+                              </div>
+                              {step.agent === "Interpreter" && result.brief && (
+                                <p className="mt-0.5 font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                                  {result.brief.provider}/{result.brief.model}
+                                </p>
+                              )}
+                              {step.agent === "Composer" && result.document && (
+                                <p className="mt-0.5 font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                                  {result.document.provider}/{result.document.model}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {i < arr.length - 1 && (
+                            <div className="ml-[11px] h-3 w-px" style={{ background: "var(--border-default)" }} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {result.enrichmentSummary && (
                   <EnrichmentSummaryBadge
                     summary={result.enrichmentSummary as EnrichmentSummary}
@@ -2279,11 +2367,6 @@ export function StudioPage() {
                     requiresApproval={result.buyerResult.requiresApproval}
                     totalCreditsSpent={result.buyerResult.totalCreditsSpent}
                   />
-                )}
-                {!result.enrichmentSummary && !result.provenance && !result.buyerResult && (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-[12px]" style={{ color: "var(--gray-400)" }}>No provenance data for this run</p>
-                  </div>
                 )}
               </div>
             ) : (

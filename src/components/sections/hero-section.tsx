@@ -45,7 +45,7 @@ export function HeroSection() {
             transition={{ duration: 0.45 }}
           >
             <span className="font-mono text-[10px] uppercase tracking-[0.24em]" style={{ color: "var(--accent-400)" }}>
-              AI Agent Studio For Real Deliverables
+              Job-Based Agent Commerce · Nevermined x402
             </span>
           </motion.div>
 
@@ -72,8 +72,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            Send a request. The Interpreter clarifies it. The Composer builds the report.
-            The Buyer enriches it when needed. The Seller packages and delivers. One pipeline, one result.
+            Send a request from the Studio, the Store, or directly via API. The Seller takes the order. The Interpreter structures it. The Composer builds it. The Seller delivers a branded, quality-gated package — with full provenance.
           </motion.p>
 
           {/* Pipeline mini-flow */}
@@ -163,8 +162,8 @@ export function HeroSection() {
               Open Studio
               <ArrowRight size={14} />
             </Link>
-            <a
-              href="#sample-output"
+            <Link
+              href="/store"
               className="rounded-xl px-4 py-2.5 text-[13px] font-medium transition-all duration-200"
               style={{
                 background: "var(--glass-bg)",
@@ -172,8 +171,8 @@ export function HeroSection() {
                 border: "1px solid var(--border-default)",
               }}
             >
-              See example output
-            </a>
+              Browse the Store
+            </Link>
           </motion.div>
 
           {/* Minimal trust signals */}
@@ -183,7 +182,7 @@ export function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.35 }}
           >
-            {["From 1 credit", "No subscription", "No signup"].map((t) => (
+            {["From 1 credit · $0.10 USDC", "No signup required", "A2A · Nevermined x402"].map((t) => (
               <span key={t} className="text-[12px]" style={{ color: "var(--gray-400)" }}>
                 {t}
               </span>
@@ -205,9 +204,9 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.38 }}
           >
             {[
-              { color: "#7C3AED", icon: Brain, title: "Interpreter first", body: "Every request is structured into a precise brief before a word of the report is written." },
-              { color: "#0EA5E9", icon: PenLine, title: "Composer writes it", body: "Real web search, source synthesis, structured sections, and citations. Not just a prompt repeat." },
-              { color: "#EF4444", icon: PackageCheck, title: "Seller delivers it", body: "Quality-gated delivery package — markdown, summary, and JSON variants. Provenance included." },
+              { color: "#7C3AED", icon: Brain, title: "Structured briefs", body: "Every order runs through the Interpreter first. Vague text becomes a precise execution contract before Composer touches it." },
+              { color: "#0EA5E9", icon: PenLine, title: "Composed artifacts", body: "Real web search via Apify or Exa. Source synthesis. Structured sections, citations, and confidence scoring." },
+              { color: "#EF4444", icon: PackageCheck, title: "Branded delivery", body: "Seller runs a quality gate, packages markdown + summary + JSON variants, and attaches full provenance. Not a raw blob." },
             ].map((item) => (
               <div
                 key={item.title}
