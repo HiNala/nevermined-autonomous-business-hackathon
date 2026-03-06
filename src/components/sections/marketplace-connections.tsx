@@ -54,7 +54,7 @@ export function MarketplaceConnections() {
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>006 / NETWORK</span>
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>007 / NETWORK</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5">

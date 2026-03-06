@@ -155,7 +155,7 @@ export function FaqSection() {
       <div className="mb-10">
         <div className="mb-4 flex items-center gap-3">
           <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
-          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>006 / FAQ</span>
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>008 / FAQ</span>
         </div>
         <h2 className="text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
           Common{" "}<span className="text-gradient-accent">questions.</span>

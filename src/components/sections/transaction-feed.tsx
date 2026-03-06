@@ -45,7 +45,7 @@ export function TransactionFeed() {
         <div>
           <div className="mb-2 flex items-center gap-3">
             <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>005 / LIVE FEED</span>
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>006 / LIVE FEED</span>
           </div>
           <h2 className="text-[22px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
             Transactions happening now.

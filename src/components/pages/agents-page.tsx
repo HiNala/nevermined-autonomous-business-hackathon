@@ -15,6 +15,7 @@ import Link from "next/link";
 import type { StudioAgent } from "@/types";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useAnimatedCounter } from "@/hooks/use-animated-counter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 interface AgentLiveStats {
   [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
@@ -914,6 +915,7 @@ export function AgentsPage() {
       </main>
       </ErrorBoundary>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

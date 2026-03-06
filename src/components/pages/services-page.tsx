@@ -11,6 +11,7 @@ import { Clock, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { StudioService } from "@/types";
 import { useAnimatedCounter } from "@/hooks/use-animated-counter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 function ServiceDetailCard({ service, index }: { service: StudioService; index: number }) {
   return (
@@ -240,6 +241,7 @@ export function ServicesPage() {
         </div>
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

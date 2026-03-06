@@ -11,6 +11,9 @@ import { CtaSection } from "@/components/sections/cta-section";
 import { OutputShowcase } from "@/components/sections/output-showcase";
 import { HowToBuy } from "@/components/sections/how-to-buy";
 import { SectionDivider } from "@/components/ui/section-divider";
+import { TransactionFeed } from "@/components/sections/transaction-feed";
+import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 export function HomePage() {
   return (
@@ -29,10 +32,15 @@ export function HomePage() {
         <SectionDivider />
         <StudioServices />
         <SectionDivider />
+        <TransactionFeed />
+        <SectionDivider />
+        <MarketplaceConnections />
+        <SectionDivider />
         <FaqSection />
         <CtaSection />
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

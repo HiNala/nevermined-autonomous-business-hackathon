@@ -32,6 +32,7 @@ import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { EnrichmentSummary } from "@/types/pipeline";
 import { useAnimatedCounter } from "@/hooks/use-animated-counter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -1007,6 +1008,7 @@ export function StorePage() {
         setCheckoutOpen(false);
       }}
     />
+    <ScrollToTop />
     </>
   );
 }
