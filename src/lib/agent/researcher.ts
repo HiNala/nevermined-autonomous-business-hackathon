@@ -3,8 +3,8 @@ import "server-only";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import { withTimeout } from "@/lib/utils";
 import type { AgentToolSettings, SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
-import type { SponsorToolUsage, ResearchDocument, ResearchSource } from "@/types/pipeline";
-export type { SponsorToolUsage, ResearchDocument, ResearchSource };
+import type { SponsorToolUsage, ResearchDocument, ResearchSource, ResearchConfidence } from "@/types/pipeline";
+export type { SponsorToolUsage, ResearchDocument, ResearchSource, ResearchConfidence };
 import {
   isApifyConfigured,
   apifyGoogleSearch,
@@ -271,16 +271,6 @@ function scoreSource(s: { url: string; title: string; text: string }, query: str
 }
 
 // ── Confidence summary ────────────────────────────────────────────────
-export interface ResearchConfidence {
-  level: "high" | "medium" | "low";
-  score: number;
-  sourceCount: number;
-  avgFreshness: "recent" | "moderate" | "stale" | "unknown";
-  contradictionsDetected: boolean;
-  unresolvedUncertainties: string[];
-  premiumDataUsed: boolean;
-}
-
 function computeConfidence(
   sources: ScoredSource[],
   contradictionsDetected: boolean,

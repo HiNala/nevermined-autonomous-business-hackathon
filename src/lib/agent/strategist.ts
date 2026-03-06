@@ -3,6 +3,8 @@ import "server-only";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import { getProfile, buildProfileContext } from "@/lib/workspace/profile";
 import { withTimeout } from "@/lib/utils";
+import type { BriefScore, BriefRouting, StructuredBrief } from "@/types/pipeline";
+export type { BriefScore, BriefRouting, StructuredBrief };
 
 const LLM_TIMEOUT_MS = 30_000;
 
@@ -15,50 +17,6 @@ export interface StrategistRequest {
   skipWorkspaceContext?: boolean;
 }
 
-export interface BriefScore {
-  clarity: number;        // 0-10
-  specificity: number;    // 0-10
-  answerability: number;  // 0-10
-  sourceability: number;  // 0-10
-  deliverableCompleteness: number; // 0-10
-  total: number;          // 0-50
-  grade: "A" | "B" | "C" | "D";
-  weaknesses: string[];
-}
-
-export interface BriefRouting {
-  recommendedMode: "pipeline" | "researcher" | "strategist";
-  recommendedDepth: "quick" | "standard" | "deep";
-  enrichmentLikelihood: "high" | "medium" | "low";
-  candidateTemplates: string[];
-  isClarificationNeeded: boolean;
-  clarificationQuestions: string[];
-}
-
-export interface StructuredBrief {
-  id: string;
-  originalInput: string;
-  outputType: string;
-  title: string;
-  objective: string;
-  scope: string[];
-  searchQueries: string[];
-  keyQuestions: string[];
-  deliverables: string[];
-  constraints: string[];
-  context: string;
-  provider: string;
-  model: string;
-  creditsUsed: number;
-  createdAt: string;
-  durationMs: number;
-  /** NEW: brief quality score */
-  score?: BriefScore;
-  /** NEW: routing recommendations */
-  routing?: BriefRouting;
-  /** NEW: whether workspace profile was applied */
-  workspaceApplied?: boolean;
-}
 
 const OUTPUT_TYPE_LABELS: Record<string, string> = {
   research: "Research Report",

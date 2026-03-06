@@ -1,16 +1,6 @@
 import "server-only";
-
-export interface AgentTransaction {
-  id: string;
-  timestamp: string;
-  from: { id: string; name: string };
-  to: { id: string; name: string };
-  credits: number;
-  purpose: string;
-  artifactId: string;
-  status: "pending" | "completed" | "failed";
-  durationMs?: number;
-}
+import type { AgentTransaction } from "@/types/pipeline";
+export type { AgentTransaction };
 
 export interface AgentProfile {
   id: string;

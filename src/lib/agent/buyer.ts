@@ -2,6 +2,8 @@ import "server-only";
 
 import { getPaymentsClient } from "@/lib/nevermined/server";
 import { withTimeout } from "@/lib/utils";
+import type { PurchasedAsset } from "@/types/pipeline";
+export type { PurchasedAsset };
 
 const NVM_DISCOVER_TIMEOUT_MS = 15_000;
 const ASSET_FETCH_TIMEOUT_MS = 20_000;
@@ -16,22 +18,6 @@ export interface MarketplaceAsset {
   price: { credits: number };
   type: "dataset" | "report" | "model" | "service" | "other";
   endpoint?: string;
-}
-
-export interface PurchasedAsset {
-  id: string;
-  did: string;
-  name: string;
-  description: string;
-  provider: string;
-  type: MarketplaceAsset["type"];
-  content: string;
-  contentType: "text" | "json" | "markdown" | "html" | "binary";
-  creditsPaid: number;
-  purchasedAt: string;
-  durationMs: number;
-  status: "success" | "failed";
-  error?: string;
 }
 
 export interface BuyerRequest {
