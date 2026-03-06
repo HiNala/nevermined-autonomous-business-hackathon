@@ -1612,6 +1612,7 @@ const EXAMPLE_PROMPTS: Record<ViewMode, string[]> = {
     "Analyze competitors to Notion for team knowledge bases",
     "Write a product plan for a SaaS invoice tool",
     "Research emerging trends in autonomous AI payments",
+    "Analyze the future of autonomous AI agents in financial markets — generates hero image via VISION",
   ],
   strategist: [
     "Structure a brief for a developer API go-to-market launch",
