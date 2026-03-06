@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Copy,
   Check,
+  CheckCircle2,
   ArrowRight,
   RefreshCw,
   Bot,
@@ -61,7 +62,7 @@ import { ActionPanel, type ActionIntelligence } from "@/components/ui/action-pan
 import { FollowUpAssistant } from "@/components/ui/followup-assistant";
 import { VisionImageBanner } from "@/components/ui/vision-image-banner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { AgentCard, AgentConnector } from "@/components/ui/agent-card";
+import { AgentCard, AgentConnector, type AgentStatus } from "@/components/ui/agent-card";
 import { PipelineStages, TransactionFeed } from "@/components/ui/pipeline-stages";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { EmptyState, EXAMPLE_PROMPTS } from "@/components/ui/empty-state";
@@ -320,6 +321,112 @@ export function StudioPage() {
       seller:     { earned: initialStats.seller.earned     + sum("seller"),     handled: initialStats.seller.handled     + count("seller") },
     };
   }, [initialStats, transactions]);
+
+  // Derive live agent statuses from pipeline events, result, mode, and settings
+  const agentStatuses = useMemo((): Record<string, { status: AgentStatus; skipReason?: string }> => {
+    const stages = new Set(pipelineEvents.map((e) => e.stage));
+    const agents = new Set(pipelineEvents.map((e) => e.agent));
+
+    // Not running and no result — everything is pending
+    if (!isLoading && !result) {
+      return {
+        strategist: { status: "pending" },
+        researcher: { status: "pending" },
+        buyer: { status: "pending" },
+        seller: { status: "pending" },
+        vision: { status: "pending" },
+      };
+    }
+
+    // Helper: has any event for this agent?
+    const hasAgent = (a: string) => agents.has(a);
+    const hasStage = (s: string) => stages.has(s);
+
+    // --- Strategist ---
+    let strategist: AgentStatus = "pending";
+    let strategistSkip: string | undefined;
+    if (mode === "researcher") {
+      strategist = "skipped";
+      strategistSkip = "Researcher-only mode";
+    } else if (hasStage("strategist_complete") || result?.brief) {
+      strategist = "completed";
+    } else if (hasStage("strategist_working") || hasAgent("strategist")) {
+      strategist = "active";
+    } else if (isLoading) {
+      strategist = "pending";
+    }
+
+    // --- Researcher ---
+    let researcher: AgentStatus = "pending";
+    let researcherSkip: string | undefined;
+    if (mode === "strategist") {
+      researcher = "skipped";
+      researcherSkip = "Strategist-only mode";
+    } else if (hasStage("researcher_followup") || hasStage("complete") || result?.document) {
+      researcher = "completed";
+    } else if (hasStage("researcher_working") || hasStage("researcher_evaluating") || hasStage("researcher_buying") || hasAgent("researcher")) {
+      researcher = "active";
+    } else if (isLoading && strategist === "completed") {
+      researcher = "active";
+    }
+
+    // --- Buyer ---
+    let buyer: AgentStatus = "pending";
+    let buyerSkip: string | undefined;
+    if (mode !== "pipeline" && mode !== "seller") {
+      buyer = "skipped";
+      buyerSkip = `${mode === "strategist" ? "Strategist" : "Researcher"}-only mode`;
+    } else if (!toolSettings.trading.externalTrading) {
+      buyer = "skipped";
+      buyerSkip = "External trading disabled";
+    } else if (hasStage("buyer_complete")) {
+      buyer = "completed";
+    } else if (result && !hasAgent("buyer") && (result.purchasedAssets?.length ?? 0) === 0) {
+      buyer = "skipped";
+      buyerSkip = "No enrichment needed";
+    } else if (hasStage("buyer_discovering") || hasStage("buyer_purchasing") || hasAgent("buyer")) {
+      buyer = "active";
+    } else if (result && (result.purchasedAssets?.length ?? 0) > 0) {
+      buyer = "completed";
+    }
+
+    // --- Seller ---
+    let seller: AgentStatus = "pending";
+    let sellerSkip: string | undefined;
+    if (mode === "strategist" || mode === "researcher") {
+      seller = "skipped";
+      sellerSkip = `${mode === "strategist" ? "Strategist" : "Researcher"}-only mode`;
+    } else if (hasStage("seller_complete") || result?.deliveryPackage) {
+      seller = "completed";
+    } else if (hasStage("seller_received") || hasStage("seller_planning") || hasStage("seller_fulfilling") || hasAgent("seller")) {
+      seller = "active";
+    } else if (isLoading && (researcher === "completed" || buyer === "completed")) {
+      seller = "pending";
+    }
+
+    // --- Vision ---
+    let vision: AgentStatus = "pending";
+    let visionSkip: string | undefined;
+    if (toolSettings.trading.visionEnabled === false) {
+      vision = "skipped";
+      visionSkip = "Vision disabled in settings";
+    } else if (hasStage("vision_complete") || visionResult) {
+      vision = "completed";
+    } else if (isGeneratingImage) {
+      vision = "active";
+    } else if (result && !visionResult && !isGeneratingImage) {
+      vision = "skipped";
+      visionSkip = "Not triggered for this run";
+    }
+
+    return {
+      strategist: { status: strategist, skipReason: strategistSkip },
+      researcher: { status: researcher, skipReason: researcherSkip },
+      buyer: { status: buyer, skipReason: buyerSkip },
+      seller: { status: seller, skipReason: sellerSkip },
+      vision: { status: vision, skipReason: visionSkip },
+    };
+  }, [pipelineEvents, isLoading, result, mode, toolSettings.trading.externalTrading, toolSettings.trading.visionEnabled, visionResult, isGeneratingImage]);
 
   const handleNewRequest = useCallback(() => {
     setInput("");
@@ -727,22 +834,49 @@ export function StudioPage() {
             </div>
           )}
 
-          {/* Mode indicator + controls — compact bar */}
+          {/* Live pipeline strip — shows each agent's status */}
           <div className="border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
             <div className="flex items-center gap-2">
-              <span
-                className="rounded-lg px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide"
-                style={{
-                  background: mode === "pipeline" ? "rgba(201, 125, 78, 0.10)" :
-                    AGENT_CONFIG[mode]?.bgColor ?? AGENT_CONFIG.researcher.bgColor,
-                  color: mode === "pipeline" ? "var(--accent-400)" :
-                    AGENT_CONFIG[mode]?.color ?? AGENT_CONFIG.researcher.color,
-                  border: `1px solid ${mode === "pipeline" ? "rgba(201, 125, 78, 0.20)" :
-                    AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
-                }}
-              >
-                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Interpreter" : mode === "researcher" ? "◈ Composer" : "◇ Seller"}
-              </span>
+              {/* Mini pipeline flow */}
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+                {([
+                  { key: "strategist", label: "Interpreter", config: AGENT_CONFIG.strategist },
+                  { key: "researcher", label: "Composer", config: AGENT_CONFIG.researcher },
+                  { key: "buyer", label: "Buyer", config: AGENT_CONFIG.buyer },
+                  { key: "seller", label: "Seller", config: AGENT_CONFIG.seller },
+                  { key: "vision", label: "VISION", config: AGENT_CONFIG.vision },
+                ] as const).map((agent, i, arr) => {
+                  const s = agentStatuses[agent.key];
+                  const statusColor = s.status === "completed" ? "#22C55E" : s.status === "active" ? agent.config.color : s.status === "skipped" ? "var(--gray-300)" : "var(--gray-400)";
+                  const isSkipped = s.status === "skipped";
+                  return (
+                    <div key={agent.key} className="flex items-center gap-1">
+                      <span
+                        className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[8px] font-semibold uppercase transition-all duration-300"
+                        style={{
+                          color: statusColor,
+                          opacity: isSkipped ? 0.4 : 1,
+                          background: s.status === "active" ? `${agent.config.color}12` : s.status === "completed" ? "rgba(34,197,94,0.08)" : "transparent",
+                          textDecoration: isSkipped ? "line-through" : "none",
+                        }}
+                        title={s.skipReason || agent.label}
+                      >
+                        {s.status === "active" && (
+                          <span className="relative flex size-1.5 shrink-0">
+                            <span className="absolute inline-flex size-full animate-ping rounded-full opacity-40" style={{ background: agent.config.color }} />
+                            <span className="relative inline-flex size-1.5 rounded-full" style={{ background: agent.config.color }} />
+                          </span>
+                        )}
+                        {s.status === "completed" && <CheckCircle2 size={8} />}
+                        {agent.label}
+                      </span>
+                      {i < arr.length - 1 && (
+                        <ArrowRight size={7} style={{ color: isSkipped ? "var(--gray-200)" : "var(--gray-300)", flexShrink: 0 }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
               {mode !== "pipeline" && (
                 <button
                   onClick={() => setMode("pipeline")}
@@ -946,60 +1080,82 @@ export function StudioPage() {
             <div className="flex flex-col gap-0 px-3 pb-3">
               <AgentCard
                 agent={AGENT_CONFIG.strategist}
-                isActive={isLoading && (mode === "pipeline" || mode === "strategist")}
+                isActive={agentStatuses.strategist.status === "active"}
                 isSelected={mode === "strategist"}
                 onClick={() => setMode(mode === "strategist" ? "pipeline" : "strategist")}
                 stats={agentStats.strategist}
                 toolLabel={toolSettings.strategist.search}
                 index={0}
+                status={agentStatuses.strategist.status}
+                skipReason={agentStatuses.strategist.skipReason}
               />
               {mode === "pipeline" && (
-                <AgentConnector isActive={isLoading} color={AGENT_CONFIG.strategist.color} />
+                <AgentConnector
+                  isActive={agentStatuses.strategist.status === "active" || agentStatuses.researcher.status === "active"}
+                  color={agentStatuses.strategist.status === "completed" ? "#22C55E" : AGENT_CONFIG.strategist.color}
+                />
               )}
               <AgentCard
                 agent={AGENT_CONFIG.researcher}
-                isActive={isLoading && (mode === "pipeline" || mode === "researcher")}
+                isActive={agentStatuses.researcher.status === "active"}
                 isSelected={mode === "researcher"}
                 onClick={() => setMode(mode === "researcher" ? "pipeline" : "researcher")}
                 stats={agentStats.researcher}
                 toolLabel={toolSettings.researcher.search}
                 index={1}
+                status={agentStatuses.researcher.status}
+                skipReason={agentStatuses.researcher.skipReason}
               />
               {mode === "pipeline" && (
-                <AgentConnector isActive={isLoading} color={AGENT_CONFIG.researcher.color} />
+                <AgentConnector
+                  isActive={agentStatuses.researcher.status === "active" || agentStatuses.buyer.status === "active"}
+                  color={agentStatuses.researcher.status === "completed" ? "#22C55E" : AGENT_CONFIG.researcher.color}
+                />
               )}
               <AgentCard
                 agent={AGENT_CONFIG.buyer}
-                isActive={isLoading && mode === "pipeline"}
+                isActive={agentStatuses.buyer.status === "active"}
                 isSelected={false}
                 onClick={() => {}}
                 stats={agentStats.buyer}
                 toolLabel="nevermined"
                 index={2}
+                status={agentStatuses.buyer.status}
+                skipReason={agentStatuses.buyer.skipReason}
               />
               {mode === "pipeline" && (
-                <AgentConnector isActive={isLoading} color={AGENT_CONFIG.buyer.color} />
+                <AgentConnector
+                  isActive={agentStatuses.seller.status === "active"}
+                  color={agentStatuses.buyer.status === "skipped" ? "var(--gray-200)" : agentStatuses.buyer.status === "completed" ? "#22C55E" : AGENT_CONFIG.buyer.color}
+                />
               )}
               <AgentCard
                 agent={AGENT_CONFIG.seller}
-                isActive={isLoading && (mode === "pipeline" || mode === "seller")}
+                isActive={agentStatuses.seller.status === "active"}
                 isSelected={mode === "seller"}
                 onClick={() => setMode(mode === "seller" ? "pipeline" : "seller")}
                 stats={agentStats.seller}
                 toolLabel="nevermined"
                 index={3}
+                status={agentStatuses.seller.status}
+                skipReason={agentStatuses.seller.skipReason}
               />
               {mode === "pipeline" && (
                 <>
-                  <AgentConnector isActive={isGeneratingImage} color={AGENT_CONFIG.vision.color} />
+                  <AgentConnector
+                    isActive={agentStatuses.vision.status === "active"}
+                    color={agentStatuses.vision.status === "skipped" ? "var(--gray-200)" : agentStatuses.vision.status === "completed" ? "#22C55E" : AGENT_CONFIG.vision.color}
+                  />
                   <AgentCard
                     agent={AGENT_CONFIG.vision}
-                    isActive={isGeneratingImage}
+                    isActive={agentStatuses.vision.status === "active"}
                     isSelected={false}
                     onClick={() => {}}
                     stats={{ earned: 0, handled: visionResult ? 1 : 0 }}
                     toolLabel="nanobanana"
                     index={4}
+                    status={agentStatuses.vision.status}
+                    skipReason={agentStatuses.vision.skipReason}
                   />
                 </>
               )}
