@@ -98,7 +98,7 @@ const OUTPUT_TYPES: { value: OutputType; label: string; icon: typeof FileText }[
 ];
 
 
-// â”€â”€â”€ Ad Context Extraction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Ad Context Extraction ──────────────────────────────────────────
 function extractAdContext(brief?: StructuredBrief, purchasedAssets?: PurchasedAsset[]): { query: string; signals: ZeroClickSignal[] } {
   if (!brief) return { query: "", signals: [] };
 
@@ -149,7 +149,7 @@ function extractAdContext(brief?: StructuredBrief, purchasedAssets?: PurchasedAs
   return { query, signals };
 }
 
-// â”€â”€â”€ Main Studio Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main Studio Page ───────────────────────────────────────────────
 export function StudioPage() {
   const [input, setInput] = useState("");
   const [mode, setMode] = useLocalStorage<ViewMode>("ab:viewMode", "pipeline");
@@ -388,7 +388,7 @@ export function StudioPage() {
           },
         ]);
       }
-    } catch { /* silent â€” vision is non-critical */ }
+    } catch { /* silent — vision is non-critical */ }
     finally { setIsGeneratingImage(false); }
   }
 
@@ -459,7 +459,7 @@ export function StudioPage() {
       if (data.document) {
         extractActionsFromResult(data.document);
         if (data.visionResult) {
-          // Server already ran VISION â€” apply result directly, no second call
+          // Server already ran VISION — apply result directly, no second call
           setVisionResult(data.visionResult);
           setAdToolsUsed((prev) => {
             if (prev.some((t) => t.tool === "nanobanana-generate")) return prev;
@@ -476,7 +476,7 @@ export function StudioPage() {
             return tools;
           });
         } else if (toolSettings.trading.visionEnabled !== false) {
-          // Server did not run VISION (researcher/strategist standalone modes) â€” run client-side
+          // Server did not run VISION (researcher/strategist standalone modes) — run client-side
           triggerVision(data.document.title ?? finalInput, data.document.summary ?? "");
         }
       }
@@ -543,7 +543,7 @@ export function StudioPage() {
         const data = await res.json();
         if (data.actions) setActionIntelligence(data.actions);
       }
-    } catch { /* silent â€” action extraction is non-critical */ }
+    } catch { /* silent — action extraction is non-critical */ }
     finally { setIsExtractingActions(false); }
   }
 
@@ -551,7 +551,7 @@ export function StudioPage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // For pipeline/strategist mode â€” check if clarification is needed first
+    // For pipeline/strategist mode — check if clarification is needed first
     if ((mode === "pipeline" || mode === "strategist") && input.trim().length < 40) {
       setIsCheckingClarify(true);
       try {
@@ -669,7 +669,7 @@ export function StudioPage() {
           />
         )}
 
-        {/* â”€â”€ LEFT PANE: Controls â”€â”€ */}
+        {/* ── LEFT PANE: Controls ── */}
         <div
           className={`flex w-[380px] max-lg:w-full shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-20 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
           style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
@@ -817,7 +817,7 @@ export function StudioPage() {
                   onClick={() => setSettingsOpen(true)}
                   className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
                   style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
-                  title="Tool Settings (âŒ˜K)"
+                  title="Tool Settings (⌘K)"
                 >
                   <Settings size={10} />
                   tools
@@ -826,12 +826,12 @@ export function StudioPage() {
             </div>
             <p className="mt-1.5 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
               {mode === "pipeline"
-                ? "Interpreter â†’ Composer â†’ optional Buyer â†’ Seller. Full structured research + packaged delivery."
+                ? "Interpreter → Composer → optional Buyer → Seller. Full structured research + packaged delivery."
                 : mode === "strategist"
                 ? "Interpreter only. Converts your request into a structured execution brief. Fast."
                 : mode === "researcher"
                 ? "Composer only. Web research + synthesis into a structured report. No brief step."
-                : "Seller mode. Orchestrates Interpreter â†’ Composer â†’ Seller packaging + quality gate."}
+                : "Seller mode. Orchestrates Interpreter → Composer → Seller packaging + quality gate."}
             </p>
           </div>
 
@@ -885,7 +885,7 @@ export function StudioPage() {
                 DEMO
               </span>
               <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
-                Seller orchestration visible â€“ external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
+                Seller orchestration visible – external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
               </p>
             </div>
           )}
@@ -895,7 +895,7 @@ export function StudioPage() {
             {input.trim() && !isLoading && (
               <div className="mb-2 flex items-center gap-2">
                 <span className="rounded-md px-2 py-0.5 font-mono text-[9px]" style={{ background: "rgba(201,125,78,0.08)", border: "1px solid rgba(201,125,78,0.18)", color: "var(--accent-400)" }}>
-                  ~{mode === "pipeline" ? "6â€“16" : mode === "seller" ? "6â€“16" : mode === "researcher" ? "1â€“10" : "1"} credits
+                  ~{mode === "pipeline" ? "6–16" : mode === "seller" ? "6–16" : mode === "researcher" ? "1–10" : "1"} credits
                 </span>
                 <span className="text-[9px]" style={{ color: "var(--gray-300)" }}>estimated cost</span>
               </div>
@@ -917,7 +917,7 @@ export function StudioPage() {
                     mode === "researcher"
                       ? "What should the Composer research and write?"
                       : mode === "seller"
-                      ? "Describe what the buyer orderedâ€¦"
+                      ? "Describe what the buyer ordered…"
                       : mode === "strategist"
                       ? "What should the Interpreter structure into a brief?"
                       : "Describe what you need. The full pipeline handles the rest."
@@ -948,11 +948,11 @@ export function StudioPage() {
                 {isCheckingClarify && (
                   <div className="absolute left-3 bottom-3 flex items-center gap-1.5 rounded-md px-2 py-1" style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
                     <Loader2 size={9} className="animate-spin" style={{ color: "#7C3AED" }} />
-                    <span className="font-mono text-[9px]" style={{ color: "#7C3AED" }}>checking brief qualityâ€¦</span>
+                    <span className="font-mono text-[9px]" style={{ color: "#7C3AED" }}>checking brief quality…</span>
                   </div>
                 )}
               </div>
-              {/* Smart suggestions â€” appear on focus when typing */}
+              {/* Smart suggestions — appear on focus when typing */}
               {suggestionsVisible && !isLoading && (
                 <div className="mt-2">
                   <SmartSuggestions
@@ -991,7 +991,7 @@ export function StudioPage() {
                       <p className="text-[12px] font-medium" style={{ color: "#EF4444" }}>{error}</p>
                       {apiMode === "demo" && (
                         <p className="mt-0.5 text-[11px]" style={{ color: "var(--gray-400)" }}>
-                          Running in Demo Mode â€” add an OpenAI or Gemini key in environment variables to get real results.
+                          Running in Demo Mode — add an OpenAI or Gemini key in environment variables to get real results.
                         </p>
                       )}
                       {pipelineEvents.length > 0 && (
@@ -1057,7 +1057,7 @@ export function StudioPage() {
             <div className="flex items-center gap-1.5" title="Duration">
               <Clock size={10} style={{ color: "var(--gray-400)" }} />
               <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-                {result?.totalDurationMs ? `${(result.totalDurationMs / 1000).toFixed(1)}s` : "â€”"}
+                {result?.totalDurationMs ? `${(result.totalDurationMs / 1000).toFixed(1)}s` : "—"}
               </span>
             </div>
             <div className="flex items-center gap-1.5" title="Iterations">
@@ -1131,7 +1131,7 @@ export function StudioPage() {
           </div>
         </div>
 
-        {/* â”€â”€ RIGHT PANE: Output â”€â”€ */}
+        {/* ── RIGHT PANE: Output ── */}
         <ErrorBoundary>
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Tabs */}
@@ -1327,7 +1327,7 @@ export function StudioPage() {
               <BriefView brief={result.brief} adsMuted={adsMuted} onAdServed={handleAdServed} />
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
               <div className="h-full overflow-y-auto p-6 space-y-5">
-                {/* Buyer Intelligence panel â€” ranking + rationale */}
+                {/* Buyer Intelligence panel — ranking + rationale */}
                 {(result as PipelineResult & { buyerResult?: { rankedCandidates?: import("@/components/ui/buyer-rationale-panel").RankedAsset[]; rationales?: import("@/components/ui/buyer-rationale-panel").PurchaseRationale[]; requiresApproval?: import("@/components/ui/buyer-rationale-panel").RequiresApproval; totalCreditsSpent?: number } }).buyerResult && (
                   <BuyerRationalePanel
                     rankedCandidates={(result as PipelineResult & { buyerResult?: { rankedCandidates?: import("@/components/ui/buyer-rationale-panel").RankedAsset[] } }).buyerResult?.rankedCandidates}
@@ -1351,7 +1351,7 @@ export function StudioPage() {
               />
             ) : rightTab === "provenance" ? (
               <div className="h-full overflow-y-auto p-4 space-y-4">
-                {/* Agent chain timeline â€” APP_LOGIC_REVIEW Â§21 UX */}
+                {/* Agent chain timeline — APP_LOGIC_REVIEW Â§21 UX */}
                 <div
                   className="rounded-xl p-4"
                   style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
