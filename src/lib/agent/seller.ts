@@ -2,6 +2,9 @@ import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import { catalog, type Product, type ThirdPartyService } from "./inventory";
+import { withTimeout } from "@/lib/utils";
+
+const LLM_TIMEOUT_MS = 30_000;
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -114,15 +117,19 @@ ${catalogSummary}
 Which product index best matches this query?`;
 
   try {
-    const result = await complete({
-      provider,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      maxTokens: 16,
-      temperature: 0,
-    });
+    const result = await withTimeout(
+      complete({
+        provider,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        maxTokens: 16,
+        temperature: 0,
+      }),
+      LLM_TIMEOUT_MS,
+      "Seller matchProduct LLM"
+    );
 
     const idx = parseInt(result.content.trim(), 10);
     if (!isNaN(idx) && idx >= 0 && idx < products.length) {
@@ -214,15 +221,19 @@ Plan the fulfillment. Output ONLY the JSON.`;
   let reasoning = "Using default fulfillment — generating output from internal pipeline only.";
 
   try {
-    const result = await complete({
-      provider,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      maxTokens: 1024,
-      temperature: 0.2,
-    });
+    const result = await withTimeout(
+      complete({
+        provider,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        maxTokens: 1024,
+        temperature: 0.2,
+      }),
+      LLM_TIMEOUT_MS,
+      "Seller planFulfillment LLM"
+    );
 
     const jsonMatch = result.content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {

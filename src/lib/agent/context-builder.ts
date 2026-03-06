@@ -1,6 +1,7 @@
 import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
+import { withTimeout } from "@/lib/utils";
 
 export interface ContextDocument {
   id: string;
@@ -48,15 +49,19 @@ Be specific, actionable, and thorough. Transform vague input into precise direct
 
 Expand this into a structured context document for the Research Analyst agent.`;
 
-  const aiResult = await complete({
-    provider: request.provider,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-    maxTokens: 2048,
-    temperature: 0.3,
-  });
+  const aiResult = await withTimeout(
+    complete({
+      provider: request.provider,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      maxTokens: 2048,
+      temperature: 0.3,
+    }),
+    30_000,
+    "ContextBuilder LLM"
+  );
 
   let parsed: Partial<Omit<ContextDocument, "id" | "rawQuery" | "provider" | "model" | "createdAt" | "durationMs">>;
   try {

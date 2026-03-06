@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { complete } from "@/lib/ai/providers";
 import { checkRateLimit, getClientId } from "@/lib/security";
+import { withTimeout } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   const clientId = getClientId(req);
@@ -64,11 +65,15 @@ Rules:
 - Follow-ups should be researchable questions or specific next tasks
 - Return ONLY valid JSON, nothing else`;
 
-    const result = await complete({
-      messages: [{ role: "user", content: prompt }],
-      maxTokens: 900,
-      temperature: 0.3,
-    });
+    const result = await withTimeout(
+      complete({
+        messages: [{ role: "user", content: prompt }],
+        maxTokens: 900,
+        temperature: 0.3,
+      }),
+      30_000,
+      "ExtractActions LLM"
+    );
 
     let actions;
     try {

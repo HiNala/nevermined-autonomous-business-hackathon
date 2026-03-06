@@ -2,6 +2,9 @@ import "server-only";
 
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import { getProfile, buildProfileContext } from "@/lib/workspace/profile";
+import { withTimeout } from "@/lib/utils";
+
+const LLM_TIMEOUT_MS = 30_000;
 
 export interface StrategistRequest {
   userInput: string;
@@ -173,15 +176,19 @@ Requested output type: ${typeLabel}
 Transform this into a comprehensive structured brief. Be thorough — higher quality briefs produce better reports.`;
 
   async function generateBrief(temp = 0.4) {
-    const aiResult = await complete({
-      provider: request.provider,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      maxTokens: 2048,
-      temperature: temp,
-    });
+    const aiResult = await withTimeout(
+      complete({
+        provider: request.provider,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        maxTokens: 2048,
+        temperature: temp,
+      }),
+      LLM_TIMEOUT_MS,
+      "Strategist LLM"
+    );
 
     let parsed: {
       title: string; objective: string; scope: string[]; searchQueries: string[];
@@ -294,15 +301,19 @@ Output strict JSON in the same format:
 
 Expand the brief to address this. Add new search queries specifically targeting this aspect.`;
 
-  const aiResult = await complete({
-    provider,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-    maxTokens: 2048,
-    temperature: 0.3,
-  });
+  const aiResult = await withTimeout(
+    complete({
+      provider,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      maxTokens: 2048,
+      temperature: 0.3,
+    }),
+    LLM_TIMEOUT_MS,
+    "FollowUp LLM"
+  );
 
   let parsed: {
     title: string;

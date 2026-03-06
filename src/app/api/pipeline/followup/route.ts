@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { complete } from "@/lib/ai/providers";
 import { checkRateLimit, getClientId } from "@/lib/security";
+import { withTimeout } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   const clientId = getClientId(req);
@@ -52,11 +53,15 @@ ${context ? `REPORT CONTEXT:\n${context}` : "No report context available — ans
       { role: "user", content: question },
     ];
 
-    const result = await complete({
-      messages,
-      maxTokens: 1200,
-      temperature: 0.4,
-    });
+    const result = await withTimeout(
+      complete({
+        messages,
+        maxTokens: 1200,
+        temperature: 0.4,
+      }),
+      30_000,
+      "FollowUp LLM"
+    );
     const answer = result.content;
 
     return NextResponse.json({ answer });

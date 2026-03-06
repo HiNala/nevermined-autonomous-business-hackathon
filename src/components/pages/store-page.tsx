@@ -29,6 +29,7 @@ import {
 import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
 import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { EnrichmentSummary } from "@/types/pipeline";
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -628,6 +629,7 @@ export function StorePage() {
   return (
     <>
     <Nav />
+    <ErrorBoundary>
     <main className="min-h-screen pt-20 pb-24" style={{ background: "var(--bg-base)" }}>
       <div className="mx-auto max-w-6xl px-6">
         {/* ── Hero band ─────────────────────────────── */}
@@ -964,6 +966,7 @@ export function StorePage() {
         )}
       </AnimatePresence>
     </main>
+    </ErrorBoundary>
     <Footer />
     <VGSCheckoutModal
       open={checkoutOpen}

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 interface AgentLiveStats {
   [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
@@ -825,6 +826,7 @@ export function AgentsPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <Nav />
+      <ErrorBoundary>
       <main className="pt-24 pb-20">
         <div className="mx-auto max-w-6xl px-6">
 
@@ -900,6 +902,7 @@ export function AgentsPage() {
           <StudioEntry />
         </div>
       </main>
+      </ErrorBoundary>
       <Footer />
     </div>
   );
