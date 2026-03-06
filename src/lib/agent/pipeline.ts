@@ -3,7 +3,7 @@ import "server-only";
 import { runStrategist, runFollowUp, type StrategistRequest, type StructuredBrief } from "./strategist";
 import { runResearch, type ResearchDocument } from "./researcher";
 import { runBuyer, type BuyerResult, type PurchasedAsset } from "./buyer";
-import { planSellerOrder, type SellerOrder, type SellerResult } from "./seller";
+import { planSellerOrder, buildDeliveryPackage, type SellerResult, type SellerOrder, type DeliveryPackage } from "./seller";
 import { ledger, AGENT_PROFILES, type AgentTransaction } from "./transactions";
 import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
@@ -593,6 +593,7 @@ export interface SellerPipelineResult {
   totalCredits: number;
   totalDurationMs: number;
   toolsUsed: SponsorToolUsage[];
+  deliveryPackage?: DeliveryPackage;
 }
 
 export async function fulfillSellerOrder(
@@ -797,14 +798,37 @@ export async function fulfillSellerOrder(
     const totalCredits = transactions
       .filter((tx) => tx.status === "completed")
       .reduce((sum, tx) => sum + tx.credits, 0);
+    const totalDurationMs = Date.now() - startTime;
 
-    sellerResult.status = "complete";
-    sellerResult.output = { brief, document, purchasedAssets };
-    sellerResult.durationMs = Date.now() - startTime;
-
-    emit("seller_complete", "seller",
-      `Order fulfilled — "${plan.product.name}" delivered. ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} external assets, ${totalCredits}cr total`
+    // Build delivery package with quality gate
+    const deliveryPackage = buildDeliveryPackage(
+      order.id,
+      plan.product,
+      document,
+      purchasedAssets.length > 0,
+      totalCredits,
+      totalDurationMs,
+      pipelineId
     );
+
+    const qualityPassed = deliveryPackage.qualityGate.passed;
+
+    sellerResult.status = qualityPassed ? "complete" : "quality_gate_failed";
+    sellerResult.output = { brief, document, purchasedAssets };
+    sellerResult.durationMs = totalDurationMs;
+    sellerResult.deliveryPackage = deliveryPackage;
+
+    if (!qualityPassed) {
+      emit("seller_complete", "seller",
+        `Quality gate failed (${deliveryPackage.qualityGate.score}/100) — ${deliveryPackage.qualityGate.blockedReason ?? "insufficient output quality"}`,
+        { qualityScore: deliveryPackage.qualityGate.score, checks: deliveryPackage.qualityGate.checks }
+      );
+    } else {
+      emit("seller_complete", "seller",
+        `Order fulfilled — "${plan.product.name}" delivered. ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} external assets, ${totalCredits}cr total. Quality: ${deliveryPackage.qualityGate.score}/100`,
+        { qualityScore: deliveryPackage.qualityGate.score, variants: deliveryPackage.variants.map(v => v.format) }
+      );
+    }
 
     toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined x402 — Order Fulfilled & Settled`, sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `${totalCredits}cr total` });
 
@@ -825,8 +849,9 @@ export async function fulfillSellerOrder(
       transactions,
       events,
       totalCredits,
-      totalDurationMs: Date.now() - startTime,
+      totalDurationMs,
       toolsUsed,
+      deliveryPackage,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Seller pipeline failed";

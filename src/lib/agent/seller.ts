@@ -32,6 +32,37 @@ export interface FulfillmentPlan {
   estimatedCost: number;
 }
 
+export interface DeliveryVariant {
+  format: "markdown" | "json" | "summary" | "full_report";
+  label: string;
+  sizeHint: string;
+  content: string;
+}
+
+export interface QualityGate {
+  passed: boolean;
+  score: number;
+  checks: { name: string; passed: boolean; detail: string }[];
+  blockedReason?: string;
+}
+
+export interface DeliveryPackage {
+  orderId: string;
+  productId: string;
+  productName: string;
+  variants: DeliveryVariant[];
+  primaryVariant: "markdown" | "json" | "summary" | "full_report";
+  wordCount: number;
+  sectionCount: number;
+  sourceCount: number;
+  enriched: boolean;
+  qualityGate: QualityGate;
+  generatedAt: string;
+  creditsCharged: number;
+  durationMs: number;
+  jobId?: string;
+}
+
 export interface SellerResult {
   id: string;
   orderId: string;
@@ -42,8 +73,10 @@ export interface SellerResult {
   output?: unknown;
   creditsCharged: number;
   durationMs: number;
-  status: "planned" | "fulfilling" | "complete" | "failed";
+  status: "planned" | "fulfilling" | "complete" | "failed" | "quality_gate_failed";
   error?: string;
+  /** NEW: structured delivery package with variants and quality gate */
+  deliveryPackage?: DeliveryPackage;
 }
 
 // ─── Product Matching ────────────────────────────────────────────────
@@ -228,6 +261,167 @@ Plan the fulfillment. Output ONLY the JSON.`;
     externalServices,
     reasoning,
     estimatedCost,
+  };
+}
+
+// ─── Quality Gate ────────────────────────────────────────────────────
+
+/**
+ * Evaluate a pipeline output against quality thresholds before delivery.
+ * Returns a QualityGate with pass/fail per check and a composite score.
+ */
+export function runQualityGate(
+  doc: { title: string; summary: string; sections: { heading: string; content: string }[]; sources: { url: string; title: string }[] },
+  product: Product,
+  enriched: boolean
+): QualityGate {
+  const checks: QualityGate["checks"] = [];
+
+  // Check 1: minimum section count
+  const minSections = product.tags.includes("deep") ? 4 : 2;
+  const sectionsPassed = doc.sections.length >= minSections;
+  checks.push({
+    name: "Section Coverage",
+    passed: sectionsPassed,
+    detail: `${doc.sections.length} sections (min: ${minSections})`,
+  });
+
+  // Check 2: summary quality
+  const summaryPassed = doc.summary.length >= 80;
+  checks.push({
+    name: "Summary Quality",
+    passed: summaryPassed,
+    detail: `${doc.summary.length} chars (min: 80)`,
+  });
+
+  // Check 3: source count
+  const minSources = enriched ? 3 : 2;
+  const sourcesPassed = doc.sources.length >= minSources;
+  checks.push({
+    name: "Source Coverage",
+    passed: sourcesPassed,
+    detail: `${doc.sources.length} sources (min: ${minSources})`,
+  });
+
+  // Check 4: word count across sections
+  const totalWords = doc.sections.reduce((sum, s) => sum + s.content.split(/\s+/).length, 0);
+  const minWords = product.tags.includes("brief") ? 150 : 300;
+  const wordsPassed = totalWords >= minWords;
+  checks.push({
+    name: "Content Depth",
+    passed: wordsPassed,
+    detail: `${totalWords} words (min: ${minWords})`,
+  });
+
+  // Check 5: title present
+  const titlePassed = doc.title.length >= 5;
+  checks.push({
+    name: "Title Present",
+    passed: titlePassed,
+    detail: doc.title.length > 0 ? `"${doc.title.slice(0, 40)}"` : "Missing",
+  });
+
+  const passedCount = checks.filter((c) => c.passed).length;
+  const score = Math.round((passedCount / checks.length) * 100);
+  const passed = score >= 60; // Must pass at least 3/5 checks
+
+  return {
+    passed,
+    score,
+    checks,
+    blockedReason: passed ? undefined : `Quality score ${score}/100 — failed: ${checks.filter((c) => !c.passed).map((c) => c.name).join(", ")}`,
+  };
+}
+
+/**
+ * Package a pipeline result into a structured DeliveryPackage with variants,
+ * quality gate results, and metadata.
+ */
+export function buildDeliveryPackage(
+  orderId: string,
+  product: Product,
+  doc: { title: string; summary: string; sections: { heading: string; content: string }[]; sources: { url: string; title: string; excerpt: string; fetchedAt: string }[] },
+  enriched: boolean,
+  creditsCharged: number,
+  durationMs: number,
+  jobId?: string
+): DeliveryPackage {
+  const qualityGate = runQualityGate(doc, product, enriched);
+
+  // Build Markdown variant
+  const markdownContent = [
+    `# ${doc.title}`,
+    "",
+    doc.summary,
+    "",
+    ...doc.sections.flatMap((s) => [`## ${s.heading}`, "", s.content, ""]),
+    "## Sources",
+    ...doc.sources.map((s) => `- [${s.title}](${s.url})`),
+  ].join("\n");
+
+  // Build summary variant (title + summary + bullet highlights)
+  const summaryContent = [
+    `# ${doc.title}`,
+    "",
+    doc.summary,
+    "",
+    "## Key Points",
+    ...doc.sections.slice(0, 3).map((s) => `- **${s.heading}**: ${s.content.split("\n")[0].slice(0, 120)}`),
+  ].join("\n");
+
+  // Build JSON variant
+  const jsonContent = JSON.stringify({
+    title: doc.title,
+    summary: doc.summary,
+    sections: doc.sections,
+    sources: doc.sources.map((s) => ({ title: s.title, url: s.url })),
+    meta: {
+      wordCount: doc.sections.reduce((sum, s) => sum + s.content.split(/\s+/).length, 0),
+      sectionCount: doc.sections.length,
+      sourceCount: doc.sources.length,
+      enriched,
+      quality: qualityGate.score,
+    },
+  }, null, 2);
+
+  const wordCount = doc.sections.reduce((sum, s) => sum + s.content.split(/\s+/).length, 0);
+
+  const variants: DeliveryVariant[] = [
+    {
+      format: "full_report",
+      label: "Full Report",
+      sizeHint: `${Math.ceil(markdownContent.length / 1000)}KB`,
+      content: markdownContent,
+    },
+    {
+      format: "summary",
+      label: "Executive Summary",
+      sizeHint: `${Math.ceil(summaryContent.length / 1000)}KB`,
+      content: summaryContent,
+    },
+    {
+      format: "json",
+      label: "Structured JSON",
+      sizeHint: `${Math.ceil(jsonContent.length / 1000)}KB`,
+      content: jsonContent,
+    },
+  ];
+
+  return {
+    orderId,
+    productId: product.id,
+    productName: product.name,
+    variants,
+    primaryVariant: "full_report",
+    wordCount,
+    sectionCount: doc.sections.length,
+    sourceCount: doc.sources.length,
+    enriched,
+    qualityGate,
+    generatedAt: new Date().toISOString(),
+    creditsCharged,
+    durationMs,
+    jobId,
   };
 }
 
