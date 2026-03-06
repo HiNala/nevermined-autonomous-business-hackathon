@@ -9,7 +9,7 @@ import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import {
   Brain, PenLine, ShoppingBag, PackageCheck, ShoppingCart,
   ArrowRight, CheckCircle2, Zap, ChevronDown, ChevronUp,
-  ShieldOff, Sparkles, AlertCircle, ToggleLeft, ToggleRight
+  ShieldOff, Sparkles, AlertCircle, ToggleLeft, ToggleRight, ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
@@ -23,6 +23,7 @@ const AGENT_ICONS: Record<string, typeof Brain> = {
   "agent-researcher": PenLine,
   "agent-buyer": ShoppingBag,
   "agent-seller": PackageCheck,
+  "agent-vision": ImageIcon,
 };
 
 const AGENT_PIPELINE_POSITION: Record<string, { stage: string; receives: string; produces: string; stageNum: string }> = {
@@ -50,6 +51,12 @@ const AGENT_PIPELINE_POSITION: Record<string, { stage: string; receives: string;
     produces: "Quality-gated delivery package",
     stageNum: "01→05",
   },
+  "agent-vision": {
+    stage: "Stage 6 — image generation post-Composer",
+    receives: "Composed report title + summary",
+    produces: "Hero image with quality score",
+    stageNum: "06",
+  },
 };
 
 const PIPELINE_MINI = [
@@ -58,6 +65,7 @@ const PIPELINE_MINI = [
   { label: "Composer", color: "#0EA5E9", icon: PenLine },
   { label: "Buyer", color: "#F59E0B", icon: ShoppingBag, optional: true },
   { label: "Seller", color: "#EF4444", icon: PackageCheck },
+  { label: "VISION", color: "#CA8A04", icon: ImageIcon, optional: true },
 ];
 
 function PipelineMiniMap({ highlightAgent }: { highlightAgent: string }) {
@@ -68,7 +76,8 @@ function PipelineMiniMap({ highlightAgent }: { highlightAgent: string }) {
           (highlightAgent === "agent-strategist" && s.label === "Interpreter") ||
           (highlightAgent === "agent-researcher" && s.label === "Composer") ||
           (highlightAgent === "agent-buyer" && s.label === "Buyer") ||
-          (highlightAgent === "agent-seller" && s.label === "Seller");
+          (highlightAgent === "agent-seller" && s.label === "Seller") ||
+          (highlightAgent === "agent-vision" && s.label === "VISION");
 
         return (
           <div key={`${s.label}-${i}`} className="flex items-center gap-1.5">
@@ -106,6 +115,7 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
     agent.id === "agent-strategist" ? "/studio?mode=strategist" :
     agent.id === "agent-researcher" ? "/studio?mode=researcher" :
     agent.id === "agent-seller" ? "/store" :
+    agent.id === "agent-vision" ? "/studio" :
     "/studio";
 
   return (
@@ -300,6 +310,14 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
                       <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Packages into 3 delivery variants: full report, summary, JSON</p>
                     </>
                   )}
+                  {agent.id === "agent-vision" && (
+                    <>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Calls NanoBanana API (Gemini image models) with a crafted prompt</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• GPT-4o-mini vision judge scores each attempt (0–100)</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Iterates up to 3 times — refines prompt on each failed attempt</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Falls back to Unsplash placeholder when key not configured</p>
+                    </>
+                  )}
                 </motion.div>
               )}
             </div>
@@ -410,6 +428,24 @@ const AGENT_EXPANSIONS = [
       "External buyer API with idempotency and stable schemas",
     ],
     metric: { label: "Quality gate", value: "5 checks before every delivery" },
+  },
+  {
+    id: "agent-vision",
+    name: "VISION",
+    color: "#CA8A04",
+    bg: "rgba(234,179,8,0.06)",
+    border: "rgba(234,179,8,0.20)",
+    icon: ImageIcon,
+    headline: "Iterative Image Generator",
+    shipped: [
+      "Prompt engineering from report title + summary → contextual image brief",
+      "NanoBanana API (Gemini image models) — 16:9 professional hero images",
+      "GPT-4o-mini vision judge — scores each image 0–100 on 4 criteria",
+      "Up to 3 attempts — prompt refined on each failure with judge feedback",
+      "Graceful degradation — Unsplash placeholder when key not configured",
+      "Non-blocking — never delays or fails the core pipeline",
+    ],
+    metric: { label: "Quality loop", value: "Up to 3 attempts · GPT-4o judge" },
   },
 ];
 

@@ -961,7 +961,7 @@ function VisionImageBanner({
       </div>
       {expanded && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+          className="fixed inset-0 z-100 flex items-center justify-center p-6"
           style={{ background: "rgba(0,0,0,0.85)" }}
           onClick={() => setExpanded(false)}
         >

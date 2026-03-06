@@ -104,5 +104,20 @@ export const STUDIO_AGENTS: StudioAgent[] = [
       totalCreditsEarned: 96,
     },
   },
+  {
+    id: "agent-vision",
+    name: "VISION",
+    specialty: "Image Generation",
+    summary: "Generates a hero image for every research report using NanoBanana (Gemini). Runs an iterative quality loop — up to 3 attempts — scoring each image before accepting it.",
+    outputs: ["Hero image", "Quality score", "Prompt log", "16:9 visual"],
+    accentColor: "#CA8A04",
+    ctaLabel: "Run pipeline",
+    startingCredits: 1,
+    stats: {
+      totalSales: 0,
+      repeatBuyers: 0,
+      totalCreditsEarned: 0,
+    },
+  },
 ];
 
