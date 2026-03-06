@@ -15,59 +15,23 @@ const FAQS = [
   },
   {
     q: "What's the difference between demo mode and live mode?",
-    a: "In demo mode the canonical pipeline runs (Seller → Interpreter → Composer → Seller), but the Buyer does not transact. Enrichment is planned and narrated in the event log, but no real marketplace purchases happen. In live mode, External Marketplace is enabled and the Buyer can purchase third-party assets via Nevermined x402. External sections in the final report are labeled ✦ External so the origin is always clear.",
-  },
-  {
-    q: "What does the Buyer agent actually do? When does it run?",
-    a: "The Buyer is a specialist agent that discovers and purchases third-party data assets from the Nevermined marketplace. It only runs when the Seller decides enrichment is needed — it is not part of every pipeline run. When it does run, purchased assets are merged into the report as labeled ✦ External sections. The Seller's enrichment summary always shows whether procurement was used, skipped, or disabled.",
-  },
-  {
-    q: "How can I see the provenance of a deliverable?",
-    a: "Every seller-packaged delivery includes a provenance footer showing which agents were involved: Structured by Interpreter → Composed by Composer → Enriched by Buyer (if used) → Delivered by Seller. In the Studio, the Provenance tab shows the full agent chain, model used, sources fetched, and whether external data was purchased. The delivery package also includes job ID and order ID for traceability.",
+    a: "In demo mode the pipeline runs end-to-end but the Buyer does not transact on the marketplace. In live mode, the Buyer can purchase third-party data assets via Nevermined x402 — external sections are labeled ✦ External so the origin is always clear.",
   },
   {
     q: "Which AI model runs the agents?",
     a: "The pipeline auto-selects from OpenAI GPT-4o, Google Gemini, or Anthropic Claude depending on which key is configured. You can set your preferred provider from the Studio settings panel.",
   },
   {
-    q: "Can I use my own Exa or Apify API keys for richer research?",
-    a: "Yes. Add EXA_API_KEY or APIFY_API_TOKEN to your environment and toggle the search/scrape tool in the Studio settings panel. Without keys, the agents fall back to DuckDuckGo + raw HTML fetch automatically.",
-  },
-  {
     q: "Is my data private?",
     a: "Briefs you submit are only used to generate your deliverable. Nothing is stored beyond the current session. The server never logs your content to any third-party analytics service.",
   },
   {
-    q: "Can I call the agents from my own code?",
-    a: "Yes — the Seller API accepts external orders at /api/agent/seller and /api/pipeline/run. The machine-readable manifest at /.well-known/agent.json documents all endpoints, versioned handoff contracts (IncomingOrder, EnrichmentRequest, ComposedReport), and the canonical pipeline stages. Any A2A-compatible buyer can call and pay via Nevermined x402 autonomously.",
-  },
-  {
-    q: "What are the versioned agent contracts?",
-    a: "Each handoff between agents is a typed, versioned contract. IncomingOrder (Seller → Interpreter) carries the raw request and payment context. StructuredBrief (Interpreter → Composer) is the execution plan. EnrichmentRequest (Seller → Buyer) documents exactly what knowledge gap the Buyer should fill. ComposedReport (Composer → Seller) is the finished artifact ready for packaging. These contracts include schemaVersion, jobId, and traceId for replayability.",
-  },
-  {
     q: "What format does the output come in?",
-    a: "Deliverables are returned as structured documents with sections, headings, and source citations. You can copy the full text to clipboard or download it as a .md (Markdown) file directly from the Studio. Markdown renders cleanly in Notion, GitHub, Obsidian, and most editors.",
+    a: "Structured documents with sections, headings, and source citations. Copy to clipboard or download as Markdown — renders cleanly in Notion, GitHub, Obsidian, and most editors.",
   },
   {
-    q: "What happens when I type a short or vague request?",
-    a: "If your request is under 40 characters and you're in Pipeline or Interpreter mode, the Strategist runs a brief quality pre-check first. If it detects your intent is ambiguous, a Clarification Dialog appears with 1–2 targeted questions before the pipeline runs. Answering them appends context to your request automatically — so the Interpreter builds a more precise brief. You can always skip and run immediately.",
-  },
-  {
-    q: "What is the Artifact Library?",
-    a: "Every successful run is saved to your browser's local storage as an artifact — including the prompt, mode, title, credit cost, source count, and whether enrichment was used. Open the Library panel (the 'library' button in the Studio toolbar) to browse your run history, restore a previous prompt to the input, or re-run it instantly. Nothing is sent to a server — it's purely local and private.",
-  },
-  {
-    q: "What does 2-pass Composer mean?",
-    a: "The Composer (Researcher agent) now runs two LLM passes instead of one. Pass 1 builds a structured outline — specific section headings and key claims per section, guided by your brief. Pass 2 expands each section with full evidence synthesis from the web sources retrieved. This produces much higher quality reports with consistent structure, proper section flow, and explicit source attribution. The Sponsor Rail shows a '◈ 2-pass synthesis' badge when both passes ran.",
-  },
-  {
-    q: "How long does a request actually take?",
-    a: "A Research Sprint (1cr) typically finishes in 45–90 seconds with the Composer agent only. The Full Pipeline — Interpreter → Composer → optional Buyer → Seller packaging — takes 3–7 minutes depending on web scraping speed and model response time. The Studio shows live stage progress (Intake → Interpreting → Composing → Enriching → Packaging) so you always know what's happening.",
-  },
-  {
-    q: "What should I do with the deliverable once I have it?",
-    a: "Copy or download it as Markdown and paste it into your doc, note-taking app, or codebase. Research Sprints make great starting points for blog posts, pitch decks, or product specs. Planning Packs give you a ready-to-execute task structure. Design Specs can go straight to an engineer or Figma.",
+    q: "How long does a request take?",
+    a: "A Research Sprint finishes in 45–90 seconds. The Full Pipeline (Interpreter → Composer → Buyer → Seller) takes 3–7 minutes depending on web scraping speed. The Studio shows live stage progress so you always know what's happening.",
   },
 ];
 

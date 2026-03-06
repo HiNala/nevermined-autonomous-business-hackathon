@@ -7,26 +7,35 @@ import { Footer } from "@/components/layout/footer";
 import { StudioEntry } from "@/components/sections/studio-entry";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
 import { formatCredits } from "@/lib/utils";
-import { Clock, ArrowRight, Sparkles } from "lucide-react";
+import { Clock, ArrowRight, Search, FileText, PenLine } from "lucide-react";
 import Link from "next/link";
 import type { StudioService } from "@/types";
 import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
+const SERVICE_STYLES = [
+  { color: "#0EA5E9", icon: Search, hoverShadow: "0 12px 40px -10px rgba(14,165,233,0.18), 0 2px 8px rgba(0,0,0,0.05)", hoverBorder: "rgba(14,165,233,0.28)" },
+  { color: "#7C3AED", icon: FileText, hoverShadow: "0 12px 40px -10px rgba(124,58,237,0.18), 0 2px 8px rgba(0,0,0,0.05)", hoverBorder: "rgba(124,58,237,0.28)" },
+  { color: "#F59E0B", icon: PenLine, hoverShadow: "0 12px 40px -10px rgba(245,158,11,0.18), 0 2px 8px rgba(0,0,0,0.05)", hoverBorder: "rgba(245,158,11,0.28)" },
+];
+
 function ServiceDetailCard({ service, index }: { service: StudioService; index: number }) {
+  const style = SERVICE_STYLES[index % SERVICE_STYLES.length];
+  const Icon = style.icon;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, boxShadow: "0 12px 40px -10px rgba(201,125,78,0.18), 0 2px 8px rgba(0,0,0,0.05)", borderColor: "rgba(201,125,78,0.28)", transition: { type: "spring", stiffness: 350, damping: 28 } }}
+      whileHover={{ y: -4, boxShadow: style.hoverShadow, borderColor: style.hoverBorder, transition: { type: "spring", stiffness: 350, damping: 28 } }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
       className="glass relative overflow-hidden p-8 cursor-default"
     >
-      {/* Top accent */}
+      {/* Top accent — per-service color */}
       <div
-        className="absolute top-0 left-8 right-8 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.25), transparent)" }}
+        className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: `linear-gradient(90deg, ${style.color}60, ${style.color}10)` }}
       />
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
@@ -35,9 +44,9 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           <div className="flex items-center gap-3">
             <div
               className="flex size-10 items-center justify-center rounded-xl"
-              style={{ background: "rgba(201, 125, 78, 0.08)" }}
+              style={{ background: `${style.color}12`, border: `1px solid ${style.color}22` }}
             >
-              <Sparkles size={18} style={{ color: "var(--accent-400)" }} />
+              <Icon size={18} style={{ color: style.color }} />
             </div>
             <div>
               <h2 className="text-lg font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
