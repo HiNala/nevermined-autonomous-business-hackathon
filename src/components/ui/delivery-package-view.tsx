@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   PackageCheck, CheckCircle2, XCircle, FileText, FileJson,
   AlignLeft, BookOpen, ChevronDown, ChevronUp, Clock, Hash,
-  BookMarked, Sparkles, AlertTriangle, Copy, Check
+  BookMarked, Sparkles, AlertTriangle, Copy, Check,
+  Brain, PenLine, ShoppingBag, ShieldCheck
 } from "lucide-react";
 import type { DeliveryPackage } from "@/lib/agent/seller";
 import type { EnrichmentSummary } from "@/types/pipeline";
@@ -304,6 +305,49 @@ export function DeliveryPackageView({ pkg, enrichmentSummary }: { pkg: DeliveryP
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Provenance footer — APP_LOGIC_REVIEW §19E */}
+      <div
+        className="rounded-xl p-4"
+        style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+      >
+        <p className="mb-3 font-mono text-[8px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+          Provenance — how this was made
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { label: "Structured by", agent: "Interpreter", icon: Brain, color: "#7C3AED" },
+            { label: "Composed by", agent: "Composer", icon: PenLine, color: "#0EA5E9" },
+            ...(pkg.enriched ? [{ label: "Enriched by", agent: "Buyer", icon: ShoppingBag, color: "#F59E0B" }] : []),
+            { label: "Delivered by", agent: "Seller", icon: PackageCheck, color: "#EF4444" },
+          ].map((step, i, arr) => (
+            <div key={i} className="flex items-center gap-2">
+              <div
+                className="flex size-6 shrink-0 items-center justify-center rounded-md"
+                style={{ background: `${step.color}12`, border: `1px solid ${step.color}25` }}
+              >
+                <step.icon size={11} style={{ color: step.color }} />
+              </div>
+              <div>
+                <p className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>{step.label}</p>
+                <p className="font-mono text-[10px] font-semibold" style={{ color: step.color }}>{step.agent}</p>
+              </div>
+              {i < arr.length - 1 && (
+                <span className="ml-1 font-mono text-[8px]" style={{ color: "var(--gray-300)" }}>→</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex items-center gap-2 border-t pt-3" style={{ borderColor: "var(--border-default)" }}>
+          <ShieldCheck size={10} style={{ color: "#22C55E" }} />
+          <p className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+            Order <span style={{ color: "var(--gray-600)" }}>{pkg.orderId}</span>
+            {pkg.jobId && <> · Job <span style={{ color: "var(--gray-600)" }}>{pkg.jobId}</span></>}
+            {" · "}Generated <span style={{ color: "var(--gray-600)" }}>{new Date(pkg.generatedAt).toLocaleString()}</span>
+            {pkg.enriched && <span style={{ color: "#F59E0B" }}> · ✦ External data used</span>}
+          </p>
+        </div>
       </div>
     </div>
   );

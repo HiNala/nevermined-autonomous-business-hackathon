@@ -2,6 +2,64 @@
 // Single source of truth for all pipeline-related interfaces.
 // Import from "@/types/pipeline" in UI components instead of re-defining locally.
 
+// ─── Versioned Agent Handoff Contracts (APP_LOGIC_REVIEW §19A) ──────
+// Each contract includes: schemaVersion, jobId, traceId, sourceAgent, targetAgent.
+// These give replayability, debuggability, safer evolution, and easier external integrations.
+
+/** Contract 1: Seller → Interpreter — the raw commercial request */
+export interface IncomingOrder {
+  schemaVersion: "1.0";
+  jobId: string;
+  traceId: string;
+  createdAt: string;
+  sourceAgent: "seller";
+  targetAgent: "interpreter";
+  caller: { type: "human" | "agent" | "api"; id?: string };
+  productId?: string;
+  requestedDeliverable?: string;
+  rawRequest: string;
+  budget?: number;
+  priority?: "low" | "normal" | "high";
+  deliveryFormat?: "markdown" | "json" | "summary" | "full_report";
+  paymentContext?: { method: "x402" | "credits" | "demo"; token?: string };
+}
+
+/** Contract 3: Seller/Composer → Buyer — explicit gap that requires enrichment */
+export interface EnrichmentRequest {
+  schemaVersion: "1.0";
+  jobId: string;
+  traceId: string;
+  createdAt: string;
+  sourceAgent: "seller" | "composer";
+  targetAgent: "buyer";
+  gapSummary: string;
+  neededAssetTypes: string[];
+  keywords: string[];
+  maxCredits: number;
+  requiredRecency?: "any" | "last_30_days" | "last_year";
+}
+
+/** Contract 4: Composer → Seller — the completed report artifact */
+export interface ComposedReport {
+  schemaVersion: "1.0";
+  jobId: string;
+  traceId: string;
+  createdAt: string;
+  sourceAgent: "composer";
+  targetAgent: "seller";
+  title: string;
+  summary: string;
+  sections: { heading: string; content: string }[];
+  sources: { url: string; title: string }[];
+  citations: string[];
+  draftFormat: "markdown" | "json";
+  qualityNotes?: string[];
+  usedExternalAssets: boolean;
+  externalAssetNames?: string[];
+  wordCount: number;
+  confidenceScore?: number;
+}
+
 export interface ResearchSource {
   url: string;
   title: string;

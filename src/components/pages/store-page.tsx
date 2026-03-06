@@ -21,6 +21,10 @@ import {
   ExternalLink,
   RefreshCw,
   Search,
+  Brain,
+  PenLine,
+  ShoppingBag,
+  PackageCheck,
 } from "lucide-react";
 import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
@@ -153,9 +157,49 @@ function ProductCard({
         {product.description}
       </p>
 
+      {/* Agent flow mini-map — APP_LOGIC_REVIEW §10D */}
+      <div
+        className="mb-4 rounded-lg px-3 py-2.5"
+        style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+      >
+        <p className="mb-1.5 font-mono text-[7px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+          Pipeline
+        </p>
+        <div className="flex items-center gap-1 flex-wrap">
+          {[
+            { label: "Interpreter", icon: Brain, color: "#7C3AED" },
+            { label: "Composer", icon: PenLine, color: "#0EA5E9" },
+            ...(product.mayRequireExternalData
+              ? [{ label: "Buyer", icon: ShoppingBag, color: "#F59E0B", optional: true }]
+              : []),
+            { label: "Seller", icon: PackageCheck, color: "#EF4444" },
+          ].map((step, i, arr) => (
+            <div key={step.label} className="flex items-center gap-1">
+              <div
+                className="flex items-center gap-1 rounded px-1.5 py-0.5"
+                style={{
+                  background: `${step.color}10`,
+                  border: `1px solid ${step.color}25`,
+                  opacity: (step as { optional?: boolean }).optional ? 0.75 : 1,
+                }}
+              >
+                <step.icon size={8} style={{ color: step.color }} />
+                <span className="font-mono text-[8px] font-semibold" style={{ color: step.color }}>
+                  {step.label}
+                  {(step as { optional?: boolean }).optional && <span className="opacity-60"> opt</span>}
+                </span>
+              </div>
+              {i < arr.length - 1 && (
+                <ArrowRight size={8} style={{ color: "var(--gray-300)" }} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Tags */}
       <div className="mb-4 flex flex-wrap gap-1.5">
-        {product.tags.slice(0, 4).map((tag) => (
+        {product.tags.slice(0, 3).map((tag) => (
           <span
             key={tag}
             className="rounded-full px-2 py-0.5 font-mono text-[9px]"
@@ -164,14 +208,6 @@ function ProductCard({
             {tag}
           </span>
         ))}
-        {product.mayRequireExternalData && (
-          <span
-            className="rounded-full px-2 py-0.5 font-mono text-[9px]"
-            style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.20)", color: "#F59E0B" }}
-          >
-            ✦ Buyer enrichment eligible
-          </span>
-        )}
       </div>
 
       {/* Order button */}

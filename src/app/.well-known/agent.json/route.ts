@@ -56,6 +56,40 @@ export async function GET() {
         tags: p.tags,
       })),
     },
+    contracts: {
+      schemaVersion: "1.0",
+      description: "Versioned handoff contracts between agents. Each includes schemaVersion, jobId, traceId, createdAt, sourceAgent, targetAgent.",
+      incomingOrder: {
+        contract: "IncomingOrder",
+        flow: "Seller → Interpreter",
+        fields: ["schemaVersion", "jobId", "traceId", "createdAt", "caller", "rawRequest", "productId", "budget", "deliveryFormat", "paymentContext"],
+        description: "Raw commercial request with payment context. Seller validates commerce, then forwards to Interpreter for structuring.",
+      },
+      structuredBrief: {
+        contract: "StructuredBrief",
+        flow: "Interpreter → Composer",
+        fields: ["id", "title", "objective", "scope", "searchQueries", "keyQuestions", "deliverables", "constraints", "outputType"],
+        description: "Execution plan produced by Interpreter. Composer never receives ambiguous intent — only structured briefs.",
+      },
+      enrichmentRequest: {
+        contract: "EnrichmentRequest",
+        flow: "Seller/Composer → Buyer",
+        fields: ["schemaVersion", "jobId", "traceId", "gapSummary", "neededAssetTypes", "keywords", "maxCredits", "requiredRecency"],
+        description: "Buyer is only called with an explicit documented knowledge gap. No speculative enrichment.",
+      },
+      composedReport: {
+        contract: "ComposedReport",
+        flow: "Composer → Seller",
+        fields: ["schemaVersion", "jobId", "traceId", "title", "summary", "sections", "sources", "usedExternalAssets", "wordCount", "confidenceScore"],
+        description: "Finished artifact from Composer. Seller applies quality gate, formatting, and packaging before delivery.",
+      },
+    },
+    jobLifecycle: {
+      description: "Every seller job moves through named lifecycle states. Clients can poll /api/workspace/jobs for status.",
+      states: ["received", "interpreting", "composing", "enriching", "packaging", "delivered", "failed"],
+      statusEndpoint: `${baseUrl}/api/workspace/jobs`,
+      eventsEndpoint: `${baseUrl}/api/agent/events`,
+    },
     endpoints: {
       seller: `${baseUrl}/api/agent/seller`,
       sellerCatalog: `${baseUrl}/api/agent/seller`,
@@ -66,6 +100,7 @@ export async function GET() {
       stats: `${baseUrl}/api/agent/stats`,
       events: `${baseUrl}/api/agent/events`,
       transactions: `${baseUrl}/api/pipeline/transactions`,
+      jobs: `${baseUrl}/api/workspace/jobs`,
     },
     pricing: {
       research: {

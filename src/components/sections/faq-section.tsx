@@ -15,7 +15,15 @@ const FAQS = [
   },
   {
     q: "What's the difference between demo mode and live mode?",
-    a: "In demo mode the pipeline still runs through the Strategist, Researcher, Buyer, and Seller flow, but no live marketplace payment is required from the UI. In live mode, Nevermined settlement is enabled and eligible jobs can use paid marketplace procurement when the flow calls for it. Switch by adding your NVM_API_KEY to the server config.",
+    a: "In demo mode the canonical pipeline runs (Seller → Interpreter → Composer → Seller), but the Buyer does not transact. Enrichment is planned and narrated in the event log, but no real marketplace purchases happen. In live mode, External Marketplace is enabled and the Buyer can purchase third-party assets via Nevermined x402. External sections in the final report are labeled ✦ External so the origin is always clear.",
+  },
+  {
+    q: "What does the Buyer agent actually do? When does it run?",
+    a: "The Buyer is a specialist agent that discovers and purchases third-party data assets from the Nevermined marketplace. It only runs when the Seller decides enrichment is needed — it is not part of every pipeline run. When it does run, purchased assets are merged into the report as labeled ✦ External sections. The Seller's enrichment summary always shows whether procurement was used, skipped, or disabled.",
+  },
+  {
+    q: "How can I see the provenance of a deliverable?",
+    a: "Every seller-packaged delivery includes a provenance footer showing which agents were involved: Structured by Interpreter → Composed by Composer → Enriched by Buyer (if used) → Delivered by Seller. In the Studio, the Provenance tab shows the full agent chain, model used, sources fetched, and whether external data was purchased. The delivery package also includes job ID and order ID for traceability.",
   },
   {
     q: "Which AI model runs the agents?",
@@ -31,7 +39,11 @@ const FAQS = [
   },
   {
     q: "Can I call the agents from my own code?",
-    a: "Yes — the Research Agent is exposed as a Nevermined-compatible seller endpoint at /api/agent/research. The agent discovery manifest is at /.well-known/agent.json. Any A2A-compatible buyer can call and pay for it autonomously.",
+    a: "Yes — the Seller API accepts external orders at /api/agent/seller and /api/pipeline/run. The machine-readable manifest at /.well-known/agent.json documents all endpoints, versioned handoff contracts (IncomingOrder, EnrichmentRequest, ComposedReport), and the canonical pipeline stages. Any A2A-compatible buyer can call and pay via Nevermined x402 autonomously.",
+  },
+  {
+    q: "What are the versioned agent contracts?",
+    a: "Each handoff between agents is a typed, versioned contract. IncomingOrder (Seller → Interpreter) carries the raw request and payment context. StructuredBrief (Interpreter → Composer) is the execution plan. EnrichmentRequest (Seller → Buyer) documents exactly what knowledge gap the Buyer should fill. ComposedReport (Composer → Seller) is the finished artifact ready for packaging. These contracts include schemaVersion, jobId, and traceId for replayability.",
   },
   {
     q: "What format does the output come in?",
@@ -39,7 +51,7 @@ const FAQS = [
   },
   {
     q: "How long does a request actually take?",
-    a: "A Research Sprint (1cr) typically finishes in 45–90 seconds with the Researcher agent only. The Full Pipeline — Strategist + Researcher + Buyer — takes 3–7 minutes depending on web scraping speed and model response time. The loading screen shows live stage progress so you always know what's happening.",
+    a: "A Research Sprint (1cr) typically finishes in 45–90 seconds with the Composer agent only. The Full Pipeline — Interpreter → Composer → optional Buyer → Seller packaging — takes 3–7 minutes depending on web scraping speed and model response time. The Studio shows live stage progress (Intake → Interpreting → Composing → Enriching → Packaging) so you always know what's happening.",
   },
   {
     q: "What should I do with the deliverable once I have it?",
