@@ -478,7 +478,7 @@ export async function GET() {
         description: "Pipeline latency scales with depth. Standalone Interpreter ~3s, full pipeline ~30-60s.",
       },
       availability: "production — deployed on Vercel, auto-scaled",
-      dataRetention: "Session-scoped. Artifacts stored in browser localStorage. No server-side job persistence.",
+      dataRetention: "Session-scoped. Artifacts stored in browser sessionStorage (tab-scoped). No server-side job persistence.",
     },
 
     // ── Error codes ───────────────────────────────────────────
