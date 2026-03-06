@@ -13,6 +13,7 @@ import { withTimeout } from "@/lib/utils";
 import { logNeverminedTask } from "@/lib/nevermined/server";
 import { runVisionAgent } from "@/lib/agents/vision";
 import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
+import { uploadDeliverable } from "@/lib/blob/storage";
 export type { SponsorToolUsage, PipelineStage, PipelineEvent };
 
 const STRATEGIST_TIMEOUT_MS = 60_000;  // 60 s
@@ -498,7 +499,7 @@ export async function runPipeline(
       }
     }
 
-    return {
+    const result = {
       id: pipelineId,
       userInput,
       outputType,
@@ -517,6 +518,16 @@ export async function runPipeline(
       workspaceId,
       visionResult,
     };
+
+    // Persist full deliverable to Vercel Blob (non-blocking, best-effort)
+    uploadDeliverable(result as unknown as Record<string, unknown>, {
+      orderId: pipelineId,
+      workspaceId,
+    }).then((blobUrl) => {
+      if (blobUrl) emit("complete", "pipeline", `Deliverable persisted → ${blobUrl}`);
+    }).catch(() => { /* blob persistence is non-critical */ });
+
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Pipeline failed";
     emit("error", "pipeline", message);
@@ -1035,7 +1046,7 @@ export async function fulfillSellerOrder(
       purchasedAssetNames: purchasedAssets.map((a) => a.name),
     };
 
-    return {
+    const sellerPipelineResult = {
       id: pipelineId,
       orderId: order.id,
       query: order.query,
@@ -1051,6 +1062,15 @@ export async function fulfillSellerOrder(
       deliveryPackage,
       enrichmentSummary,
     };
+
+    // Persist seller deliverable to Vercel Blob (non-blocking, best-effort)
+    uploadDeliverable(sellerPipelineResult as unknown as Record<string, unknown>, {
+      orderId: order.id,
+    }).then((blobUrl) => {
+      if (blobUrl) emit("seller_complete", "seller", `Deliverable persisted → ${blobUrl}`);
+    }).catch(() => { /* blob persistence is non-critical */ });
+
+    return sellerPipelineResult;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Seller pipeline failed";
     emit("error", "seller", message);

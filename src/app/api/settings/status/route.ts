@@ -12,5 +12,6 @@ export async function GET() {
     zeroclick: Boolean(process.env.ZEROCLICK_API_KEY?.trim()),
     nevermined: Boolean(process.env.NVM_API_KEY?.trim()),
     nanobanana: Boolean(process.env.NANOBANANA_API_KEY?.trim()),
+    blob: Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim()),
   });
 }

@@ -2,6 +2,7 @@ import { VisionRequest, VisionResult, AttemptRecord } from "./types";
 import { generateAndWait } from "./nanobanana";
 import { buildInitialPrompt, buildRefinementPrompt } from "./prompt-engine";
 import { judgeImage } from "./quality-judge";
+import { uploadImageFromUrl } from "@/lib/blob/storage";
 
 const MAX_ATTEMPTS = 3;
 
@@ -71,9 +72,11 @@ export async function runVisionAgent(request: VisionRequest): Promise<VisionResu
 
     // --- Pass: return immediately ---
     if (judgement.passed) {
+      // Persist to Vercel Blob for durable access
+      const durableUrl = await uploadImageFromUrl(imageUrl, { folder: "vision" });
       return {
         success: true,
-        imageUrl,
+        imageUrl: durableUrl,
         attempts: attempt,
         passedQuality: true,
         qualityReport: {
@@ -119,9 +122,11 @@ export async function runVisionAgent(request: VisionRequest): Promise<VisionResu
     };
   }
 
+  // Persist best attempt to Vercel Blob for durable access
+  const durableUrl = await uploadImageFromUrl(bestAttempt.imageUrl, { folder: "vision" });
   return {
     success: true,
-    imageUrl: bestAttempt.imageUrl,
+    imageUrl: durableUrl,
     attempts: MAX_ATTEMPTS,
     passedQuality: false,
     qualityReport: {
