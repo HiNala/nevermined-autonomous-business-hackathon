@@ -206,7 +206,7 @@ export function AgentCards() {
           <div className="flex items-center gap-3">
             <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
             <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>
-              003 / The Pipeline Team
+              004 / The Pipeline Team
             </span>
           </div>
           <div className="flex items-center gap-1.5">

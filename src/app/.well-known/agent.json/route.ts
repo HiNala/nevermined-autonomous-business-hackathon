@@ -477,7 +477,7 @@ export async function GET() {
         p95: "60s",
         description: "Pipeline latency scales with depth. Standalone Interpreter ~3s, full pipeline ~30-60s.",
       },
-      availability: "best-effort (hackathon)",
+      availability: "production — deployed on Vercel, auto-scaled",
       dataRetention: "Session-scoped. Artifacts stored in browser localStorage. No server-side job persistence.",
     },
 

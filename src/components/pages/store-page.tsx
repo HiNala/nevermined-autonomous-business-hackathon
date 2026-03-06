@@ -31,6 +31,7 @@ import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
 import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { EnrichmentSummary } from "@/types/pipeline";
+import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -557,7 +558,30 @@ function OrderResultView({ result, onClose }: { result: OrderResult; onClose: ()
 
 // ─── Main Store Page ─────────────────────────────────────────────────
 
+function useStoreLiveStats() {
+  const [tx, setTx] = useState(0);
+  const [credits, setCredits] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const r = await fetch("/api/pipeline/stats");
+        if (!r.ok || cancelled) return;
+        const d = await r.json();
+        if (!cancelled) { setTx(d.totalTransactions ?? 0); setCredits(d.totalCreditsFlowed ?? 0); }
+      } catch { /* silent */ }
+    }
+    load();
+    const id = setInterval(load, 15_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+  return { tx, credits };
+}
+
 export function StorePage() {
+  const { tx, credits } = useStoreLiveStats();
+  const animTx      = useAnimatedCounter(tx, 1200, 300);
+  const animCredits = useAnimatedCounter(credits, 1400, 400);
   const [inventory, setInventory] = useState<InventoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -664,8 +688,16 @@ export function StorePage() {
             </div>
             {/* Quick stats */}
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
+              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
+                <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
+                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>{animTx}</span>
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>orders fulfilled</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
+                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>{animCredits}cr</span>
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits settled</span>
+              </div>
               {[
-                { label: "On-demand generation", sub: "No pre-rendered content" },
                 { label: "From 5 credits", sub: "≈ $0.50 USDC" },
                 { label: "3 delivery formats", sub: "Markdown · Summary · JSON" },
               ].map((s) => (

@@ -57,7 +57,7 @@ export function HowToBuy() {
         <div className="mb-4 flex items-center gap-3">
           <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
           <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>
-            002 / For Agent Buyers
+            003 / For Agent Buyers
           </span>
         </div>
         <div className="flex items-end justify-between gap-6">

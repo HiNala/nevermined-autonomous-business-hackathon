@@ -115,6 +115,25 @@ export function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p:
           ))}
         </div>
       </div>
+
+      {/* Keyboard hint */}
+      <div className="flex items-center gap-1.5">
+        <kbd
+          className="rounded px-1.5 py-0.5 font-mono text-[9px] font-semibold"
+          style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-400)" }}
+        >
+          ↵ Enter
+        </kbd>
+        <span className="font-mono text-[9px]" style={{ color: "var(--gray-300)" }}>to run</span>
+        <span className="mx-1 font-mono text-[9px]" style={{ color: "var(--gray-200)" }}>·</span>
+        <kbd
+          className="rounded px-1.5 py-0.5 font-mono text-[9px] font-semibold"
+          style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-400)" }}
+        >
+          ⇧ Shift+↵
+        </kbd>
+        <span className="font-mono text-[9px]" style={{ color: "var(--gray-300)" }}>for newline</span>
+      </div>
     </div>
   );
 }

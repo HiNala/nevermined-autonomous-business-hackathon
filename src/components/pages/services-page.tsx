@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
@@ -9,6 +10,7 @@ import { formatCredits } from "@/lib/utils";
 import { Clock, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { StudioService } from "@/types";
+import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
 function ServiceDetailCard({ service, index }: { service: StudioService; index: number }) {
   return (
@@ -105,6 +107,70 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
   );
 }
 
+function LiveStatsBar() {
+  const [tx, setTx] = useState(0);
+  const [credits, setCredits] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const r = await fetch("/api/pipeline/stats");
+        if (!r.ok || cancelled) return;
+        const d = await r.json();
+        if (!cancelled) {
+          setTx(d.totalTransactions ?? 0);
+          setCredits(d.totalCreditsFlowed ?? 0);
+        }
+      } catch { /* silent */ }
+    }
+    load();
+    const id = setInterval(load, 15_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  const animTx      = useAnimatedCounter(tx, 1200, 400);
+  const animCredits = useAnimatedCounter(credits, 1400, 500);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.25 }}
+      className="mb-8 flex flex-wrap items-center gap-2"
+    >
+      <div
+        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5"
+        style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}
+      >
+        <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
+        <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>
+          {animTx}
+        </span>
+        <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>deliverables run</span>
+      </div>
+      <div
+        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5"
+        style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}
+      >
+        <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>
+          {animCredits}cr
+        </span>
+        <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits settled</span>
+      </div>
+      <div
+        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5"
+        style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.14)" }}
+      >
+        <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#7C3AED" }}>
+          {STUDIO_SERVICES.length}
+        </span>
+        <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>service types</span>
+      </div>
+    </motion.div>
+  );
+}
+
 export function ServicesPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -130,6 +196,8 @@ export function ServicesPage() {
               settled via Nevermined credit-based payments.
             </p>
           </motion.div>
+
+          <LiveStatsBar />
 
           {/* Pricing overview */}
           <motion.div
