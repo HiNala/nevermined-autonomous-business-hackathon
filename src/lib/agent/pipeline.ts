@@ -888,19 +888,19 @@ export async function fulfillSellerOrder(
       const externalTradingEnabled = toolSettings?.trading?.externalTrading ?? true;
 
       if (!externalTradingEnabled) {
-        // ── Context A: UI Demo Mode — procurement disabled by settings ──
-        procurementStatus = "disabled_in_demo";
-        procurementSkippedReason = "External Marketplace is disabled in settings. Keep this OFF for UI demos — turn ON only for agentic/live procurement flows.";
+        // ── External trading disabled by settings ──
+        procurementStatus = "disabled_by_settings";
+        procurementSkippedReason = "External Marketplace is disabled in settings. Enable it to allow the Buyer to purchase from third-party agents.";
         emit("buyer_discovering", "buyer",
           `Seller evaluated external enrichment for ${plan.externalServices.length} service(s) — would improve output quality`,
           { enrichmentConsidered: true, servicesEvaluated: plan.externalServices.length }
         );
         emit("buyer_complete", "buyer",
-          `External procurement disabled in demo mode — ${procurementSkippedReason}`,
+          `External procurement disabled — ${procurementSkippedReason}`,
           { procurementStatus, reason: procurementSkippedReason }
         );
       } else {
-        // ── Context B: Agentic Live Mode — proceed with procurement ──────
+        // ── External trading enabled — proceed with procurement ──────────
         emit("buyer_discovering", "buyer",
           `Seller requested external enrichment — ${plan.externalServices.length} service(s) targeted via Nevermined marketplace`,
           { enrichmentConsidered: true, servicesRequested: plan.externalServices.length }

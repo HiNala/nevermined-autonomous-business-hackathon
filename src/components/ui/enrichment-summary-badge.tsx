@@ -25,9 +25,9 @@ const STATUS_CONFIG: Record<ProcurementStatus, {
     bg: "rgba(245,158,11,0.08)",
     border: "rgba(245,158,11,0.22)",
   },
-  disabled_in_demo: {
-    label: "Demo Mode",
-    sublabel: "External procurement disabled in UI",
+  disabled_by_settings: {
+    label: "Marketplace Off",
+    sublabel: "External procurement disabled in settings",
     icon: ShieldOff,
     color: "#6366F1",
     bg: "rgba(99,102,241,0.08)",
@@ -230,8 +230,8 @@ export function EnrichmentSummaryBadge({ summary, expandable = true, compact = f
                 </div>
               )}
 
-              {/* Demo mode callout */}
-              {summary.procurementStatus === "disabled_in_demo" && (
+              {/* Marketplace off callout */}
+              {summary.procurementStatus === "disabled_by_settings" && (
                 <div
                   className="col-span-2 rounded-lg p-3"
                   style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}
@@ -239,9 +239,8 @@ export function EnrichmentSummaryBadge({ summary, expandable = true, compact = f
                   <div className="flex items-start gap-2">
                     <ShieldOff size={11} className="mt-0.5 shrink-0" style={{ color: "#6366F1" }} />
                     <p className="text-[10px] leading-relaxed" style={{ color: "#6366F1" }}>
-                      <span className="font-semibold">Demo Mode Active</span> — External Marketplace is OFF in settings.
-                      The Seller evaluated that third-party enrichment would improve this output, but no real transactions occurred.
-                      Turn on <span className="font-mono">External Marketplace</span> in Settings for live agentic procurement.
+                      <span className="font-semibold">External Marketplace Off</span> — The Seller evaluated that third-party enrichment would improve this output, but the Buyer did not transact.
+                      Enable <span className="font-mono">External Marketplace</span> in Settings to allow procurement.
                     </p>
                   </div>
                 </div>

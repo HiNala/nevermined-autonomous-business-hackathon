@@ -350,7 +350,7 @@ function TradingSection({
         />
         <TradingToggle
           label="External Marketplace"
-          description="Buyer agent discovers and purchases outputs from third-party agents on the Nevermined marketplace. Keep OFF for UI demos — turn ON only for agentic/live procurement flows where real x402 payments can be transacted."
+          description="Buyer agent discovers and purchases outputs from third-party agents on the Nevermined marketplace via x402 payments. When OFF, the Seller still plans enrichment but the Buyer will not transact."
           enabled={trading.externalTrading}
           onChange={(v) => onChange({ ...trading, externalTrading: v })}
           accentColor="#F59E0B"
@@ -360,9 +360,9 @@ function TradingSection({
             className="flex items-start gap-2 rounded-lg px-3 py-2.5"
             style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}
           >
-            <span className="mt-0.5 shrink-0 font-mono text-[10px] font-bold" style={{ color: "#6366F1" }}>DEMO</span>
+            <span className="mt-0.5 shrink-0 font-mono text-[10px] font-bold" style={{ color: "#6366F1" }}>INFO</span>
             <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
-              Demo-safe mode active. Seller will plan enrichment but the Buyer will not transact. Ideal for judges and internal demos.
+              External marketplace is off. The Seller will evaluate enrichment opportunities but the Buyer will not purchase from third-party agents.
             </p>
           </div>
         )}

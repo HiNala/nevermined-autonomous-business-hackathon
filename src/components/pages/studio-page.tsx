@@ -175,7 +175,6 @@ export function StudioPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [adsMuted, setAdsMuted] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [apiMode, setApiMode] = useState<"demo" | "live" | "checking">("checking");
   const [toolSettings, setToolSettings] = useLocalStorage<ToolSettings>("ab:toolSettings", loadToolSettings());
   const [judgeMode, setJudgeMode] = useState(false);
   const [adToolsUsed, setAdToolsUsed] = useState<SponsorToolUsage[]>([]);
@@ -230,17 +229,6 @@ export function StudioPage() {
   useEffect(() => {
     const stored = localStorage.getItem("zc_ads_muted");
     if (stored === "true") setAdsMuted(true);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/settings/status")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!d) return;
-        const hasLLM = d.openai || d.gemini || d.anthropic;
-        setApiMode(hasLLM ? "live" : "demo");
-      })
-      .catch(() => setApiMode("demo"));
   }, []);
 
   useEffect(() => {
@@ -810,30 +798,6 @@ export function StudioPage() {
           style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
         >
 
-          {/* Demo / Live mode banner */}
-          {apiMode !== "checking" && (
-            <div
-              className="flex items-center justify-between border-b px-3 py-1.5"
-              style={{ borderColor: "var(--border-default)", background: apiMode === "demo" ? "rgba(245,158,11,0.04)" : "rgba(34,197,94,0.03)" }}
-            >
-              <span
-                className="flex items-center gap-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest"
-                style={{ color: apiMode === "demo" ? "#F59E0B" : "var(--green-400)" }}
-              >
-                <span
-                  className="size-1.5 rounded-full"
-                  style={{ background: apiMode === "demo" ? "#F59E0B" : "var(--green-400)", opacity: apiMode === "demo" ? 0.8 : 1 }}
-                />
-                {apiMode === "demo" ? "Demo Mode" : "Live Mode"}
-              </span>
-              {apiMode === "demo" && (
-                <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
-                  Add API keys to go live
-                </span>
-              )}
-            </div>
-          )}
-
           {/* Live pipeline strip — shows each agent's status */}
           <div className="border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
             <div className="flex items-center gap-2">
@@ -1024,11 +988,6 @@ export function StudioPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <p className="text-[12px] font-medium" style={{ color: "#EF4444" }}>{error}</p>
-                      {apiMode === "demo" && (
-                        <p className="mt-0.5 text-[11px]" style={{ color: "var(--gray-400)" }}>
-                          Running in Demo Mode — add an OpenAI or Gemini key in environment variables to get real results.
-                        </p>
-                      )}
                       {pipelineEvents.length > 0 && (
                         <p className="mt-0.5 text-[10px]" style={{ color: "var(--gray-400)" }}>
                           Failed after {pipelineEvents.length} stage{pipelineEvents.length !== 1 ? "s" : ""}
@@ -1174,7 +1133,7 @@ export function StudioPage() {
             <WorkspaceProfilePanel workspaceId={workspaceId} />
           </div>
 
-          {/* Seller demo mode banner */}
+          {/* Seller marketplace-off info banner */}
           {mode === "seller" && !toolSettings.trading.externalTrading && (
             <div
               className="flex items-start gap-2.5 border-b px-3 py-2"
@@ -1184,10 +1143,10 @@ export function StudioPage() {
                 className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
                 style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
               >
-                DEMO
+                INFO
               </span>
               <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
-                Seller orchestration visible – external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
+                External Marketplace is off. The Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings to allow third-party procurement.
               </p>
             </div>
           )}

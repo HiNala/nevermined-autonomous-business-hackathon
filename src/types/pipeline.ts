@@ -227,7 +227,7 @@ export interface PurchasedAsset {
 /** Canonical procurement status for seller-led third-party enrichment */
 export type ProcurementStatus =
   | "not_needed"
-  | "disabled_in_demo"
+  | "disabled_by_settings"
   | "disabled_by_policy"
   | "attempted_none_purchased"
   | "purchased_and_merged"

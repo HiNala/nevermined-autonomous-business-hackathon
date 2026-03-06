@@ -76,7 +76,6 @@ export function VGSCheckoutModal({
   const [paymentResult, setPaymentResult] = useState<{
     credits: number;
     paymentId: string;
-    demo: boolean;
   } | null>(null);
   const [vgsReady, setVgsReady] = useState(false);
   const [vgsConfigured, setVgsConfigured] = useState<boolean | null>(null);
@@ -136,7 +135,7 @@ export function VGSCheckoutModal({
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (!window.VGSCollect) {
-        // Script failed to load — still allow demo mode
+        // Script failed to load — allow direct Stripe input
         setVgsReady(true);
       }
     }, 5000);
@@ -153,7 +152,7 @@ export function VGSCheckoutModal({
     const env = process.env.VGS_ENVIRONMENT || "sandbox";
 
     if (!vaultId || !window.VGSCollect) {
-      setVgsReady(true); // Fall through to demo mode
+      setVgsReady(true); // Fall through to direct Stripe input
       return;
     }
 
@@ -201,7 +200,7 @@ export function VGSCheckoutModal({
       setVgsReady(true);
     } catch (e) {
       console.error("[VGS] Init error:", e);
-      setVgsReady(true); // Allow demo fallback
+      setVgsReady(true); // Allow direct Stripe fallback
     }
   }
 
@@ -233,7 +232,6 @@ export function VGSCheckoutModal({
       setPaymentResult({
         credits: data.credits,
         paymentId: data.paymentIntentId || data.paymentId || "unknown",
-        demo: data.demo || false,
       });
       setStep("success");
       onSuccess?.(data.credits, data.paymentIntentId || data.paymentId);
@@ -524,18 +522,18 @@ function PaymentStep({
         </span>
       </div>
 
-      {/* Demo mode badge */}
+      {/* Stripe sandbox indicator */}
       {!vgsConfigured && (
         <div
           className="mb-4 flex items-center gap-2 rounded-lg px-3 py-2"
           style={{
-            background: "rgba(234, 179, 8, 0.06)",
-            border: "1px solid rgba(234, 179, 8, 0.15)",
+            background: "rgba(99, 102, 241, 0.06)",
+            border: "1px solid rgba(99, 102, 241, 0.15)",
           }}
         >
-          <AlertCircle size={12} style={{ color: "#EAB308" }} />
-          <span className="text-[11px]" style={{ color: "#B45309" }}>
-            Demo Mode — no real charges will be made
+          <Shield size={12} style={{ color: "#6366F1" }} />
+          <span className="text-[11px]" style={{ color: "#4F46E5" }}>
+            Stripe Test Mode — use card 4242 4242 4242 4242
           </span>
         </div>
       )}
@@ -571,7 +569,7 @@ function PaymentStep({
         />
       </div>
 
-      {/* Card fields (VGS secure iframes or demo placeholders) */}
+      {/* Card fields (VGS secure iframes or direct Stripe inputs) */}
       <div className="mb-3">
         <label
           className="mb-1.5 block text-[11px] font-medium"
@@ -723,7 +721,7 @@ function SuccessStep({
   result,
   onClose,
 }: {
-  result: { credits: number; paymentId: string; demo: boolean };
+  result: { credits: number; paymentId: string };
   onClose: () => void;
 }) {
   return (
@@ -744,18 +742,6 @@ function SuccessStep({
         >
           {result.credits} Credits Added!
         </p>
-        {result.demo && (
-          <span
-            className="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium"
-            style={{
-              background: "rgba(234, 179, 8, 0.08)",
-              color: "#B45309",
-              border: "1px solid rgba(234, 179, 8, 0.15)",
-            }}
-          >
-            Demo Mode
-          </span>
-        )}
         <p className="mt-2 text-[12px]" style={{ color: "var(--gray-400)" }}>
           Payment ID: {result.paymentId.slice(0, 20)}…
         </p>
