@@ -153,14 +153,35 @@ The **VISION Image Demo** preset in Judge Mode runs the Composer in researcher m
 
 ---
 
+## Blob Storage Integration (Durable URLs)
+
+NanoBanana returns **ephemeral image URLs** that expire. VISION automatically re-uploads the final image to **Vercel Blob** for permanent storage:
+
+```
+NanoBanana → ephemeral URL → uploadImageFromUrl() → Vercel Blob → durable URL
+```
+
+- Both the **quality-passed** path and the **best-of-3 hard-stop** path upload to Blob
+- If `BLOB_READ_WRITE_TOKEN` is not set, VISION gracefully falls back to the original URL
+- Images are stored under the `vision/` folder prefix in Blob
+- The `isBlobConfigured()` check in `src/lib/blob/storage.ts` controls this behaviour
+
+**Required env var:** `BLOB_READ_WRITE_TOKEN` — auto-injected on Vercel when Blob is enabled in the project dashboard, or set manually for local dev.
+
+---
+
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `src/lib/agents/vision/index.ts` | `runVisionAgent()` — main entrypoint |
+| `src/lib/agents/vision/index.ts` | `runVisionAgent()` — main entrypoint with Blob upload |
 | `src/lib/agents/vision/nanobanana.ts` | NanoBanana API client, `isNanobananaConfigured()` |
+| `src/lib/agents/vision/prompt-engine.ts` | Context-aware prompt construction + refinement |
+| `src/lib/agents/vision/quality-judge.ts` | GPT-4o-mini vision-based quality assessment |
 | `src/lib/agents/vision/types.ts` | `VisionRequest`, `VisionResult` types |
+| `src/lib/blob/storage.ts` | `uploadImageFromUrl()` — ephemeral→durable Blob persistence |
 | `src/app/api/agents/vision/route.ts` | Next.js API route (`POST` + `GET`) |
+| `src/app/api/blob/upload/route.ts` | Client-side Blob upload endpoint |
 | `src/lib/agent/pipeline.ts` | VISION Stage 6 — called after buyer, before `complete` |
 | `src/components/pages/studio-page.tsx` | `triggerVision()`, `VisionImageBanner`, VISION agent card |
 | `src/components/ui/judge-mode.tsx` | VISION Image Demo preset |
