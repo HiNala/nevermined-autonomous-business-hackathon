@@ -711,74 +711,8 @@ export function StudioPage() {
             </div>
           )}
 
-          {/* Agent Cards */}
-          <div className="flex flex-col gap-0 border-b px-3 py-3" style={{ borderColor: "var(--border-default)" }}>
-            <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
-              Agents
-            </p>
-            <AgentCard
-              agent={AGENT_CONFIG.strategist}
-              isActive={isLoading && (mode === "pipeline" || mode === "strategist")}
-              isSelected={mode === "strategist"}
-              onClick={() => setMode(mode === "strategist" ? "pipeline" : "strategist")}
-              stats={agentStats.strategist}
-              toolLabel={toolSettings.strategist.search}
-              index={0}
-            />
-            {mode === "pipeline" && (
-              <AgentConnector isActive={isLoading} color={AGENT_CONFIG.strategist.color} />
-            )}
-            <AgentCard
-              agent={AGENT_CONFIG.researcher}
-              isActive={isLoading && (mode === "pipeline" || mode === "researcher")}
-              isSelected={mode === "researcher"}
-              onClick={() => setMode(mode === "researcher" ? "pipeline" : "researcher")}
-              stats={agentStats.researcher}
-              toolLabel={toolSettings.researcher.search}
-              index={1}
-            />
-            {mode === "pipeline" && (
-              <AgentConnector isActive={isLoading} color={AGENT_CONFIG.researcher.color} />
-            )}
-            <AgentCard
-              agent={AGENT_CONFIG.buyer}
-              isActive={isLoading && mode === "pipeline"}
-              isSelected={false}
-              onClick={() => {}}
-              stats={agentStats.buyer}
-              toolLabel="nevermined"
-              index={2}
-            />
-            {mode === "pipeline" && (
-              <AgentConnector isActive={isLoading} color={AGENT_CONFIG.buyer.color} />
-            )}
-            <AgentCard
-              agent={AGENT_CONFIG.seller}
-              isActive={isLoading && (mode === "pipeline" || mode === "seller")}
-              isSelected={mode === "seller"}
-              onClick={() => setMode(mode === "seller" ? "pipeline" : "seller")}
-              stats={agentStats.seller}
-              toolLabel="nevermined"
-              index={3}
-            />
-            {mode === "pipeline" && (
-              <>
-                <AgentConnector isActive={isGeneratingImage} color={AGENT_CONFIG.vision.color} />
-                <AgentCard
-                  agent={AGENT_CONFIG.vision}
-                  isActive={isGeneratingImage}
-                  isSelected={false}
-                  onClick={() => {}}
-                  stats={{ earned: 0, handled: visionResult ? 1 : 0 }}
-                  toolLabel="nanobanana"
-                  index={4}
-                />
-              </>
-            )}
-          </div>
-
-          {/* Mode indicator + controls */}
-          <div className="border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
+          {/* Mode indicator + controls — compact bar */}
+          <div className="border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
             <div className="flex items-center gap-2">
               <span
                 className="rounded-lg px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide"
@@ -804,28 +738,6 @@ export function StudioPage() {
               )}
               <div className="ml-auto flex items-center gap-1.5">
                 <button
-                  onClick={() => setLibraryOpen(true)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
-                  style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
-                  title="Artifact Library"
-                >
-                  <BookOpen size={10} />
-                  library
-                </button>
-                <button
-                  onClick={() => setJudgeMode((v) => !v)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
-                  style={{
-                    color: judgeMode ? "var(--accent-400)" : "var(--gray-400)",
-                    background: judgeMode ? "rgba(201, 125, 78, 0.10)" : "var(--bg-surface)",
-                    border: `1px solid ${judgeMode ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
-                  }}
-                  title="Judge Demo Mode"
-                >
-                  <Award size={10} />
-                  judge
-                </button>
-                <button
                   onClick={() => setSettingsOpen(true)}
                   className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
                   style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
@@ -836,20 +748,11 @@ export function StudioPage() {
                 </button>
               </div>
             </div>
-            <p className="mt-1.5 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
-              {mode === "pipeline"
-                ? "Interpreter → Composer → optional Buyer → Seller. Full structured research + packaged delivery."
-                : mode === "strategist"
-                ? "Interpreter only. Converts your request into a structured execution brief. Fast."
-                : mode === "researcher"
-                ? "Composer only. Web research + synthesis into a structured report. No brief step."
-                : "Seller mode. Orchestrates Interpreter → Composer → Seller packaging + quality gate."}
-            </p>
           </div>
 
           {/* Output type selector (only for pipeline/strategist) */}
           {mode !== "researcher" && (
-            <div className="flex flex-wrap gap-1.5 border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
+            <div className="flex flex-wrap gap-1.5 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
               {OUTPUT_TYPES.map((ot) => {
                 const active = outputType === ot.value;
                 return (
@@ -872,37 +775,7 @@ export function StudioPage() {
             </div>
           )}
 
-          {/* Judge Mode Presets */}
-          {judgeMode && (
-            <div className="border-b p-3" style={{ borderColor: "var(--border-default)", background: "rgba(201, 125, 78, 0.02)" }}>
-              <JudgeMode onSelect={handleJudgePreset} />
-            </div>
-          )}
-
-          {/* Workspace Profile Panel */}
-          <div className="border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
-            <WorkspaceProfilePanel workspaceId={workspaceId} />
-          </div>
-
-          {/* Seller demo mode banner */}
-          {mode === "seller" && !toolSettings.trading.externalTrading && (
-            <div
-              className="flex items-start gap-2.5 border-b px-3 py-2.5"
-              style={{ borderColor: "var(--border-default)", background: "rgba(99,102,241,0.05)" }}
-            >
-              <span
-                className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
-                style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
-              >
-                DEMO
-              </span>
-              <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
-                Seller orchestration visible – external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
-              </p>
-            </div>
-          )}
-
-          {/* Cost estimate + Input */}
+          {/* ── PRIMARY ACTION: Cost estimate + Input ── */}
           <div className="border-b p-3" style={{ borderColor: "var(--border-default)" }}>
             {input.trim() && !isLoading && (
               <div className="mb-2 flex items-center gap-2">
@@ -1025,6 +898,127 @@ export function StudioPage() {
               )}
             </form>
           </div>
+
+          {/* Agent Cards — collapsible, secondary to prompt */}
+          <details className="border-b group" style={{ borderColor: "var(--border-default)" }}>
+            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 select-none" style={{ color: "var(--gray-400)" }}>
+              <ChevronDown size={10} className="transition-transform group-open:rotate-180" />
+              <span className="font-mono text-[9px] font-semibold uppercase tracking-widest">Agents</span>
+              <span className="ml-auto flex items-center gap-1.5">
+                <button
+                  onClick={(e) => { e.preventDefault(); setLibraryOpen(true); }}
+                  className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+                  title="Artifact Library"
+                >
+                  <BookOpen size={9} /> library
+                </button>
+                <button
+                  onClick={(e) => { e.preventDefault(); setJudgeMode((v) => !v); }}
+                  className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{
+                    color: judgeMode ? "var(--accent-400)" : "var(--gray-400)",
+                    background: judgeMode ? "rgba(201, 125, 78, 0.10)" : "var(--bg-surface)",
+                    border: `1px solid ${judgeMode ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
+                  }}
+                  title="Judge Demo Mode"
+                >
+                  <Award size={9} /> judge
+                </button>
+              </span>
+            </summary>
+            <div className="flex flex-col gap-0 px-3 pb-3">
+              <AgentCard
+                agent={AGENT_CONFIG.strategist}
+                isActive={isLoading && (mode === "pipeline" || mode === "strategist")}
+                isSelected={mode === "strategist"}
+                onClick={() => setMode(mode === "strategist" ? "pipeline" : "strategist")}
+                stats={agentStats.strategist}
+                toolLabel={toolSettings.strategist.search}
+                index={0}
+              />
+              {mode === "pipeline" && (
+                <AgentConnector isActive={isLoading} color={AGENT_CONFIG.strategist.color} />
+              )}
+              <AgentCard
+                agent={AGENT_CONFIG.researcher}
+                isActive={isLoading && (mode === "pipeline" || mode === "researcher")}
+                isSelected={mode === "researcher"}
+                onClick={() => setMode(mode === "researcher" ? "pipeline" : "researcher")}
+                stats={agentStats.researcher}
+                toolLabel={toolSettings.researcher.search}
+                index={1}
+              />
+              {mode === "pipeline" && (
+                <AgentConnector isActive={isLoading} color={AGENT_CONFIG.researcher.color} />
+              )}
+              <AgentCard
+                agent={AGENT_CONFIG.buyer}
+                isActive={isLoading && mode === "pipeline"}
+                isSelected={false}
+                onClick={() => {}}
+                stats={agentStats.buyer}
+                toolLabel="nevermined"
+                index={2}
+              />
+              {mode === "pipeline" && (
+                <AgentConnector isActive={isLoading} color={AGENT_CONFIG.buyer.color} />
+              )}
+              <AgentCard
+                agent={AGENT_CONFIG.seller}
+                isActive={isLoading && (mode === "pipeline" || mode === "seller")}
+                isSelected={mode === "seller"}
+                onClick={() => setMode(mode === "seller" ? "pipeline" : "seller")}
+                stats={agentStats.seller}
+                toolLabel="nevermined"
+                index={3}
+              />
+              {mode === "pipeline" && (
+                <>
+                  <AgentConnector isActive={isGeneratingImage} color={AGENT_CONFIG.vision.color} />
+                  <AgentCard
+                    agent={AGENT_CONFIG.vision}
+                    isActive={isGeneratingImage}
+                    isSelected={false}
+                    onClick={() => {}}
+                    stats={{ earned: 0, handled: visionResult ? 1 : 0 }}
+                    toolLabel="nanobanana"
+                    index={4}
+                  />
+                </>
+              )}
+            </div>
+          </details>
+
+          {/* Judge Mode Presets */}
+          {judgeMode && (
+            <div className="border-b p-3" style={{ borderColor: "var(--border-default)", background: "rgba(201, 125, 78, 0.02)" }}>
+              <JudgeMode onSelect={handleJudgePreset} />
+            </div>
+          )}
+
+          {/* Workspace Profile Panel */}
+          <div className="border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
+            <WorkspaceProfilePanel workspaceId={workspaceId} />
+          </div>
+
+          {/* Seller demo mode banner */}
+          {mode === "seller" && !toolSettings.trading.externalTrading && (
+            <div
+              className="flex items-start gap-2.5 border-b px-3 py-2"
+              style={{ borderColor: "var(--border-default)", background: "rgba(99,102,241,0.05)" }}
+            >
+              <span
+                className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
+                style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
+              >
+                DEMO
+              </span>
+              <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
+                Seller orchestration visible – external third-party procurement is disabled. Buyer will evaluate enrichment but not transact. Enable <span className="font-semibold">External Marketplace</span> in Settings for live agentic flows.
+              </p>
+            </div>
+          )}
 
           {/* Bottom section: Stages / Transactions toggle */}
           <div role="tablist" className="flex border-b" style={{ borderColor: "var(--border-default)" }}>

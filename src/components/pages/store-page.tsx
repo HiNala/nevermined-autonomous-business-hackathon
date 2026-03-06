@@ -583,6 +583,8 @@ export function StorePage() {
   const { tx, credits } = useStoreLiveStats();
   const animTx      = useAnimatedCounter(tx, 1200, 300);
   const animCredits = useAnimatedCounter(credits, 1400, 400);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [inventory, setInventory] = useState<InventoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -657,11 +659,8 @@ export function StorePage() {
     <ErrorBoundary>
     <main className="min-h-screen pt-20 pb-24" style={{ background: "var(--bg-base)" }}>
       <div className="mx-auto max-w-6xl px-6">
-        {/* ── Hero band ─────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        {/* ── Hero band — renders instantly ─────────────────────────────── */}
+        <div
           className="mb-10 rounded-2xl p-8 relative overflow-hidden"
           style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", boxShadow: "0 2px 16px -4px rgba(0,0,0,0.06)" }}
         >
@@ -684,20 +683,24 @@ export function StorePage() {
                 Agent <span className="text-gradient-accent">Store</span>
               </h1>
               <p className="max-w-xl text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-                Every order triggers the full 4-agent pipeline — Interpreter structures your brief, Composer researches and writes, Buyer enriches from the marketplace, Seller quality-gates and delivers.
+                Browse deliverables and order on-demand. Each order runs through the full agent pipeline — structured, researched, enriched, and delivered.
               </p>
             </div>
-            {/* Quick stats */}
+            {/* Quick stats — only show when there's real data */}
             <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
-                <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
-                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>{animTx}</span>
-                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>orders fulfilled</span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
-                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>{animCredits}cr</span>
-                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits settled</span>
-              </div>
+              {mounted && animTx > 0 && (
+                <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
+                  <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
+                  <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>{animTx}</span>
+                  <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>orders fulfilled</span>
+                </div>
+              )}
+              {mounted && animCredits > 0 && (
+                <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
+                  <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>{animCredits}cr</span>
+                  <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits settled</span>
+                </div>
+              )}
               {[
                 { label: "From 5 credits", sub: "≈ $0.50 USDC" },
                 { label: "3 delivery formats", sub: "Markdown · Summary · JSON" },
@@ -723,7 +726,7 @@ export function StorePage() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Search */}
         {inventory && (
