@@ -122,6 +122,7 @@ Brief → Prompt Engineering → NanoBanana (Gemini) → Poll for result
 | Images | NanoBanana (Gemini image models) |
 | Cards | VGS Collect + Stripe |
 | Ads | ZeroClick contextual ads |
+| Storage | Vercel Blob (durable image + deliverable persistence) |
 
 ## Project Structure
 
@@ -145,7 +146,8 @@ src/
 │   ├── nevermined/server.ts      # SDK init, x402 verify/settle
 │   ├── ai/providers.ts           # OpenAI / Gemini / Anthropic selector
 │   ├── apify/                    # Google Search + Content Crawler
-│   └── exa/                      # Neural search
+│   ├── exa/                      # Neural search
+│   └── blob/storage.ts           # Vercel Blob — image + deliverable uploads
 └── components/
     ├── pages/                    # studio, store, agents, services pages
     ├── sections/                 # hero, agent-cards, faq, how-to-buy, etc.
@@ -187,6 +189,7 @@ Open [http://localhost:3000](http://localhost:3000). Without any env vars the ap
 | `ZEROCLICK_API_KEY` | Optional | Contextual ads |
 | `NEXT_PUBLIC_VGS_VAULT_ID` | Optional | VGS card collection |
 | `STRIPE_SECRET_KEY` | Optional | Stripe backend for VGS |
+| `BLOB_READ_WRITE_TOKEN` | Optional | Vercel Blob — durable image + deliverable storage |
 
 ---
 

@@ -695,7 +695,16 @@ export async function runResearcherStandalone(
     } catch { /* VISION is non-critical */ }
   }
 
-  return { document, transaction: txR, events, toolsUsed: resToolsUsed, visionResult };
+  const researchResult = { document, transaction: txR, events, toolsUsed: resToolsUsed, visionResult };
+
+  // Persist researcher deliverable to Vercel Blob (non-blocking, best-effort)
+  uploadDeliverable(researchResult as unknown as Record<string, unknown>, {
+    orderId: document.id,
+  }).then((blobUrl) => {
+    if (blobUrl) emit("complete", "researcher", `Deliverable persisted → ${blobUrl}`);
+  }).catch(() => { /* blob persistence is non-critical */ });
+
+  return researchResult;
 }
 
 // ─── Reverse Pipeline: Fulfill External Seller Order ─────────────────
