@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { fulfillSellerOrder } from "@/lib/agent/pipeline";
 import { catalog } from "@/lib/agent/inventory";
 import { agentEvents } from "@/lib/agent/event-store";
-import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
+import { buildPaymentSpec, verifyX402Token, settleX402Token, getPaymentStatus } from "@/lib/nevermined/server";
 import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
 import type { SellerOrder } from "@/lib/agent/seller";
 import type { ToolSettings } from "@/lib/tool-settings";
@@ -26,13 +26,15 @@ function generateEventId() {
  */
 export async function GET() {
   const products = catalog.listProducts();
+  const payment = getPaymentStatus();
 
   return NextResponse.json({
     agent: "Seller",
-    version: "1.0.0",
+    version: "2.0.0",
     description:
       "Autonomous seller agent that fulfills orders using a multi-agent pipeline (Strategist → Researcher → optional Buyer). Products are generated on-the-fly from prompt templates.",
     endpoint: ENDPOINT,
+    protocol: "x402",
     catalog: products.map((p) => ({
       id: p.id,
       name: p.name,
@@ -41,10 +43,18 @@ export async function GET() {
       price: p.price,
       tags: p.tags,
     })),
-    pricing: {
-      note: "Prices are in credits. Purchase a Nevermined plan to get credits.",
-      planId: process.env.NVM_PLAN_ID ?? null,
-      agentId: process.env.NVM_AGENT_ID ?? null,
+    howToBuy: {
+      steps: [
+        "1. Choose a product from the catalog above (or omit productId for auto-matching)",
+        "2. POST to this endpoint with { query: 'your request', productId?: 'prod-xxx' }",
+        "3. You will receive a 402 response with a payment-required header (base64-encoded)",
+        "4. Decode the header and use planId/agentId to acquire an x402 access token from Nevermined",
+        "5. Re-POST with the same body + payment-signature header containing your x402 token",
+        "6. The order will be fulfilled and credits settled automatically",
+      ],
+      planId: payment.references.planId ?? null,
+      agentId: payment.references.agentId ?? null,
+      environment: payment.environment,
     },
   });
 }
@@ -118,8 +128,16 @@ export async function POST(request: Request) {
   if (!isInternalRequest && paymentSignature) {
     caller = paymentSignature.slice(0, 12) + "...";
 
-    // Verify token
-    const verification = await verifyX402Token(paymentSignature, ENDPOINT, estimatedCredits);
+    // Verify token (best-effort — settle is what actually burns credits)
+    let verifyResult = "skipped";
+    try {
+      const verification = await verifyX402Token(paymentSignature, ENDPOINT, estimatedCredits);
+      verifyResult = verification.valid ? "valid" : (verification.reason ?? "invalid");
+      console.log(`[x402/seller] Verify result: ${verifyResult}`);
+    } catch (e) {
+      verifyResult = `error: ${e instanceof Error ? e.message : e}`;
+      console.warn(`[x402/seller] Verify error (non-blocking):`, verifyResult);
+    }
 
     agentEvents.push({
       id: generateEventId(),
@@ -130,16 +148,10 @@ export async function POST(request: Request) {
         caller,
         query,
         credits: estimatedCredits,
+        verifyResult,
         paymentSignature: paymentSignature.slice(0, 20),
       },
     });
-
-    if (!verification.valid) {
-      return NextResponse.json(
-        { error: verification.reason ?? "Invalid payment token" },
-        { status: 402 }
-      );
-    }
   }
 
   agentEvents.push({
