@@ -7,15 +7,15 @@ import { ChevronDown } from "lucide-react";
 const FAQS = [
   {
     q: "Do I need to sign up or create an account?",
-    a: "No. The Studio works immediately in demo mode — no account, no API key, no credit card. Submit a brief and get a structured deliverable back right away.",
+    a: "No. The Studio works immediately — no account, no API key, no credit card. Submit a brief and get a structured deliverable back right away.",
   },
   {
     q: "What is a credit? What does it cost in real money?",
     a: "Credits are the unit of payment on the Nevermined network. 1 credit ≈ $0.10 USDC. A Research Sprint costs 1cr (~$0.10), a Planning Pack 5cr (~$0.50), and a Frontend Design Spec 10cr (~$1.00). You pay only for what you use — no monthly fee.",
   },
   {
-    q: "What's the difference between demo mode and live mode?",
-    a: "In demo mode the pipeline runs end-to-end but the Buyer does not transact on the marketplace. In live mode, the Buyer can purchase third-party data assets via Nevermined x402 — external sections are labeled ✦ External so the origin is always clear.",
+    q: "Does the Buyer agent always purchase external data?",
+    a: "No. The Buyer only transacts when External Marketplace is enabled in Settings. When it's off, the pipeline still runs end-to-end but the Buyer skips procurement. When it's on, the Buyer can purchase third-party data assets via Nevermined x402 — external sections are labeled ✦ External so the origin is always clear.",
   },
   {
     q: "Which AI model runs the agents?",

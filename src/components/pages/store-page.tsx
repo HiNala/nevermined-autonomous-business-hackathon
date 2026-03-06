@@ -264,15 +264,15 @@ function ProductCard({
         )}
       </button>
 
-      {/* Enrichment demo notice when externalTrading is off */}
+      {/* Enrichment notice when externalTrading is off */}
       {product.mayRequireExternalData && !externalTrading && (
         <div
           className="mt-2 flex items-start gap-1.5 rounded-lg px-2.5 py-2"
           style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}
         >
-          <span className="shrink-0 font-mono text-[8px] font-bold" style={{ color: "#6366F1" }}>DEMO</span>
+          <span className="shrink-0 font-mono text-[8px] font-bold" style={{ color: "#6366F1" }}>INFO</span>
           <p className="text-[9px] leading-snug" style={{ color: "#6366F1" }}>
-            External Marketplace OFF — enrichment planned but Buyer won’t transact. Enable in Settings for live procurement.
+            External Marketplace OFF — enrichment planned but Buyer won&apos;t transact. Enable in Settings for live procurement.
           </p>
         </div>
       )}

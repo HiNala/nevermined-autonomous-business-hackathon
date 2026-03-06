@@ -48,7 +48,7 @@ const PIPELINE_STAGES = [
     bg: "rgba(245,158,11,0.08)",
     border: "rgba(245,158,11,0.20)",
     title: "Enrichment",
-    desc: "Seller decides if third-party enrichment is needed. Buyer procures assets via Nevermined x402. Disabled in demo mode — enabled for live agentic flows.",
+    desc: "Seller decides if third-party enrichment is needed. Buyer procures assets via Nevermined x402. Controlled by External Marketplace setting.",
     artifact: "External assets",
     optional: true,
   },
@@ -214,11 +214,11 @@ export function DecisionLogic() {
               className="mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
               style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
             >
-              DEMO
+              SAFE
             </span>
             <p className="text-[11px] leading-snug" style={{ color: "var(--gray-500)" }}>
-              <span className="font-semibold" style={{ color: "#6366F1" }}>Context A — UI Demo:</span>{" "}
-              Seller narrates the enrichment decision. Buyer evaluates but doesn’t transact. Safe for judges &amp; demos.
+              <span className="font-semibold" style={{ color: "#6366F1" }}>Marketplace Off:</span>{" "}
+              Seller narrates the enrichment decision. Buyer evaluates but doesn&apos;t transact. No external spend.
             </p>
           </div>
           <div

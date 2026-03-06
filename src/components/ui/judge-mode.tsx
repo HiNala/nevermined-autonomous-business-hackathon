@@ -57,9 +57,9 @@ export const JUDGE_PRESETS: JudgePreset[] = [
     borderColor: "rgba(245, 158, 11, 0.18)",
   },
   {
-    id: "seller-demo",
-    title: "Seller Demo Mode",
-    subtitle: "Seller orchestrates pipeline — procurement visible but disabled",
+    id: "seller-pipeline",
+    title: "Seller Pipeline",
+    subtitle: "Seller orchestrates pipeline — procurement visible but skipped",
     prompt: "Generate a competitive intelligence report on the developer tools market: key players, pricing strategies, and emerging AI-powered development trends.",
     mode: "seller",
     outputType: "research",
@@ -74,8 +74,8 @@ export const JUDGE_PRESETS: JudgePreset[] = [
     borderColor: "rgba(99, 102, 241, 0.18)",
   },
   {
-    id: "vision-demo",
-    title: "VISION Image Demo",
+    id: "vision-showcase",
+    title: "VISION Image Generation",
     subtitle: "Composer → NanoBanana image with quality loop — showcases VISION agent",
     prompt: "Analyze the future of autonomous AI agents in financial markets: trading bots, payment automation, and economic implications of machine-to-machine commerce.",
     mode: "researcher",
@@ -127,7 +127,7 @@ export function JudgeMode({ onSelect }: JudgeModeProps) {
       <div className="flex items-center gap-2">
         <Award size={13} style={{ color: "var(--accent-400)" }} />
         <span className="font-mono text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: "var(--accent-400)" }}>
-          Judge Demo Mode
+          Judge Presets
         </span>
       </div>
       <div className="space-y-2">

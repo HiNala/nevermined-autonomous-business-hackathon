@@ -134,7 +134,7 @@ export function TryStudio() {
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px]" style={{ color: "var(--gray-400)" }}>
-              Demo returns a preview. Live pays and calls your seller.
+              Returns a structured deliverable. Seller mode pays and fulfills via x402.
             </p>
             <button
               type="submit"

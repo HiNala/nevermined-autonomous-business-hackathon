@@ -80,7 +80,7 @@ export function CtaSection() {
         </div>
 
         <p className="mt-6 text-[12px]" style={{ color: "var(--gray-400)" }}>
-          No signup &nbsp;&middot;&nbsp; Demo mode available &nbsp;&middot;&nbsp; Powered by Nevermined
+          No signup &nbsp;&middot;&nbsp; Pay per deliverable &nbsp;&middot;&nbsp; Powered by Nevermined
         </p>
       </motion.div>
     </section>

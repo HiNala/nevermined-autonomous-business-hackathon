@@ -1030,7 +1030,7 @@ export function StudioPage() {
                     background: judgeMode ? "rgba(201, 125, 78, 0.10)" : "var(--bg-surface)",
                     border: `1px solid ${judgeMode ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
                   }}
-                  title="Judge Demo Mode"
+                  title="Judge Presets"
                 >
                   <Award size={9} /> judge
                 </button>

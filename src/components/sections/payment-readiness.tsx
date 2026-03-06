@@ -34,7 +34,7 @@ export function PaymentReadiness() {
             Payment Readiness
           </h2>
           <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-            Demo mode until Nevermined seller config is present, then auto-upgrades to live paid flow.
+            Sandbox billing until Nevermined seller config is present, then auto-upgrades to live paid flow.
           </p>
         </div>
         <div
@@ -91,7 +91,7 @@ export function PaymentReadiness() {
             <ChecklistItem text="Create your Nevermined plan for the seller endpoint." />
             <ChecklistItem text="Add NVM_API_KEY, NVM_PLAN_ID, NVM_AGENT_ID, NVM_SELLER_ENDPOINT." />
             <ChecklistItem text="Point the request form at your seller agent URL." />
-            <ChecklistItem text="Run one real paid request and demo the live feed." />
+            <ChecklistItem text="Run one real paid request and verify the live feed." />
           </div>
         </div>
       </div>

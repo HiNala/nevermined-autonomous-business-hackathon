@@ -288,7 +288,7 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
               {agent.id === "agent-buyer" && (
                 <>
                   <p className="text-[11px]" style={{ color: "var(--gray-500)" }}>• Nevermined marketplace discovery via x402 · Value-ranks by relevance + price</p>
-                  <p className="text-[11px]" style={{ color: "var(--gray-500)" }}>• Purchase rationale + approval threshold · Demo fallback assets</p>
+                  <p className="text-[11px]" style={{ color: "var(--gray-500)" }}>• Purchase rationale + approval threshold · Curated fallback assets</p>
                 </>
               )}
               {agent.id === "agent-seller" && (
@@ -316,7 +316,7 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
 const UPGRADE_HIGHLIGHTS = [
   { name: "Interpreter", color: "#7C3AED", icon: Brain, metric: "≥ B grade or regenerate", detail: "Brief scoring, clarification mode, workspace-aware context" },
   { name: "Composer", color: "#0EA5E9", icon: PenLine, metric: "0–10 per source", detail: "2-pass synthesis, source scoring, contradiction detection" },
-  { name: "Buyer", color: "#F59E0B", icon: ShoppingBag, metric: "Cost threshold gate", detail: "Value-ranked procurement, purchase rationale, demo fallback" },
+  { name: "Buyer", color: "#F59E0B", icon: ShoppingBag, metric: "Cost threshold gate", detail: "Value-ranked procurement, purchase rationale, curated fallback" },
   { name: "Seller", color: "#EF4444", icon: PackageCheck, metric: "5 quality checks", detail: "7-state lifecycle, 3 delivery variants, x402 validation" },
   { name: "VISION", color: "#CA8A04", icon: ImageIcon, metric: "Up to 3 attempts", detail: "NanoBanana + GPT-4o judge, prompt refinement, Unsplash fallback" },
 ];
