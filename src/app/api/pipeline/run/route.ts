@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "strategist") {
-      const result = await runStrategistStandalone(input, outputType, provider);
+      const result = await runStrategistStandalone(input, outputType, provider, undefined, toolSettings);
       return NextResponse.json({
         mode: "strategist",
         ...result,

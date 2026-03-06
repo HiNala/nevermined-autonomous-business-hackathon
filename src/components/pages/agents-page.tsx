@@ -15,7 +15,7 @@ function AgentDetailCard({ agent, index }: { agent: StudioAgent; index: number }
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
-      className="glass relative overflow-hidden p-8 transition-all duration-300"
+      className="glass relative overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1"
       style={{
         borderColor: agent.primary ? `${agent.accentColor}33` : "var(--glass-border)",
         boxShadow: agent.primary ? `0 0 40px -10px ${agent.accentColor}18` : "none",

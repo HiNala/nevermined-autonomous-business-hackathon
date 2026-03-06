@@ -359,6 +359,13 @@ function TradingSection({
           onChange={(v) => onChange({ ...trading, sellerEnabled: v })}
           accentColor="#EF4444"
         />
+        <TradingToggle
+          label="Nevermined Tracking"
+          description="Log internal pipeline runs to the Nevermined network. External x402 transactions always log regardless of this setting."
+          enabled={trading.nvmTracking}
+          onChange={(v) => onChange({ ...trading, nvmTracking: v })}
+          accentColor="#8B5CF6"
+        />
       </div>
     </div>
   );

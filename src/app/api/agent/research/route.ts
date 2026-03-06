@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { runResearch, type ResearchRequest } from "@/lib/agent/researcher";
 import { agentEvents } from "@/lib/agent/event-store";
 import { buildPaymentSpec, verifyX402Token, settleX402Token, logNeverminedTask } from "@/lib/nevermined/server";
-import type { SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
+import type { SearchProvider, ScrapeProvider, ToolSettings } from "@/lib/tool-settings";
 import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
 
 interface RequestBody {
@@ -12,6 +12,7 @@ interface RequestBody {
   provider?: "openai" | "gemini" | "anthropic";
   searchTool?: SearchProvider;
   scrapeTool?: ScrapeProvider;
+  toolSettings?: ToolSettings;
 }
 
 const CREDIT_COSTS = { quick: 1, standard: 5, deep: 10 } as const;
@@ -162,12 +163,16 @@ export async function POST(request: Request) {
       },
     });
 
-    // Log on Nevermined network for all requests (fire-and-forget)
-    logNeverminedTask({
-      credits: document.creditsUsed,
-      description: `Research (${depth}): "${query.slice(0, 60)}"`,
-      tag: "research",
-    }).catch(() => {});
+    // Log on Nevermined network (fire-and-forget)
+    // External x402 calls always log; internal calls respect nvmTracking toggle
+    const shouldLogNvm = !isInternalRequest || (body.toolSettings?.trading?.nvmTracking ?? true);
+    if (shouldLogNvm) {
+      logNeverminedTask({
+        credits: document.creditsUsed,
+        description: `Research (${depth}): "${query.slice(0, 60)}"`,
+        tag: "research",
+      }).catch(() => {});
+    }
 
     return NextResponse.json({
       status: "success",

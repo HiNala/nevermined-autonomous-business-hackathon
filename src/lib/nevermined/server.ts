@@ -124,46 +124,95 @@ export async function verifyX402Token(
 }
 
 /**
+ * Resolve the Nevermined backend base URL for the current environment.
+ */
+function getNvmBackendUrl(): string {
+  const env = getEnvironment();
+  const urls: Record<string, string> = {
+    sandbox: "https://api.sandbox.nevermined.app",
+    live: "https://api.live.nevermined.app",
+    staging_sandbox: "https://api.sandbox.nevermined.dev",
+    staging_live: "https://api.live.nevermined.dev",
+  };
+  return urls[env] ?? urls.sandbox;
+}
+
+/**
  * Log an agent task on the Nevermined network.
- * Uses simulation requests to register API calls and credit redemption
- * on the Nevermined dashboard — even for internal pipeline runs.
+ * Uses direct HTTP calls to the simulation API to register API calls
+ * and credit redemption on the Nevermined dashboard.
+ *
+ * Flow: startSimulationRequest → finishSimulationRequest
  */
 export async function logNeverminedTask(opts: {
   credits: number;
   description?: string;
   tag?: string;
 }): Promise<{ success: boolean; agentRequestId?: string; txHash?: string; error?: string }> {
-  const payments = getPaymentsClient();
-  if (!payments) {
-    return { success: false, error: "Nevermined not configured" };
+  const apiKey = normalizeEnvValue(process.env.NVM_API_KEY);
+  if (!apiKey) {
+    return { success: false, error: "NVM_API_KEY not configured" };
   }
+
+  const backend = getNvmBackendUrl();
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey}`,
+  };
 
   try {
     // Step 1: Start a simulation request (registers API call on NVM)
-    const simRequest = await payments.requests.startSimulationRequest({
-      agentName: "Auto Business Agent",
-      planName: "plan one",
+    const startRes = await fetch(`${backend}/api/v1/protocol/agents/simulate/start`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        agentName: opts.tag ?? "Auto Business Agent",
+        planName: "plan one",
+      }),
+      signal: AbortSignal.timeout(15000),
     });
 
-    if (!simRequest?.agentRequestId) {
-      return { success: false, error: "Failed to start simulation request" };
+    if (!startRes.ok) {
+      const errBody = await startRes.text().catch(() => "");
+      return { success: false, error: `Start simulation failed (${startRes.status}): ${errBody.slice(0, 200)}` };
+    }
+
+    const simRequest = await startRes.json();
+    const agentRequestId = simRequest?.agentRequestId;
+
+    if (!agentRequestId) {
+      return { success: false, error: "No agentRequestId returned from simulation start" };
     }
 
     // Step 2: Finish the simulation (redeems credits on NVM)
-    const result = await payments.requests.finishSimulationRequest(
-      simRequest.agentRequestId,
-      0.2, // 20% margin
-      false // not a batch request
-    );
+    const finishRes = await fetch(`${backend}/api/v1/protocol/agents/simulate/finish`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        agentRequestId,
+        marginPercent: 0.2,
+        batch: false,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
 
+    if (!finishRes.ok) {
+      const errBody = await finishRes.text().catch(() => "");
+      return { success: false, error: `Finish simulation failed (${finishRes.status}): ${errBody.slice(0, 200)}` };
+    }
+
+    const result = await finishRes.json();
+
+    console.log(`[NVM] Task logged: ${agentRequestId}, success: ${result?.success}`);
     return {
-      success: result?.success ?? false,
-      agentRequestId: simRequest.agentRequestId,
+      success: result?.success ?? true,
+      agentRequestId,
       txHash: result?.txHash,
     };
   } catch (err) {
-    console.error("[NVM] logNeverminedTask failed:", err);
-    return { success: false, error: err instanceof Error ? err.message : "Task logging error" };
+    const msg = err instanceof Error ? err.message : "Task logging error";
+    console.error("[NVM] logNeverminedTask failed:", msg);
+    return { success: false, error: msg };
   }
 }
 

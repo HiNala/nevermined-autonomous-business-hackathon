@@ -18,6 +18,8 @@ export interface TradingSettings {
   externalTrading: boolean;
   /** Allow the Seller agent to accept and fulfill external orders. Default: true */
   sellerEnabled: boolean;
+  /** Log internal pipeline runs to the Nevermined network. External x402 transactions always log. Default: true */
+  nvmTracking: boolean;
 }
 
 export interface ToolSettings {
@@ -35,7 +37,7 @@ export const DEFAULT_TOOL_SETTINGS: ToolSettings = {
   researcher: { search: "apify", scrape: "apify" },
   buyer: { search: "apify", scrape: "apify" },
   seller: { search: "apify", scrape: "apify" },
-  trading: { internalTrading: true, externalTrading: true, sellerEnabled: true },
+  trading: { internalTrading: true, externalTrading: true, sellerEnabled: true, nvmTracking: true },
 };
 
 /** Load tool settings from localStorage (client-only). */
