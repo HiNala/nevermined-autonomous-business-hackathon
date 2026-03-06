@@ -1,12 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import { Zap, ArrowRight } from "lucide-react";
 
-function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
+interface AgentLiveStats {
+  [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
+}
+
+function AgentCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
+  const agentKey = agent.id.replace("agent-", "");
+  const real = liveStats?.[agentKey];
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -105,19 +112,19 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
           ))}
         </div>
 
-        {/* Stats row */}
+        {/* Stats row — real data from ledger */}
         <div
           className="mb-5 flex items-center gap-4 border-t pt-4"
           style={{ borderColor: "var(--border-default)" }}
         >
           <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-            {agent.stats.totalSales} deliveries
+            {real ? real.requestsHandled : "—"} deliveries
           </span>
           <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-            {agent.stats.repeatBuyers} repeat
+            {real ? real.creditsSpent : "—"} spent
           </span>
           <span className="font-mono text-[10px]" style={{ color: "var(--accent-400)" }}>
-            {agent.stats.totalCreditsEarned}cr earned
+            {real ? `${real.creditsEarned}cr` : "—"} earned
           </span>
         </div>
 
@@ -155,6 +162,17 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
 }
 
 export function AgentCards() {
+  const [liveStats, setLiveStats] = useState<AgentLiveStats | null>(null);
+
+  useEffect(() => {
+    fetch("/api/pipeline/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.agents) setLiveStats(d.agents);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="agents" className="mx-auto max-w-6xl px-6 pb-16">
       <div className="mb-8">
@@ -173,7 +191,7 @@ export function AgentCards() {
       </div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
         {STUDIO_AGENTS.map((agent, i) => (
-          <AgentCard key={agent.id} agent={agent} index={i} />
+          <AgentCard key={agent.id} agent={agent} index={i} liveStats={liveStats} />
         ))}
       </div>
     </section>

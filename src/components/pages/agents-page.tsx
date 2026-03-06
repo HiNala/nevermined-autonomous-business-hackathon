@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
@@ -9,7 +10,13 @@ import { Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
 
-function AgentDetailCard({ agent, index }: { agent: StudioAgent; index: number }) {
+interface AgentLiveStats {
+  [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
+}
+
+function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
+  const agentKey = agent.id.replace("agent-", "");
+  const real = liveStats?.[agentKey];
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -84,15 +91,15 @@ function AgentDetailCard({ agent, index }: { agent: StudioAgent; index: number }
 
           <div className="flex items-center gap-6 border-t pt-4" style={{ borderColor: "var(--border-default)" }}>
             <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--gray-900)" }}>{agent.stats.totalSales}</p>
+              <p className="font-mono text-lg font-bold" style={{ color: "var(--gray-900)" }}>{real ? real.requestsHandled : "—"}</p>
               <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Deliveries</p>
             </div>
             <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--gray-900)" }}>{agent.stats.repeatBuyers}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Repeat</p>
+              <p className="font-mono text-lg font-bold" style={{ color: "var(--gray-900)" }}>{real ? real.creditsSpent : "—"}</p>
+              <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Credits Spent</p>
             </div>
             <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--accent-400)" }}>{agent.stats.totalCreditsEarned}cr</p>
+              <p className="font-mono text-lg font-bold" style={{ color: "var(--accent-400)" }}>{real ? `${real.creditsEarned}cr` : "—"}</p>
               <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Earned</p>
             </div>
           </div>
@@ -122,6 +129,15 @@ function AgentDetailCard({ agent, index }: { agent: StudioAgent; index: number }
 }
 
 export function AgentsPage() {
+  const [liveStats, setLiveStats] = useState<AgentLiveStats | null>(null);
+
+  useEffect(() => {
+    fetch("/api/pipeline/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.agents) setLiveStats(d.agents); })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <Nav />
@@ -146,7 +162,7 @@ export function AgentsPage() {
           {/* Agent cards */}
           <div className="flex flex-col gap-6">
             {STUDIO_AGENTS.map((agent, i) => (
-              <AgentDetailCard key={agent.id} agent={agent} index={i} />
+              <AgentDetailCard key={agent.id} agent={agent} index={i} liveStats={liveStats} />
             ))}
           </div>
         </div>

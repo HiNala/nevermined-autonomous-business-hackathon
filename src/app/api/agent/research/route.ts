@@ -163,15 +163,15 @@ export async function POST(request: Request) {
       },
     });
 
-    // Log on Nevermined network (fire-and-forget)
+    // Log on Nevermined network (awaited so it completes before response)
     // External x402 calls always log; internal calls respect nvmTracking toggle
     const shouldLogNvm = !isInternalRequest || (body.toolSettings?.trading?.nvmTracking ?? true);
     if (shouldLogNvm) {
-      logNeverminedTask({
+      await logNeverminedTask({
         credits: document.creditsUsed,
         description: `Research (${depth}): "${query.slice(0, 60)}"`,
         tag: "research",
-      }).catch(() => {});
+      });
     }
 
     return NextResponse.json({

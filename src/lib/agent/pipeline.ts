@@ -405,19 +405,16 @@ export async function runPipeline(
 
     emit("complete", "pipeline", `Pipeline complete — ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} purchases, ${totalCredits}cr total`);
 
-    // Log this pipeline run on the Nevermined network (fire-and-forget)
+    // Log this pipeline run on the Nevermined network
     if (nvmTracking) {
-      logNeverminedTask({
+      const nvmResult = await logNeverminedTask({
         credits: totalCredits,
         description: `Pipeline: "${brief.title.slice(0, 60)}" — ${document.sections.length} sections, ${totalCredits}cr`,
         tag: "pipeline",
-      }).then((nvmResult) => {
-        if (nvmResult.success) {
-          console.log(`[NVM] Task logged: ${nvmResult.agentRequestId}`);
-        } else {
-          console.warn(`[NVM] Task logging failed: ${nvmResult.error}`);
-        }
-      }).catch(() => { /* swallow */ });
+      });
+      if (nvmResult.success) {
+        emit("complete", "pipeline", `Nevermined: task logged (${nvmResult.agentRequestId})`);
+      }
     }
 
     return {
@@ -492,9 +489,9 @@ export async function runStrategistStandalone(
     { tool: "llm-synthesis", label: `Strategist LLM — ${brief.provider}/${brief.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${brief.creditsUsed}cr` },
   ];
 
-  // Log on Nevermined network (fire-and-forget) — only if nvmTracking is enabled
+  // Log on Nevermined network — only if nvmTracking is enabled
   if (toolSettings?.trading?.nvmTracking ?? true) {
-    logNeverminedTask({ credits: brief.creditsUsed, description: `Strategist: "${brief.title.slice(0, 60)}"`, tag: "strategist" }).catch(() => {});
+    await logNeverminedTask({ credits: brief.creditsUsed, description: `Strategist: "${brief.title.slice(0, 60)}"`, tag: "strategist" });
   }
 
   return { brief, transaction: txS, events, toolsUsed };
@@ -545,9 +542,9 @@ export async function runResearcherStandalone(
 
   emit("complete", "researcher", `Research complete — ${document.sections.length} sections, ${document.sources.length} sources`);
 
-  // Log on Nevermined network (fire-and-forget) — only if nvmTracking is enabled
+  // Log on Nevermined network — only if nvmTracking is enabled
   if (toolSettings?.trading?.nvmTracking ?? true) {
-    logNeverminedTask({ credits: document.creditsUsed, description: `Research: "${query.slice(0, 60)}"`, tag: "researcher" }).catch(() => {});
+    await logNeverminedTask({ credits: document.creditsUsed, description: `Research: "${query.slice(0, 60)}"`, tag: "researcher" });
   }
 
   return { document, transaction: txR, events, toolsUsed: document.toolsUsed ?? [] };
@@ -784,10 +781,10 @@ export async function fulfillSellerOrder(
 
     toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined x402 — Order Fulfilled & Settled`, sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `${totalCredits}cr total` });
 
-    // Log on Nevermined network (fire-and-forget)
+    // Log on Nevermined network
     // External seller orders (no toolSettings) always log; internal UI calls respect nvmTracking
     if (!toolSettings || (toolSettings.trading?.nvmTracking ?? true)) {
-      logNeverminedTask({ credits: totalCredits, description: `Seller order: "${order.query.slice(0, 60)}" — ${totalCredits}cr`, tag: "seller" }).catch(() => {});
+      await logNeverminedTask({ credits: totalCredits, description: `Seller order: "${order.query.slice(0, 60)}" — ${totalCredits}cr`, tag: "seller" });
     }
 
     return {

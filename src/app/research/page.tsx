@@ -1,4 +1,4 @@
-import { ResearchPage } from "@/components/pages/research-page";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Research — Auto Business",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ResearchPage />;
+  redirect("/studio?mode=researcher");
 }

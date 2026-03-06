@@ -139,16 +139,19 @@ function getNvmBackendUrl(): string {
 
 /**
  * Log an agent task on the Nevermined network.
- * Uses direct HTTP calls to the simulation API to register API calls
- * and credit redemption on the Nevermined dashboard.
  *
- * Flow: startSimulationRequest → finishSimulationRequest
+ * Approach:
+ *  1. startSimulationRequest — registers the API call on the NVM dashboard.
+ *  2. trackAgentSubTask — records credit redemption for the task.
+ *  3. finishSimulationRequest — attempts to close/settle (best-effort).
+ *
+ * Even if steps 2 or 3 fail the start alone creates a visible entry.
  */
 export async function logNeverminedTask(opts: {
   credits: number;
   description?: string;
   tag?: string;
-}): Promise<{ success: boolean; agentRequestId?: string; txHash?: string; error?: string }> {
+}): Promise<{ success: boolean; agentRequestId?: string; error?: string }> {
   const apiKey = normalizeEnvValue(process.env.NVM_API_KEY);
   if (!apiKey) {
     return { success: false, error: "NVM_API_KEY not configured" };
@@ -161,7 +164,7 @@ export async function logNeverminedTask(opts: {
   };
 
   try {
-    // Step 1: Start a simulation request (registers API call on NVM)
+    // Step 1: Start simulation request
     const startRes = await fetch(`${backend}/api/v1/protocol/agents/simulate/start`, {
       method: "POST",
       headers,
@@ -174,41 +177,50 @@ export async function logNeverminedTask(opts: {
 
     if (!startRes.ok) {
       const errBody = await startRes.text().catch(() => "");
-      return { success: false, error: `Start simulation failed (${startRes.status}): ${errBody.slice(0, 200)}` };
+      console.warn(`[NVM] Start simulation failed (${startRes.status}): ${errBody.slice(0, 200)}`);
+      return { success: false, error: `Start failed (${startRes.status})` };
     }
 
     const simRequest = await startRes.json();
     const agentRequestId = simRequest?.agentRequestId;
 
     if (!agentRequestId) {
-      return { success: false, error: "No agentRequestId returned from simulation start" };
+      return { success: false, error: "No agentRequestId returned" };
     }
 
-    // Step 2: Finish the simulation (redeems credits on NVM)
-    const finishRes = await fetch(`${backend}/api/v1/protocol/agents/simulate/finish`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        agentRequestId,
-        marginPercent: 0.2,
-        batch: false,
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
+    console.log(`[NVM] Simulation started: ${agentRequestId}`);
 
-    if (!finishRes.ok) {
-      const errBody = await finishRes.text().catch(() => "");
-      return { success: false, error: `Finish simulation failed (${finishRes.status}): ${errBody.slice(0, 200)}` };
+    // Step 2: Track sub-task with credit info (best-effort)
+    try {
+      await fetch(`${backend}/api/v1/protocol/agent-sub-tasks`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          agentRequestId,
+          creditsToRedeem: opts.credits,
+          tag: opts.tag ?? "pipeline",
+          description: opts.description ?? "Agent task completed",
+          status: "SUCCESS",
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch {
+      // non-fatal — the start already registered the call
     }
 
-    const result = await finishRes.json();
+    // Step 3: Finish simulation (best-effort)
+    try {
+      await fetch(`${backend}/api/v1/protocol/agents/simulate/finish`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ agentRequestId, marginPercent: 0.2, batch: false }),
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch {
+      // non-fatal
+    }
 
-    console.log(`[NVM] Task logged: ${agentRequestId}, success: ${result?.success}`);
-    return {
-      success: result?.success ?? true,
-      agentRequestId,
-      txHash: result?.txHash,
-    };
+    return { success: true, agentRequestId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Task logging error";
     console.error("[NVM] logNeverminedTask failed:", msg);
