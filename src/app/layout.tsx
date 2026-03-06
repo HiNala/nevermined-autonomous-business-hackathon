@@ -21,7 +21,7 @@ const dmSerif = DM_Serif_Display({
   variable: "--font-dm-serif",
 });
 
-const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? "https://auto-business.vercel.app").trim().replace(/\/+$/, "");
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? "https://nevermined-autonomous-business-hack.vercel.app").trim().replace(/\/+$/, "");
 
 export const metadata: Metadata = {
   title: {

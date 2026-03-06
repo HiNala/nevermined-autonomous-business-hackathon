@@ -4,7 +4,7 @@
  * Each call triggers logNeverminedTask via the Payments SDK.
  */
 
-const BASE = "https://auto-business-two.vercel.app";
+const BASE = "https://nevermined-autonomous-business-hack.vercel.app";
 
 const CALLS = [
   // Direct NVM task logging

@@ -4,7 +4,7 @@
  * Uses Stripe test card 4242 4242 4242 4242.
  */
 
-const BASE = "https://auto-business-two.vercel.app";
+const BASE = "https://nevermined-autonomous-business-hack.vercel.app";
 
 async function step(name, url, opts = {}) {
   console.log(`\n▸ ${name}`);

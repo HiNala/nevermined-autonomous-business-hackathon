@@ -4,7 +4,7 @@
  * Usage: node scripts/hit-api.mjs
  */
 
-const BASE = "https://auto-business-two.vercel.app";
+const BASE = "https://nevermined-autonomous-business-hack.vercel.app";
 
 const TASKS = [
   {

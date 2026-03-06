@@ -4,8 +4,8 @@
 >
 > Built for the **Autonomous Business Hackathon** · March 5–6, 2026
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-auto--business.vercel.app-orange?style=flat-square)](https://auto-business.vercel.app)
-[![A2A Agent Card](https://img.shields.io/badge/A2A-agent.json-blue?style=flat-square)](https://auto-business.vercel.app/.well-known/agent.json)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-nevermined--autonomous--business--hack.vercel.app-orange?style=flat-square)](https://nevermined-autonomous-business-hack.vercel.app)
+[![A2A Agent Card](https://img.shields.io/badge/A2A-agent.json-blue?style=flat-square)](https://nevermined-autonomous-business-hack.vercel.app/.well-known/agent.json)
 [![Nevermined](https://img.shields.io/badge/Powered%20by-Nevermined%20x402-purple?style=flat-square)](https://nevermined.app)
 
 ---
@@ -279,8 +279,8 @@ Pushes to `main` auto-deploy via Vercel.
 
 ## Links
 
-- [Live Demo](https://auto-business.vercel.app)
-- [Agent Card](https://auto-business.vercel.app/.well-known/agent.json)
+- [Live Demo](https://nevermined-autonomous-business-hack.vercel.app)
+- [Agent Card](https://nevermined-autonomous-business-hack.vercel.app/.well-known/agent.json)
 - [Nevermined App](https://nevermined.app)
 - [Nevermined Docs](https://docs.nevermined.app)
 - [NanoBanana](https://nanobnana.com)
