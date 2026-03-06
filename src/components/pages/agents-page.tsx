@@ -186,26 +186,37 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
               </div>
             )}
 
-            {/* Live stats */}
-            {real && (
-              <div
-                className="grid grid-cols-3 gap-2 rounded-xl p-3"
-                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
-              >
-                <div className="text-center">
-                  <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.requestsHandled}</p>
-                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>runs</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.creditsSpent}</p>
-                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>spent</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-mono text-sm font-bold" style={{ color: "var(--accent-400)" }}>{real.creditsEarned}cr</p>
-                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>earned</p>
-                </div>
-              </div>
-            )}
+            {/* Live stats — skeleton while loading, real values once available */}
+            <div
+              className="grid grid-cols-3 gap-2 rounded-xl p-3"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
+            >
+              {real ? (
+                <>
+                  <div className="text-center">
+                    <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.requestsHandled}</p>
+                    <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>runs</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.creditsSpent}</p>
+                    <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>spent</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-mono text-sm font-bold" style={{ color: "var(--accent-400)" }}>{real.creditsEarned}cr</p>
+                    <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>earned</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {Array.from({ length: 3 }).map((_, k) => (
+                    <div key={k} className="flex flex-col items-center gap-1.5 py-0.5">
+                      <div className="skeleton h-4 w-8 rounded" />
+                      <div className="skeleton h-2 w-10 rounded" />
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Right column: Outputs + pipeline position */}

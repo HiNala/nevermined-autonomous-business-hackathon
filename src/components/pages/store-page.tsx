@@ -793,10 +793,46 @@ export function StorePage() {
           </motion.div>
         )}
 
-        {/* Loading */}
+        {/* Loading skeleton */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin" style={{ color: "var(--gray-400)" }} />
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="relative flex flex-col rounded-xl border p-5"
+                style={{ background: "var(--bg-elevated)", borderColor: "var(--border-default)" }}
+              >
+                {/* Top accent bar skeleton */}
+                <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl skeleton" />
+                {/* Badge row */}
+                <div className="mt-2 mb-3 flex items-center justify-between">
+                  <div className="skeleton h-5 w-24 rounded-md" />
+                  <div className="skeleton h-5 w-12 rounded-md" />
+                </div>
+                {/* Title */}
+                <div className="skeleton mb-1.5 h-4 w-3/4 rounded" />
+                {/* Description lines */}
+                <div className="mb-1 skeleton h-3 w-full rounded" />
+                <div className="mb-4 skeleton h-3 w-5/6 rounded" />
+                {/* Pipeline strip */}
+                <div className="mb-4 rounded-lg px-3 py-2.5" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}>
+                  <div className="skeleton mb-1.5 h-2 w-16 rounded" />
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <div key={j} className="skeleton h-4 w-14 rounded-md" />
+                    ))}
+                  </div>
+                </div>
+                {/* Tags */}
+                <div className="mb-4 flex gap-1.5">
+                  {Array.from({ length: 3 }).map((_, j) => (
+                    <div key={j} className="skeleton h-4 w-14 rounded-full" />
+                  ))}
+                </div>
+                {/* CTA button */}
+                <div className="skeleton h-9 w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         )}
 
