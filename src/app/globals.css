@@ -240,6 +240,26 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes flow-down {
+  0% { top: 0; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 0 0 var(--breathe-color, rgba(201,125,78,0.00)); }
+  50% { box-shadow: 0 0 12px -2px var(--breathe-color, rgba(201,125,78,0.18)); }
+}
+
+@keyframes progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+.animate-breathe { animation: breathe 2.4s ease-in-out infinite; }
+.animate-flow-down { animation: flow-down 1.4s ease-in-out infinite; }
+
 @keyframes orbit {
   from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
   to { transform: rotate(360deg) translateX(120px) rotate(-360deg); }

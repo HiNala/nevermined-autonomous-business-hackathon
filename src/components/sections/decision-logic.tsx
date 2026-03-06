@@ -54,7 +54,7 @@ export function DecisionLogic() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="glass relative overflow-hidden p-6"
+            className="glass relative overflow-hidden p-6 transition-transform duration-300 hover:-translate-y-1"
           >
             {/* Top accent */}
             <div

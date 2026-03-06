@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { runResearch, type ResearchRequest } from "@/lib/agent/researcher";
 import { agentEvents } from "@/lib/agent/event-store";
-import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
+import { buildPaymentSpec, verifyX402Token, settleX402Token, logNeverminedTask } from "@/lib/nevermined/server";
 import type { SearchProvider, ScrapeProvider } from "@/lib/tool-settings";
 import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
 
@@ -161,6 +161,13 @@ export async function POST(request: Request) {
         documentId: document.id,
       },
     });
+
+    // Log on Nevermined network for all requests (fire-and-forget)
+    logNeverminedTask({
+      credits: document.creditsUsed,
+      description: `Research (${depth}): "${query.slice(0, 60)}"`,
+      tag: "research",
+    }).catch(() => {});
 
     return NextResponse.json({
       status: "success",

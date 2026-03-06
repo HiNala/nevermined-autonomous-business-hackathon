@@ -71,11 +71,11 @@ function ToggleGroup<T extends string>({
               className="flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-all"
               style={{
                 background: isActive
-                  ? "rgba(34, 197, 94, 0.07)"
+                  ? "rgba(201, 125, 78, 0.07)"
                   : "var(--bg-surface)",
                 border: `1px solid ${
                   isActive
-                    ? "rgba(34, 197, 94, 0.22)"
+                    ? "rgba(201, 125, 78, 0.25)"
                     : "var(--border-default)"
                 }`,
               }}
@@ -84,13 +84,13 @@ function ToggleGroup<T extends string>({
                 <div
                   className="mt-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-full border-2"
                   style={{
-                    borderColor: isActive ? "#22C55E" : "var(--gray-400)",
+                    borderColor: isActive ? "var(--accent-400)" : "var(--gray-400)",
                   }}
                 >
                   {isActive && (
                     <div
                       className="size-1.5 rounded-full"
-                      style={{ background: "#22C55E" }}
+                      style={{ background: "var(--accent-400)" }}
                     />
                   )}
                 </div>
@@ -281,8 +281,8 @@ function TradingToggle({
       onClick={() => onChange(!enabled)}
       className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition-all"
       style={{
-        background: enabled ? "rgba(34, 197, 94, 0.05)" : "var(--bg-surface)",
-        border: `1px solid ${enabled ? "rgba(34, 197, 94, 0.18)" : "var(--border-default)"}`,
+        background: enabled ? "rgba(201, 125, 78, 0.05)" : "var(--bg-surface)",
+        border: `1px solid ${enabled ? "rgba(201, 125, 78, 0.20)" : "var(--border-default)"}`,
       }}
     >
       <div className="min-w-0 flex-1 pr-3">

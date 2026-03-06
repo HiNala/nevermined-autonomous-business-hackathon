@@ -124,6 +124,50 @@ export async function verifyX402Token(
 }
 
 /**
+ * Log an agent task on the Nevermined network.
+ * Uses simulation requests to register API calls and credit redemption
+ * on the Nevermined dashboard — even for internal pipeline runs.
+ */
+export async function logNeverminedTask(opts: {
+  credits: number;
+  description?: string;
+  tag?: string;
+}): Promise<{ success: boolean; agentRequestId?: string; txHash?: string; error?: string }> {
+  const payments = getPaymentsClient();
+  if (!payments) {
+    return { success: false, error: "Nevermined not configured" };
+  }
+
+  try {
+    // Step 1: Start a simulation request (registers API call on NVM)
+    const simRequest = await payments.requests.startSimulationRequest({
+      agentName: "Auto Business Agent",
+      planName: "plan one",
+    });
+
+    if (!simRequest?.agentRequestId) {
+      return { success: false, error: "Failed to start simulation request" };
+    }
+
+    // Step 2: Finish the simulation (redeems credits on NVM)
+    const result = await payments.requests.finishSimulationRequest(
+      simRequest.agentRequestId,
+      0.2, // 20% margin
+      false // not a batch request
+    );
+
+    return {
+      success: result?.success ?? false,
+      agentRequestId: simRequest.agentRequestId,
+      txHash: result?.txHash,
+    };
+  } catch (err) {
+    console.error("[NVM] logNeverminedTask failed:", err);
+    return { success: false, error: err instanceof Error ? err.message : "Task logging error" };
+  }
+}
+
+/**
  * Settle (burn credits) after successful execution.
  */
 export async function settleX402Token(

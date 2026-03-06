@@ -27,6 +27,7 @@ import {
   Settings,
   Download,
   Award,
+  ChevronDown,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -92,6 +93,7 @@ function AgentCard({
   onClick,
   stats,
   toolLabel,
+  index = 0,
 }: {
   agent: typeof AGENT_CONFIG.strategist;
   isActive: boolean;
@@ -99,21 +101,33 @@ function AgentCard({
   onClick: () => void;
   stats: { earned: number; handled: number };
   toolLabel?: string;
+  index?: number;
 }) {
   const badge = toolLabel ? TOOL_BADGE[toolLabel] : null;
 
   return (
     <button
       onClick={onClick}
-      className="group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all duration-200"
+      className={`group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-all duration-200 ${isActive ? "animate-breathe" : ""}`}
       style={{
-        background: isSelected ? agent.bgColor : "var(--glass-bg)",
+        background: isSelected ? agent.bgColor : "var(--bg-elevated)",
         border: `1px solid ${isSelected ? agent.borderColor : "var(--border-default)"}`,
-      }}
+        "--breathe-color": agent.color + "30",
+        animationDelay: `${index * 100}ms`,
+      } as React.CSSProperties}
     >
+      {/* Left accent bar */}
+      <div
+        className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full transition-all duration-300"
+        style={{
+          background: isActive || isSelected ? agent.color : "transparent",
+          opacity: isActive ? 1 : isSelected ? 0.5 : 0,
+        }}
+      />
+
       {/* Avatar */}
       <div
-        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-transform duration-200 group-hover:scale-105"
         style={{ background: agent.bgColor, color: agent.color }}
       >
         {agent.avatar}
@@ -127,27 +141,54 @@ function AgentCard({
           </span>
           {badge && (
             <span
-              className="rounded px-1 py-0.5 font-mono text-[7px] font-bold"
+              className="rounded px-1 py-0.5 font-mono text-[7px] font-bold uppercase"
               style={{ background: badge.bg, color: badge.color }}
             >
               {badge.label}
             </span>
           )}
-          {isActive && (
+        </div>
+        <p className="mt-0.5 text-[10px]" style={{ color: "var(--gray-400)" }}>
+          {agent.role}
+        </p>
+      </div>
+
+      {/* Right status */}
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        {isActive ? (
+          <span className="flex items-center gap-1.5">
             <span className="relative flex size-1.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full opacity-50" style={{ background: agent.color }} />
               <span className="relative inline-flex size-1.5 rounded-full" style={{ background: agent.color }} />
             </span>
-          )}
-          <span className="ml-auto font-mono text-[9px]" style={{ color: isActive ? agent.color : "var(--gray-400)" }}>
-            {isActive ? "working" : `${stats.handled}t`}
+            <span className="font-mono text-[9px] font-semibold" style={{ color: agent.color }}>working</span>
           </span>
-        </div>
-        <p className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-          {agent.role}
-        </p>
+        ) : (
+          <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>{stats.handled}t</span>
+        )}
       </div>
     </button>
+  );
+}
+
+// ─── Animated Connector ─────────────────────────────────────────────
+function AgentConnector({ isActive, color }: { isActive: boolean; color: string }) {
+  return (
+    <div className="relative flex items-center justify-center py-0.5">
+      <div className="relative h-5 w-px" style={{ background: "var(--border-default)" }}>
+        {isActive && (
+          <div
+            className="absolute left-1/2 size-1.5 -translate-x-1/2 rounded-full animate-flow-down"
+            style={{ background: color }}
+          />
+        )}
+      </div>
+      <ChevronDown
+        size={10}
+        className="absolute -bottom-1"
+        style={{ color: isActive ? color : "var(--gray-300)" }}
+      />
+    </div>
   );
 }
 
@@ -681,74 +722,92 @@ function LoadingSkeleton({ mode, events, elapsed, onCancel }: { mode: ViewMode; 
   const color = AGENT_CONFIG[agentWorking as keyof typeof AGENT_CONFIG]?.color ?? "var(--green-400)";
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6 px-8">
-      {/* Animated ring */}
-      <div className="relative flex size-20 items-center justify-center">
-        <div
-          className="absolute inset-0 animate-spin rounded-full"
-          style={{
-            border: `2px solid transparent`,
-            borderTopColor: color,
-            borderRightColor: color,
-            animationDuration: "1.5s",
-          }}
-        />
-        <div
-          className="absolute inset-2 animate-spin rounded-full"
-          style={{
-            border: `2px solid transparent`,
-            borderBottomColor: color,
-            animationDuration: "2.5s",
-            animationDirection: "reverse",
-          }}
-        />
-        {mode === "pipeline" ? (
-          <Bot size={28} style={{ color }} />
-        ) : mode === "seller" ? (
-          <Package size={28} style={{ color }} />
-        ) : agentWorking === "strategist" ? (
-          <Sparkles size={28} style={{ color }} />
-        ) : (
-          <Search size={28} style={{ color }} />
-        )}
-      </div>
-
-      {/* Status */}
-      <div className="text-center">
-        <p className="mb-1 text-[14px] font-semibold" style={{ color: "var(--gray-700)" }}>
-          {mode === "pipeline" ? "Pipeline Running" : mode === "seller" ? "Seller Fulfilling" : agentWorking === "strategist" ? "Strategist Working" : "Researcher Working"}
-        </p>
-        <p className="max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-          {currentLabel}
-        </p>
-        <p className="mt-2 font-mono text-[10px]" style={{ color: "var(--gray-300)" }}>
-          {elapsed != null && elapsed > 0 ? `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")} elapsed · ` : ""}
-          {mode === "pipeline" ? "Usually 3–7 min" : mode === "seller" ? "Usually 3–5 min" : mode === "researcher" ? "Usually 1–3 min" : "Usually 30–60 sec"}
-          {events.length > 0 && ` · ${events.length} stage${events.length !== 1 ? "s" : ""} complete`}
-        </p>
-      </div>
-
-      {/* Progress dots */}
-      <div className="flex items-center gap-2">
-        {events.map((evt, i) => (
+    <div className="flex h-full flex-col items-center justify-center gap-8 px-8">
+      {/* Main card */}
+      <div
+        className="relative w-full max-w-sm overflow-hidden rounded-2xl p-8"
+        style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
+      >
+        {/* Indeterminate progress bar */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden" style={{ background: `${color}15` }}>
           <div
-            key={evt.id}
-            className="size-2 rounded-full transition-all"
-            style={{
-              background: i === events.length - 1 ? color : "var(--gray-300)",
-              opacity: i === events.length - 1 ? 1 : 0.4,
-            }}
+            className="h-full w-[40%] rounded-full"
+            style={{ background: color, animation: "progress-indeterminate 1.8s ease-in-out infinite" }}
           />
-        ))}
-        <div className="size-2 animate-pulse rounded-full" style={{ background: color }} />
+        </div>
+
+        <div className="flex flex-col items-center gap-5 text-center">
+          {/* Animated icon */}
+          <div className="relative flex size-16 items-center justify-center">
+            <div
+              className="absolute inset-0 rounded-2xl"
+              style={{ background: `${color}10`, border: `1px solid ${color}20` }}
+            />
+            <div
+              className="absolute inset-0 animate-pulse rounded-2xl"
+              style={{ background: `${color}05` }}
+            />
+            {mode === "pipeline" ? (
+              <Bot size={26} style={{ color }} />
+            ) : mode === "seller" ? (
+              <Package size={26} style={{ color }} />
+            ) : agentWorking === "strategist" ? (
+              <Sparkles size={26} style={{ color }} />
+            ) : (
+              <Search size={26} style={{ color }} />
+            )}
+          </div>
+
+          {/* Title + description */}
+          <div>
+            <p className="mb-1.5 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>
+              {mode === "pipeline" ? "Pipeline Running" : mode === "seller" ? "Seller Fulfilling" : agentWorking === "strategist" ? "Strategist Working" : "Researcher Working"}
+            </p>
+            <p className="text-[12px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+              {currentLabel}
+            </p>
+          </div>
+
+          {/* Stage chips */}
+          {events.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {events.map((evt, i) => {
+                const stageColor = AGENT_CONFIG[evt.agent as keyof typeof AGENT_CONFIG]?.color ?? color;
+                return (
+                  <span
+                    key={evt.id}
+                    className="rounded-md px-2 py-0.5 font-mono text-[8px] font-semibold transition-all animate-fade-in"
+                    style={{
+                      background: i === events.length - 1 ? `${stageColor}15` : "var(--bg-surface)",
+                      border: `1px solid ${i === events.length - 1 ? `${stageColor}30` : "var(--border-default)"}`,
+                      color: i === events.length - 1 ? stageColor : "var(--gray-400)",
+                    }}
+                  >
+                    {evt.agent}
+                  </span>
+                );
+              })}
+              <span className="flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>
+                <Loader2 size={8} className="animate-spin" />
+              </span>
+            </div>
+          )}
+
+          {/* Timer */}
+          <p className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+            {elapsed != null && elapsed > 0 ? `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")} elapsed · ` : ""}
+            {mode === "pipeline" ? "Usually 3–7 min" : mode === "seller" ? "Usually 3–5 min" : mode === "researcher" ? "Usually 1–3 min" : "Usually 30–60 sec"}
+            {events.length > 0 && ` · ${events.length} stage${events.length !== 1 ? "s" : ""} complete`}
+          </p>
+        </div>
       </div>
 
       {/* Cancel button */}
       {onCancel && (
         <button
           onClick={onCancel}
-          className="mt-2 flex items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] transition-all hover:opacity-80"
-          style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.20)", color: "#EF4444" }}
+          className="flex items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] transition-all hover:opacity-80"
+          style={{ background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.15)", color: "#EF4444" }}
         >
           <RotateCcw size={11} /> Cancel
         </button>
@@ -813,39 +872,59 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
   const examples = EXAMPLE_PROMPTS[mode];
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center">
-      <div className="flex size-16 items-center justify-center rounded-2xl" style={{ background: "rgba(201, 125, 78, 0.08)" }}>
-        <c.icon size={28} style={{ color: "var(--accent-400)" }} />
+    <div className="flex h-full flex-col items-center justify-center gap-6 px-8 text-center animate-fade-up">
+      {/* Icon with pulse ring */}
+      <div className="relative flex size-16 items-center justify-center">
+        <div
+          className="absolute inset-0 rounded-2xl"
+          style={{ background: "rgba(201, 125, 78, 0.06)", border: "1px solid rgba(201, 125, 78, 0.12)" }}
+        />
+        <div
+          className="absolute -inset-2 rounded-3xl opacity-0 animate-pulse"
+          style={{ background: "rgba(201, 125, 78, 0.04)" }}
+        />
+        <c.icon size={26} style={{ color: "var(--accent-400)" }} />
       </div>
+
       <div>
-        <h3 className="mb-1 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>{c.title}</h3>
+        <h3 className="mb-1.5 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>{c.title}</h3>
         <p className="max-w-md text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>{c.desc}</p>
       </div>
-      <div className="flex max-w-lg flex-wrap justify-center gap-2">
-        {examples.map((ex) => (
-          <button
-            key={ex}
-            onClick={() => onExample(ex)}
-            className="rounded-lg px-3 py-1.5 text-left text-[11px] leading-snug transition-all duration-150"
-            style={{
-              background: "var(--glass-bg)",
-              color: "var(--gray-500)",
-              border: "1px solid var(--border-default)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(201, 125, 78, 0.30)";
-              e.currentTarget.style.color = "var(--gray-700)";
-              e.currentTarget.style.background = "rgba(201, 125, 78, 0.04)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--border-default)";
-              e.currentTarget.style.color = "var(--gray-500)";
-              e.currentTarget.style.background = "var(--glass-bg)";
-            }}
-          >
-            {ex}
-          </button>
-        ))}
+
+      {/* Try these prompts */}
+      <div>
+        <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-300)" }}>
+          Try one of these
+        </p>
+        <div className="flex max-w-lg flex-wrap justify-center gap-2">
+          {examples.map((ex, i) => (
+            <button
+              key={ex}
+              onClick={() => onExample(ex)}
+              className="rounded-lg px-3 py-1.5 text-left text-[11px] leading-snug transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: "var(--bg-elevated)",
+                color: "var(--gray-500)",
+                border: "1px solid var(--border-default)",
+                animationDelay: `${i * 60}ms`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(201, 125, 78, 0.30)";
+                e.currentTarget.style.color = "var(--gray-700)";
+                e.currentTarget.style.background = "rgba(201, 125, 78, 0.04)";
+                e.currentTarget.style.boxShadow = "0 2px 12px -4px rgba(201, 125, 78, 0.12)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border-default)";
+                e.currentTarget.style.color = "var(--gray-500)";
+                e.currentTarget.style.background = "var(--bg-elevated)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1210,8 +1289,8 @@ export function StudioPage() {
           )}
 
           {/* Agent Cards */}
-          <div className="space-y-2 border-b p-3" style={{ borderColor: "var(--border-default)" }}>
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+          <div className="flex flex-col gap-0 border-b px-3 py-3" style={{ borderColor: "var(--border-default)" }}>
+            <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
               Agents
             </p>
             <AgentCard
@@ -1221,15 +1300,10 @@ export function StudioPage() {
               onClick={() => setMode(mode === "strategist" ? "pipeline" : "strategist")}
               stats={agentStats.strategist}
               toolLabel={toolSettings.strategist.search}
+              index={0}
             />
             {mode === "pipeline" && (
-              <div className="flex items-center justify-center py-1">
-                <div className="flex items-center gap-2">
-                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
-                  <ArrowRight size={12} style={{ color: "var(--gray-300)" }} />
-                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
-                </div>
-              </div>
+              <AgentConnector isActive={isLoading} color={AGENT_CONFIG.strategist.color} />
             )}
             <AgentCard
               agent={AGENT_CONFIG.researcher}
@@ -1238,15 +1312,10 @@ export function StudioPage() {
               onClick={() => setMode(mode === "researcher" ? "pipeline" : "researcher")}
               stats={agentStats.researcher}
               toolLabel={toolSettings.researcher.search}
+              index={1}
             />
             {mode === "pipeline" && (
-              <div className="flex items-center justify-center py-1">
-                <div className="flex items-center gap-2">
-                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
-                  <ArrowRight size={12} style={{ color: "var(--gray-300)" }} />
-                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
-                </div>
-              </div>
+              <AgentConnector isActive={isLoading} color={AGENT_CONFIG.researcher.color} />
             )}
             <AgentCard
               agent={AGENT_CONFIG.buyer}
@@ -1255,15 +1324,10 @@ export function StudioPage() {
               onClick={() => {}}
               stats={agentStats.buyer}
               toolLabel="nevermined"
+              index={2}
             />
             {mode === "pipeline" && (
-              <div className="flex items-center justify-center py-1">
-                <div className="flex items-center gap-2">
-                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
-                  <ArrowRight size={12} style={{ color: "var(--gray-300)" }} />
-                  <div className="h-px w-6" style={{ background: "var(--border-default)" }} />
-                </div>
-              </div>
+              <AgentConnector isActive={isLoading} color={AGENT_CONFIG.buyer.color} />
             )}
             <AgentCard
               agent={AGENT_CONFIG.seller}
@@ -1272,14 +1336,15 @@ export function StudioPage() {
               onClick={() => setMode(mode === "seller" ? "pipeline" : "seller")}
               stats={agentStats.seller}
               toolLabel="nevermined"
+              index={3}
             />
           </div>
 
-          {/* Mode indicator */}
+          {/* Mode indicator + controls */}
           <div className="border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
             <div className="flex items-center gap-2">
               <span
-                className="rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase"
+                className="rounded-lg px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide"
                 style={{
                   background: mode === "pipeline" ? "rgba(201, 125, 78, 0.10)" :
                     AGENT_CONFIG[mode]?.bgColor ?? AGENT_CONFIG.researcher.bgColor,
@@ -1289,24 +1354,24 @@ export function StudioPage() {
                     AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
                 }}
               >
-                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Strategist Only" : mode === "researcher" ? "◈ Researcher Only" : "◇ Seller Only"}
+                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Strategist" : mode === "researcher" ? "◈ Researcher" : "◇ Seller"}
               </span>
               {mode !== "pipeline" && (
                 <button
                   onClick={() => setMode("pipeline")}
-                  className="flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[9px] transition-colors"
-                  style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
                 >
-                  <RefreshCw size={9} /> Full Pipeline
+                  <RefreshCw size={9} /> Pipeline
                 </button>
               )}
               <div className="ml-auto flex items-center gap-1.5">
                 <button
                   onClick={() => setJudgeMode((v) => !v)}
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
                   style={{
                     color: judgeMode ? "var(--accent-400)" : "var(--gray-400)",
-                    background: judgeMode ? "rgba(201, 125, 78, 0.10)" : "var(--glass-bg)",
+                    background: judgeMode ? "rgba(201, 125, 78, 0.10)" : "var(--bg-surface)",
                     border: `1px solid ${judgeMode ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
                   }}
                   title="Judge Demo Mode"
@@ -1316,16 +1381,16 @@ export function StudioPage() {
                 </button>
                 <button
                   onClick={() => setSettingsOpen(true)}
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
-                  style={{ color: "var(--gray-400)", background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
-                  title="Tool Settings"
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[9px] transition-all hover:opacity-80"
+                  style={{ color: "var(--gray-400)", background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+                  title="Tool Settings (⌘K)"
                 >
                   <Settings size={10} />
                   tools
                 </button>
               </div>
             </div>
-            <p className="mt-1 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
+            <p className="mt-1.5 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
               {mode === "pipeline"
                 ? "Strategist → Researcher → Buyer → Seller. Full research + planning deliverable."
                 : mode === "strategist"
@@ -1338,22 +1403,26 @@ export function StudioPage() {
 
           {/* Output type selector (only for pipeline/strategist) */}
           {mode !== "researcher" && (
-            <div className="flex flex-wrap gap-1 border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-              {OUTPUT_TYPES.map((ot) => (
-                <button
-                  key={ot.value}
-                  onClick={() => setOutputType(ot.value)}
-                  className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] transition-all"
-                  style={{
-                    background: outputType === ot.value ? "rgba(201, 125, 78, 0.10)" : "transparent",
-                    border: `1px solid ${outputType === ot.value ? "rgba(201, 125, 78, 0.20)" : "var(--border-default)"}`,
-                    color: outputType === ot.value ? "var(--accent-400)" : "var(--gray-400)",
-                  }}
-                >
-                  <ot.icon size={10} />
-                  {ot.label}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-1.5 border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
+              {OUTPUT_TYPES.map((ot) => {
+                const active = outputType === ot.value;
+                return (
+                  <button
+                    key={ot.value}
+                    onClick={() => setOutputType(ot.value)}
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[10px] font-medium transition-all duration-150"
+                    style={{
+                      background: active ? "rgba(201, 125, 78, 0.10)" : "var(--bg-surface)",
+                      border: `1px solid ${active ? "rgba(201, 125, 78, 0.22)" : "var(--border-default)"}`,
+                      color: active ? "var(--accent-400)" : "var(--gray-500)",
+                      transform: active ? "scale(1.02)" : "scale(1)",
+                    }}
+                  >
+                    <ot.icon size={10} />
+                    {ot.label}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -1368,7 +1437,7 @@ export function StudioPage() {
           <div className="border-b p-3" style={{ borderColor: "var(--border-default)" }}>
             {input.trim() && !isLoading && (
               <div className="mb-2 flex items-center gap-2">
-                <span className="rounded-md px-2 py-0.5 font-mono text-[9px]" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)", color: "var(--green-400)" }}>
+                <span className="rounded-md px-2 py-0.5 font-mono text-[9px]" style={{ background: "rgba(201,125,78,0.08)", border: "1px solid rgba(201,125,78,0.18)", color: "var(--accent-400)" }}>
                   ~{mode === "pipeline" ? "6–16" : mode === "seller" ? "6–16" : mode === "researcher" ? "1–10" : "1"} credits
                 </span>
                 <span className="text-[9px]" style={{ color: "var(--gray-300)" }}>estimated cost</span>
@@ -1472,49 +1541,53 @@ export function StudioPage() {
           </div>
 
           {/* Stats bar */}
-          <div className="flex items-center gap-4 border-t px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-            <div className="flex items-center gap-1.5">
-              <Zap size={11} style={{ color: "var(--accent-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+          <div
+            className="flex items-center gap-3 border-t px-3 py-2"
+            style={{ borderColor: "var(--border-default)", background: "var(--bg-surface)" }}
+          >
+            <div className="flex items-center gap-1.5" title="Credits used">
+              <Zap size={10} style={{ color: "var(--accent-400)" }} />
+              <span className="font-mono text-[9px] font-medium" style={{ color: "var(--gray-500)" }}>
                 {result?.totalCredits ?? 0}cr
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Clock size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+            <div className="h-2.5 w-px" style={{ background: "var(--border-default)" }} />
+            <div className="flex items-center gap-1.5" title="Duration">
+              <Clock size={10} style={{ color: "var(--gray-400)" }} />
+              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
                 {result?.totalDurationMs ? `${(result.totalDurationMs / 1000).toFixed(1)}s` : "—"}
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <RefreshCw size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {result?.iterations ?? 0} iter
+            <div className="flex items-center gap-1.5" title="Iterations">
+              <RefreshCw size={10} style={{ color: "var(--gray-400)" }} />
+              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+                {result?.iterations ?? 0}
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Globe size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {result?.document?.sources.length ?? 0} sources
+            <div className="flex items-center gap-1.5" title="Sources">
+              <Globe size={10} style={{ color: "var(--gray-400)" }} />
+              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+                {result?.document?.sources.length ?? 0}
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Package size={11} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-                {result?.purchasedAssets?.length ?? 0} purchases
+            <div className="flex items-center gap-1.5" title="Purchases">
+              <Package size={10} style={{ color: "var(--gray-400)" }} />
+              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
+                {result?.purchasedAssets?.length ?? 0}
               </span>
             </div>
             <button
               onClick={toggleAdsMuted}
               title={adsMuted ? "Ads muted — click to enable" : "Click to mute ads"}
-              className="ml-auto flex items-center gap-1 rounded-md px-2 py-1 font-mono text-[9px] transition-all"
+              className="ml-auto flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all"
               style={{
-                background: adsMuted ? "rgba(239, 68, 68, 0.08)" : "transparent",
-                border: `1px solid ${adsMuted ? "rgba(239, 68, 68, 0.20)" : "var(--border-default)"}`,
+                background: adsMuted ? "rgba(239, 68, 68, 0.06)" : "transparent",
+                border: `1px solid ${adsMuted ? "rgba(239, 68, 68, 0.15)" : "var(--border-default)"}`,
                 color: adsMuted ? "#EF4444" : "var(--gray-400)",
               }}
             >
               {adsMuted ? <VolumeX size={10} /> : <Volume2 size={10} />}
-              <span>{adsMuted ? "ads off" : "ads"}</span>
+              <span>{adsMuted ? "off" : "ads"}</span>
             </button>
           </div>
         </div>
@@ -1522,14 +1595,14 @@ export function StudioPage() {
         {/* ── RIGHT PANE: Output ── */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Tabs */}
-          <div className="flex items-center border-b" style={{ borderColor: "var(--border-default)" }}>
+          <div className="flex items-center gap-1 border-b px-3 py-1.5" style={{ borderColor: "var(--border-default)" }}>
             {result?.document && (
               <button
                 onClick={() => setRightTab("document")}
-                className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
                   color: rightTab === "document" ? AGENT_CONFIG.researcher.color : "var(--gray-400)",
-                  borderBottom: rightTab === "document" ? `2px solid ${AGENT_CONFIG.researcher.color}` : "2px solid transparent",
+                  background: rightTab === "document" ? `${AGENT_CONFIG.researcher.color}10` : "transparent",
                 }}
               >
                 <FileText size={12} /> Report
@@ -1538,10 +1611,10 @@ export function StudioPage() {
             {result?.brief && (
               <button
                 onClick={() => setRightTab("brief")}
-                className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
                   color: rightTab === "brief" ? AGENT_CONFIG.strategist.color : "var(--gray-400)",
-                  borderBottom: rightTab === "brief" ? `2px solid ${AGENT_CONFIG.strategist.color}` : "2px solid transparent",
+                  background: rightTab === "brief" ? `${AGENT_CONFIG.strategist.color}10` : "transparent",
                 }}
               >
                 <Sparkles size={12} /> Brief
@@ -1550,10 +1623,10 @@ export function StudioPage() {
             {(result?.purchasedAssets?.length ?? 0) > 0 && (
               <button
                 onClick={() => setRightTab("purchases")}
-                className="flex items-center gap-2 px-4 py-2.5 font-mono text-[11px] font-semibold transition-colors"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
                   color: rightTab === "purchases" ? AGENT_CONFIG.buyer.color : "var(--gray-400)",
-                  borderBottom: rightTab === "purchases" ? `2px solid ${AGENT_CONFIG.buyer.color}` : "2px solid transparent",
+                  background: rightTab === "purchases" ? `${AGENT_CONFIG.buyer.color}10` : "transparent",
                 }}
               >
                 <Package size={12} /> Purchases ({result?.purchasedAssets?.length})
@@ -1565,9 +1638,9 @@ export function StudioPage() {
               <button
                 onClick={handleNewRequest}
                 disabled={isLoading}
-                className="ml-auto mr-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all disabled:opacity-30"
+                className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-150 hover:scale-[1.02] disabled:opacity-30"
                 style={{
-                  background: result ? "rgba(201, 125, 78, 0.08)" : "var(--glass-bg)",
+                  background: result ? "rgba(201, 125, 78, 0.08)" : "var(--bg-surface)",
                   border: result ? "1px solid rgba(201, 125, 78, 0.20)" : "1px solid var(--border-default)",
                   color: result ? "var(--accent-400)" : "var(--gray-500)",
                 }}

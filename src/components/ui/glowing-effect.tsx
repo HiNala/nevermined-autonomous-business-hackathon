@@ -13,7 +13,7 @@ interface GlowingEffectProps {
 export function GlowingEffect({
   children,
   className,
-  glowColor = "var(--green-400)",
+  glowColor = "var(--accent-400)",
   disabled = false,
 }: GlowingEffectProps) {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -12,9 +12,10 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="h-full"
     >
       <div
-        className="glass group relative overflow-hidden p-6 transition-all duration-300"
+        className="glass group relative flex h-full flex-col overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1"
         style={{
           borderColor: agent.primary
             ? `${agent.accentColor}33`
@@ -25,7 +26,7 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = `${agent.accentColor}44`;
-          e.currentTarget.style.boxShadow = `0 0 40px -8px ${agent.accentColor}25`;
+          e.currentTarget.style.boxShadow = `0 8px 32px -8px ${agent.accentColor}20`;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = agent.primary
@@ -82,7 +83,7 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
 
         {/* Summary */}
         <p
-          className="mb-5 text-[13px] leading-relaxed"
+          className="mb-5 flex-1 text-[13px] leading-relaxed"
           style={{ color: "var(--gray-500)" }}
         >
           {agent.summary}
@@ -128,7 +129,7 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
             agent.id === "agent-seller" ? "/store" :
             "/studio"
           }
-          className="group flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200"
+          className="group mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200"
           style={{
             background: `${agent.accentColor}12`,
             color: agent.accentColor,
@@ -137,10 +138,12 @@ function AgentCard({ agent, index }: { agent: StudioAgent; index: number }) {
           onMouseEnter={(e) => {
             e.currentTarget.style.background = `${agent.accentColor}20`;
             e.currentTarget.style.borderColor = `${agent.accentColor}35`;
+            e.currentTarget.style.transform = "translateY(-1px)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = `${agent.accentColor}12`;
             e.currentTarget.style.borderColor = `${agent.accentColor}20`;
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           {agent.ctaLabel}

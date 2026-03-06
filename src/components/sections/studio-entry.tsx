@@ -66,12 +66,20 @@ export function StudioEntry() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="e.g. Research the top AI agent frameworks and compare their strengths for a production use case..."
                 rows={5}
-                className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(201,125,78,0.35)]"
+                className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-all"
                 style={{
-                  background: "var(--bg-surface)",
+                  background: "var(--bg-elevated)",
                   border: "1px solid var(--border-default)",
                   color: "var(--gray-800)",
                   resize: "none",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--border-default)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {

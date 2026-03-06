@@ -12,10 +12,10 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      className="glass group relative overflow-hidden p-6 transition-all duration-300"
+      className="glass group relative flex h-full flex-col overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1"
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(201, 125, 78, 0.22)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 30px -8px rgba(201, 125, 78, 0.12)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px -8px rgba(201, 125, 78, 0.12)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";

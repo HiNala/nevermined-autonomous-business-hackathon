@@ -140,7 +140,7 @@ function DocumentView({ doc }: { doc: ResearchDocument }) {
       {/* Document body */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {/* Summary */}
-        <div className="mb-6 rounded-xl p-4" style={{ background: "rgba(34, 197, 94, 0.04)", border: "1px solid rgba(34, 197, 94, 0.10)" }}>
+        <div className="mb-6 rounded-xl p-4" style={{ background: "rgba(201, 125, 78, 0.04)", border: "1px solid rgba(201, 125, 78, 0.12)" }}>
           <p className="text-[13px] leading-relaxed" style={{ color: "var(--gray-600)" }}>
             {doc.summary}
           </p>

@@ -16,10 +16,10 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="glass relative overflow-hidden p-8 transition-all duration-300"
+      className="glass relative overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1"
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(34, 197, 94, 0.20)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 0 40px -10px rgba(34, 197, 94, 0.12)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201, 125, 78, 0.25)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px -8px rgba(201, 125, 78, 0.12)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
@@ -29,7 +29,7 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
       {/* Top accent */}
       <div
         className="absolute top-0 left-8 right-8 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.30), transparent)" }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.25), transparent)" }}
       />
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">

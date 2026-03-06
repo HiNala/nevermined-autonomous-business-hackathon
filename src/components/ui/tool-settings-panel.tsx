@@ -57,15 +57,15 @@ function ProviderSelect<T extends string>({
             onClick={() => onChange(opt.value)}
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-all"
             style={{
-              background: value === opt.value ? "rgba(34, 197, 94, 0.08)" : "var(--bg-surface)",
-              border: `1px solid ${value === opt.value ? "rgba(34, 197, 94, 0.25)" : "var(--border-default)"}`,
+              background: value === opt.value ? "rgba(201, 125, 78, 0.07)" : "var(--bg-surface)",
+              border: `1px solid ${value === opt.value ? "rgba(201, 125, 78, 0.25)" : "var(--border-default)"}`,
             }}
           >
             <div
               className="flex size-4 shrink-0 items-center justify-center rounded-full"
               style={{
-                border: `2px solid ${value === opt.value ? "rgb(34, 197, 94)" : "var(--gray-600)"}`,
-                background: value === opt.value ? "rgb(34, 197, 94)" : "transparent",
+                border: `2px solid ${value === opt.value ? "var(--accent-400)" : "var(--gray-600)"}`,
+                background: value === opt.value ? "var(--accent-400)" : "transparent",
               }}
             >
               {value === opt.value && (
@@ -181,9 +181,9 @@ export function ToolSettingsPanel({ open, onClose, onSettingsChange }: ToolSetti
             <div className="mb-3 flex items-center gap-2">
               <div
                 className="flex size-6 items-center justify-center rounded-md"
-                style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid rgba(34, 197, 94, 0.2)" }}
+                style={{ background: "rgba(201, 125, 78, 0.1)", border: "1px solid rgba(201, 125, 78, 0.2)" }}
               >
-                <Cpu size={12} style={{ color: "rgb(34, 197, 94)" }} />
+                <Cpu size={12} style={{ color: "var(--accent-400)" }} />
               </div>
               <span className="text-[13px] font-semibold" style={{ color: "var(--gray-600)" }}>
                 Researcher Agent
@@ -224,9 +224,9 @@ export function ToolSettingsPanel({ open, onClose, onSettingsChange }: ToolSetti
             onClick={onClose}
             className="rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all"
             style={{
-              background: "rgba(34, 197, 94, 0.1)",
-              border: "1px solid rgba(34, 197, 94, 0.2)",
-              color: "rgb(34, 197, 94)",
+              background: "rgba(201, 125, 78, 0.10)",
+              border: "1px solid rgba(201, 125, 78, 0.22)",
+              color: "var(--accent-400)",
             }}
           >
             Done

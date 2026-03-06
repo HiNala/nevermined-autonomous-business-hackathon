@@ -9,6 +9,7 @@ import { agentEvents } from "./event-store";
 import { complete, type AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
 import type { SponsorToolUsage } from "@/types/pipeline";
+import { logNeverminedTask } from "@/lib/nevermined/server";
 export type { SponsorToolUsage };
 
 export type PipelineStage =
@@ -403,6 +404,19 @@ export async function runPipeline(
 
     emit("complete", "pipeline", `Pipeline complete — ${document.sections.length} sections, ${document.sources.length} sources, ${purchasedAssets.length} purchases, ${totalCredits}cr total`);
 
+    // Log this pipeline run on the Nevermined network (fire-and-forget)
+    logNeverminedTask({
+      credits: totalCredits,
+      description: `Pipeline: "${brief.title.slice(0, 60)}" — ${document.sections.length} sections, ${totalCredits}cr`,
+      tag: "pipeline",
+    }).then((nvmResult) => {
+      if (nvmResult.success) {
+        console.log(`[NVM] Task logged: ${nvmResult.agentRequestId}`);
+      } else {
+        console.warn(`[NVM] Task logging failed: ${nvmResult.error}`);
+      }
+    }).catch(() => { /* swallow */ });
+
     return {
       id: pipelineId,
       userInput,
@@ -474,6 +488,9 @@ export async function runStrategistStandalone(
     { tool: "llm-synthesis", label: `Strategist LLM — ${brief.provider}/${brief.model}`, sponsor: "LLM", timestamp: new Date().toISOString(), detail: `${brief.creditsUsed}cr` },
   ];
 
+  // Log on Nevermined network (fire-and-forget)
+  logNeverminedTask({ credits: brief.creditsUsed, description: `Strategist: "${brief.title.slice(0, 60)}"`, tag: "strategist" }).catch(() => {});
+
   return { brief, transaction: txS, events, toolsUsed };
 }
 
@@ -521,6 +538,9 @@ export async function runResearcherStandalone(
   ledger.record(txR);
 
   emit("complete", "researcher", `Research complete — ${document.sections.length} sections, ${document.sources.length} sources`);
+
+  // Log on Nevermined network (fire-and-forget)
+  logNeverminedTask({ credits: document.creditsUsed, description: `Research: "${query.slice(0, 60)}"`, tag: "researcher" }).catch(() => {});
 
   return { document, transaction: txR, events, toolsUsed: document.toolsUsed ?? [] };
 }
@@ -755,6 +775,9 @@ export async function fulfillSellerOrder(
     );
 
     toolsUsed.push({ tool: "nevermined-settled", label: `Nevermined x402 — Order Fulfilled & Settled`, sponsor: "Nevermined", timestamp: new Date().toISOString(), detail: `${totalCredits}cr total` });
+
+    // Log on Nevermined network (fire-and-forget)
+    logNeverminedTask({ credits: totalCredits, description: `Seller order: "${order.query.slice(0, 60)}" — ${totalCredits}cr`, tag: "seller" }).catch(() => {});
 
     return {
       id: pipelineId,

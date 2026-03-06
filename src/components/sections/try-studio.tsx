@@ -7,10 +7,19 @@ import { Send, Terminal } from "lucide-react";
 import type { StudioRequestResponse } from "@/types";
 
 const inputStyle: CSSProperties = {
-  background: "var(--bg-surface)",
+  background: "var(--bg-elevated)",
   border: "1px solid var(--border-default)",
   color: "var(--gray-800)",
 };
+
+function focusHandler(e: React.FocusEvent<HTMLElement>) {
+  e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
+  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+}
+function blurHandler(e: React.FocusEvent<HTMLElement>) {
+  e.currentTarget.style.borderColor = "var(--border-default)";
+  e.currentTarget.style.boxShadow = "none";
+}
 
 export function TryStudio() {
   const [serviceId, setServiceId] = useState(STUDIO_SERVICES[0]?.id ?? "");
@@ -83,8 +92,10 @@ export function TryStudio() {
               <select
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
-                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(201,125,78,0.40)]"
+                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-all"
                 style={inputStyle}
+                onFocus={focusHandler}
+                onBlur={blurHandler}
               >
                 {STUDIO_SERVICES.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -98,8 +109,10 @@ export function TryStudio() {
                 value={contextUrl}
                 onChange={(e) => setContextUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-colors focus:border-[rgba(201,125,78,0.40)]"
+                className="w-full rounded-lg px-3 py-2.5 text-[13px] outline-none transition-all"
                 style={inputStyle}
+                onFocus={focusHandler}
+                onBlur={blurHandler}
               />
             </label>
           </div>
@@ -111,8 +124,10 @@ export function TryStudio() {
               onChange={(e) => setBrief(e.target.value)}
               placeholder="Describe what you need — research, a plan, or a design spec…"
               rows={6}
-              className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-colors focus:border-[rgba(201,125,78,0.40)]"
+              className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed outline-none transition-all"
               style={inputStyle}
+              onFocus={focusHandler}
+              onBlur={blurHandler}
               required
             />
           </label>

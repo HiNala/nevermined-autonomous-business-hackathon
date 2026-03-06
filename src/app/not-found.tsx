@@ -19,9 +19,9 @@ export default function NotFound() {
         {/* Icon */}
         <div
           className="flex size-20 items-center justify-center rounded-2xl"
-          style={{ background: "rgba(34, 197, 94, 0.06)", border: "1px solid rgba(34, 197, 94, 0.12)" }}
+          style={{ background: "rgba(201, 125, 78, 0.06)", border: "1px solid rgba(201, 125, 78, 0.14)" }}
         >
-          <span className="font-mono text-3xl font-bold" style={{ color: "var(--green-400)" }}>
+          <span className="font-mono text-3xl font-bold" style={{ color: "var(--accent-400)" }}>
             404
           </span>
         </div>
@@ -56,8 +56,8 @@ export default function NotFound() {
             href="/studio"
             className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
             style={{
-              background: "linear-gradient(135deg, var(--green-600), var(--green-500))",
-              boxShadow: "0 0 20px -4px rgba(34, 197, 94, 0.25)",
+              background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
+              boxShadow: "0 0 20px -4px rgba(201, 125, 78, 0.30)",
             }}
           >
             Open Studio
