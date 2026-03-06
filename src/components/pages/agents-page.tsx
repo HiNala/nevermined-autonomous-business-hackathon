@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
-import { StudioEntry } from "@/components/sections/studio-entry";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import {
   Brain, PenLine, ShoppingBag, PackageCheck, ShoppingCart,
@@ -145,10 +144,7 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
     "/studio";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+    <div
       className="glass relative overflow-hidden transition-all duration-300"
       style={{
         borderColor: agent.primary ? `${agent.accentColor}35` : "var(--glass-border)",
@@ -311,7 +307,7 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
           </motion.div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -445,8 +441,27 @@ export function AgentsPage() {
         {/* Playbook Expansion Section */}
         <PlaybookSection />
 
-        <div className="mt-16">
-          <StudioEntry />
+        {/* Slim Studio CTA — secondary handoff */}
+        <div className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
+          <div
+            className="flex flex-col items-center gap-3 rounded-xl px-6 py-8 text-center"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+          >
+            <p className="text-[15px] font-medium" style={{ color: "var(--gray-700)" }}>
+              Put these agents to work.
+            </p>
+            <p className="max-w-md text-[13px]" style={{ color: "var(--gray-400)" }}>
+              Describe any task in the Studio and the full pipeline handles it end to end.
+            </p>
+            <Link
+              href="/studio"
+              className="group mt-1 flex items-center gap-2 rounded-xl px-6 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
+              style={{ background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))", boxShadow: "0 0 20px -4px rgba(201,125,78,0.28)" }}
+            >
+              Open Studio
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
         </div>
       </main>
       </ErrorBoundary>

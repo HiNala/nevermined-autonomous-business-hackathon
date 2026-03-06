@@ -136,24 +136,22 @@ function ProductCard({
   const accentColor = CATEGORY_COLORS[product.category] ?? "#c97d4e";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 28 } }}
-      className="group relative flex flex-col rounded-xl border p-5 cursor-default"
+    <div
+      className="group relative flex flex-col rounded-xl border p-5 cursor-default transition-all duration-200"
       style={{
         background: "var(--bg-elevated)",
         borderColor: "var(--border-default)",
         boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 28px -8px ${accentColor}28, 0 2px 8px rgba(0,0,0,0.06)`;
-        (e.currentTarget as HTMLElement).style.borderColor = `${accentColor}35`;
+        e.currentTarget.style.boxShadow = `0 8px 28px -8px ${accentColor}28, 0 2px 8px rgba(0,0,0,0.06)`;
+        e.currentTarget.style.borderColor = `${accentColor}35`;
+        e.currentTarget.style.transform = "translateY(-4px)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
+        e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
+        e.currentTarget.style.borderColor = "var(--border-default)";
+        e.currentTarget.style.transform = "";
       }}
     >
       {/* Top accent bar */}
@@ -278,7 +276,7 @@ function ProductCard({
           </p>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -701,12 +699,7 @@ export function StorePage() {
 
         {/* Search */}
         {inventory && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mb-6"
-          >
+          <div className="mb-6">
             <div className="relative">
               <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-400)" }} />
               <input
@@ -726,14 +719,14 @@ export function StorePage() {
                 }}
               />
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Category filter tabs */}
         {inventory && inventory.products.length > 0 && (() => {
           const cats = Array.from(new Set(inventory.products.map((p) => p.category)));
           return (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="mb-5 flex flex-wrap gap-2">
+            <div className="mb-5 flex flex-wrap gap-2">
               <button
                 onClick={() => setActiveCategory("all")}
                 className="rounded-full px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider transition-all btn-press"
@@ -756,16 +749,13 @@ export function StorePage() {
                   </button>
                 );
               })}
-            </motion.div>
+            </div>
           );
         })()}
 
         {/* Stats bar */}
         {inventory && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          <div
             className="mb-8 flex flex-wrap items-center gap-4 rounded-xl border p-4"
             style={{ background: "var(--glass-bg)", borderColor: "var(--border-default)" }}
           >
@@ -799,7 +789,7 @@ export function StorePage() {
                 Refresh
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Loading skeleton */}
@@ -906,12 +896,7 @@ export function StorePage() {
 
         {/* Third-party services section */}
         {inventory && inventory.thirdPartyServices.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-12"
-          >
+          <div className="mt-12">
             <h2
               className="mb-4 text-xl font-semibold"
               style={{ color: "var(--gray-900)" }}
@@ -947,15 +932,12 @@ export function StorePage() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Empty state for no third-party services */}
         {inventory && inventory.thirdPartyServices.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+          <div
             className="mt-12 rounded-xl border p-8 text-center"
             style={{ background: "var(--glass-bg)", borderColor: "var(--border-default)" }}
           >
@@ -966,7 +948,7 @@ export function StorePage() {
             <p className="text-[11px]" style={{ color: "var(--gray-400)" }}>
               Import services from the hackathon event board via the inventory API to enable external data procurement.
             </p>
-          </motion.div>
+          </div>
         )}
       </div>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
 import { STUDIO_SERVICES } from "@/data/mock-transactions";
@@ -23,13 +22,10 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
   const Icon = style.icon;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, boxShadow: style.hoverShadow, borderColor: style.hoverBorder, transition: { type: "spring", stiffness: 350, damping: 28 } }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="glass relative overflow-hidden p-8 cursor-default"
+    <div
+      className="glass relative overflow-hidden p-8 cursor-default transition-all duration-200"
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = style.hoverShadow; e.currentTarget.style.borderColor = style.hoverBorder; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = ""; }}
     >
       {/* Top accent — per-service color */}
       <div
@@ -112,7 +108,7 @@ function ServiceDetailCard({ service, index }: { service: StudioService; index: 
           </Link>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

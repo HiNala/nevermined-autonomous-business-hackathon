@@ -172,7 +172,7 @@ export function Nav() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-30 sm:hidden"
-          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
@@ -187,7 +187,7 @@ export function Nav() {
           aria-modal="true"
           aria-label="Mobile navigation"
           className="fixed inset-x-0 top-14 z-40 flex flex-col gap-1 px-6 py-4 sm:hidden"
-          style={{ background: "var(--bg-base)", borderBottom: "1px solid var(--border-default)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+          style={{ background: "var(--bg-base)", borderBottom: "1px solid var(--border-default)", boxShadow: "0 12px 48px rgba(0,0,0,0.20)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
         >
           {PAGE_LINKS.map((link, i) => {
             const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
