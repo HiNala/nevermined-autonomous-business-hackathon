@@ -38,6 +38,7 @@ import {
   BookOpen,
   Building2,
   MessageSquare,
+  ImageIcon,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -110,6 +111,7 @@ const TOOL_BADGE: Record<string, { label: string; color: string; bg: string }> =
   duckduckgo: { label: "DDG", color: "#FB923C", bg: "rgba(251,146,60,0.12)" },
   raw: { label: "Raw", color: "var(--gray-500)", bg: "var(--glass-bg)" },
   nevermined: { label: "NVM", color: "#22C55E", bg: "rgba(34,197,94,0.12)" },
+  nanobanana: { label: "NanoBanana", color: "#CA8A04", bg: "rgba(234,179,8,0.12)" },
 };
 
 // ─── Agent Card ─────────────────────────────────────────────────────
@@ -924,12 +926,16 @@ function DocumentView({
   adSignals,
   adsMuted = false,
   onAdServed,
+  visionResult,
+  isGeneratingImage,
 }: {
   doc: ResearchDocument;
   adQuery?: string;
   adSignals?: ZeroClickSignal[];
   adsMuted?: boolean;
   onAdServed?: () => void;
+  visionResult?: { imageUrl: string; attempts: number; passedQuality: boolean; qualityScore: number; finalPrompt: string } | null;
+  isGeneratingImage?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<"full" | "executive" | "sources">("full");
@@ -1013,6 +1019,47 @@ function DocumentView({
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
+        {/* VISION image banner */}
+        {isGeneratingImage && !visionResult && (
+          <div
+            className="mb-5 flex items-center gap-3 rounded-xl p-3 animate-pulse"
+            style={{ background: "rgba(234,179,8,0.05)", border: "1px solid rgba(234,179,8,0.15)" }}
+          >
+            <ImageIcon size={14} style={{ color: "#CA8A04" }} />
+            <span className="font-mono text-[10px]" style={{ color: "#CA8A04" }}>VISION agent generating image…</span>
+          </div>
+        )}
+        {visionResult?.imageUrl && (
+          <div className="mb-5 overflow-hidden rounded-xl" style={{ border: "1px solid var(--border-default)" }}>
+            <img
+              src={visionResult.imageUrl}
+              alt={doc.title}
+              className="w-full object-cover"
+              style={{ maxHeight: "220px" }}
+              loading="lazy"
+            />
+            <div
+              className="flex items-center gap-2 px-3 py-2"
+              style={{ background: "var(--bg-elevated)", borderTop: "1px solid var(--border-default)" }}
+            >
+              <span
+                className="flex items-center gap-1.5 font-mono text-[8px] font-semibold rounded-full px-2 py-0.5"
+                style={{
+                  background: visionResult.passedQuality ? "rgba(34,197,94,0.10)" : "rgba(234,179,8,0.10)",
+                  color: visionResult.passedQuality ? "#22C55E" : "#CA8A04",
+                  border: `1px solid ${visionResult.passedQuality ? "rgba(34,197,94,0.22)" : "rgba(234,179,8,0.22)"}`,
+                }}
+              >
+                <ImageIcon size={9} />
+                VISION · NanoBanana · {visionResult.attempts} attempt{visionResult.attempts !== 1 ? "s" : ""} · {visionResult.qualityScore}/100
+              </span>
+              {visionResult.passedQuality && (
+                <span className="font-mono text-[8px]" style={{ color: "#22C55E" }}>✓ quality passed</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Confidence badge */}
         {(doc as ResearchDocument & { confidence?: ResearchConfidence }).confidence && (
           <div className="mb-4">
@@ -1732,6 +1779,9 @@ export function StudioPage() {
   const [followUpPrompt, setFollowUpPrompt] = useState<string | undefined>(undefined);
   // Smart suggestions visible when input focused
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
+  // VISION agent state
+  const [visionResult, setVisionResult] = useState<{ imageUrl: string; attempts: number; passedQuality: boolean; qualityScore: number; finalPrompt: string } | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const handleAdServed = useCallback(() => {
     setAdToolsUsed((prev) => {
@@ -1865,6 +1915,71 @@ export function StudioPage() {
     setError("Request cancelled");
   }
 
+  async function triggerVision(title: string, summary: string) {
+    setIsGeneratingImage(true);
+    try {
+      const res = await fetch("/api/agents/vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brief: `${title}. ${summary.slice(0, 200)}`,
+          outputContext: "research_report",
+          requirements: ["Professional quality", "No text overlay", "Relevant to topic"],
+          aspectRatio: "16:9",
+          style: { mood: "professional" },
+          calledBy: "composer",
+        }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.imageUrl) {
+        setVisionResult({
+          imageUrl: data.imageUrl,
+          attempts: data.attempts ?? 1,
+          passedQuality: data.passedQuality ?? false,
+          qualityScore: data.qualityReport?.score ?? 0,
+          finalPrompt: data.finalPrompt ?? "",
+        });
+        setAdToolsUsed((prev) => {
+          const already = prev.some((t) => t.tool === "nanobanana-generate");
+          if (already) return prev;
+          const tools: SponsorToolUsage[] = [
+            ...prev,
+            {
+              tool: "nanobanana-generate",
+              label: "Image Generation",
+              sponsor: "NanoBanana",
+              timestamp: new Date().toISOString(),
+              detail: `${data.attempts ?? 1} attempt${(data.attempts ?? 1) !== 1 ? "s" : ""} · score ${data.qualityReport?.score ?? "?"}/100`,
+            },
+          ];
+          if (data.attempts > 1) {
+            tools.push({
+              tool: "nanobanana-judge",
+              label: "Quality Judge",
+              sponsor: "NanoBanana",
+              timestamp: new Date().toISOString(),
+              detail: `GPT-4o-mini vision · ${data.passedQuality ? "passed" : "best-of-" + data.attempts}`,
+            });
+          }
+          return tools;
+        });
+        setPipelineEvents((prev) => [
+          ...prev,
+          {
+            id: `vision-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            stage: "vision_complete",
+            agent: "vision",
+            message: `[IMAGE] Generated in ${data.attempts ?? 1} attempt${(data.attempts ?? 1) !== 1 ? "s" : ""} · quality ${data.qualityReport?.score ?? "?"}/100`,
+            data: { imageUrl: data.imageUrl, passedQuality: data.passedQuality },
+          },
+        ]);
+      }
+    } catch { /* silent — vision is non-critical */ }
+    finally { setIsGeneratingImage(false); }
+  }
+
   async function runPipeline(overrideInput?: string) {
     const finalInput = overrideInput ?? input;
     if (!finalInput.trim() || isLoading) return;
@@ -1880,6 +1995,7 @@ export function StudioPage() {
     setResult(null);
     setPipelineEvents([]);
     setElapsed(0);
+    setVisionResult(null);
 
     // Start elapsed timer
     const start = Date.now();
@@ -1930,6 +2046,8 @@ export function StudioPage() {
       // Auto-extract action intelligence from the composed document
       if (data.document) {
         extractActionsFromResult(data.document);
+        // Trigger VISION agent async — non-blocking, generates hero image for the report
+        triggerVision(data.document.title ?? finalInput, data.document.summary ?? "");
       }
       else if (data.brief) setRightTab("brief");
 
@@ -2704,6 +2822,8 @@ export function StudioPage() {
                     adSignals={adContext.signals}
                     adsMuted={adsMuted}
                     onAdServed={handleAdServed}
+                    visionResult={visionResult}
+                    isGeneratingImage={isGeneratingImage}
                   />
                 </div>
                 {/* Action panel + follow-up below document */}

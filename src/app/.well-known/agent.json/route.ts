@@ -12,9 +12,9 @@ export async function GET() {
     "@context": "https://schema.org/",
     "@type": "SoftwareApplication",
     name: "Auto Business — Job-Based Agent Commerce System",
-    description: "A four-agent autonomous pipeline: Seller (intake + delivery) → Interpreter (intent structuring) → Composer (2-pass document creation) → Buyer (optional Nevermined marketplace enrichment) → Seller (quality gate + packaging). Powered by Nevermined x402 micro-payments. Multi-provider AI (OpenAI, Gemini, Anthropic).",
+    description: "A five-agent autonomous economy: Seller (intake + delivery) → Interpreter (intent structuring) → Composer (2-pass document creation) → Buyer (optional Nevermined marketplace enrichment) → Seller (quality gate + packaging) + VISION (on-demand NanoBanana image generation with iterative quality loop). Powered by Nevermined x402 micro-payments.",
     applicationCategory: "BusinessApplication",
-    version: "3.0.0",
+    version: "3.1.0",
     url: baseUrl,
     entryPoint: `${baseUrl}/api/agent/seller`,
     protocol: "x402",
@@ -26,7 +26,7 @@ export async function GET() {
       humanReadableUrl: `${baseUrl}/agents`,
       storeUrl: `${baseUrl}/store`,
       studioUrl: `${baseUrl}/studio`,
-      tags: ["research", "analysis", "planning", "document-generation", "market-intelligence", "competitive-intel", "agent-commerce", "nevermined", "x402", "multi-agent", "autonomous"],
+      tags: ["research", "analysis", "planning", "document-generation", "market-intelligence", "competitive-intel", "agent-commerce", "nevermined", "x402", "multi-agent", "autonomous", "image-generation", "nanobanana"],
       categories: ["document-generation", "research", "market-analysis", "planning", "b2b-intelligence"],
       supportedLanguages: ["en"],
       responseFormats: ["markdown", "json", "summary"],
@@ -239,6 +239,65 @@ export async function GET() {
         marketplaceUrl: "https://marketplace.nevermined.io",
       },
 
+      vision: {
+        id: "vision",
+        name: "VISION",
+        role: "On-demand image generation with iterative quality assessment loop",
+        color: "#CA8A04",
+        description: "Specialist image generation agent powered by NanoBanana (Gemini image models). Accepts a brief, constructs an optimised prompt, generates an image asynchronously, then scores quality with GPT-4o-mini vision. If quality fails (score < 72/100), it diagnoses failure reasons, refines the prompt, and retries — up to 3 attempts. Returns best image with full quality report and attempt history.",
+        skills: [
+          "prompt-engineering",
+          "context-aware-generation",
+          "iterative-quality-loop",
+          "llm-quality-judge",
+          "failure-reasoning",
+          "prompt-refinement",
+          "nanobanana-gemini",
+        ],
+        inputSchema: {
+          type: "object",
+          required: ["brief", "calledBy"],
+          properties: {
+            brief: { type: "string", description: "Subject matter and visual intent" },
+            outputContext: { type: "string", enum: ["research_report", "marketplace_listing", "agent_card", "hero_banner", "data_visualization", "agent_transaction"], default: "research_report" },
+            requirements: { type: "array", items: { type: "string" }, description: "Visual requirements to check in quality assessment" },
+            aspectRatio: { type: "string", enum: ["1:1", "16:9", "9:16", "4:3", "3:4", "2:3", "3:2"], default: "16:9" },
+            style: { type: "object", properties: { mood: { type: "string" }, palette: { type: "string" }, composition: { type: "string" } } },
+            calledBy: { type: "string", enum: ["interpreter", "composer"], description: "Which agent is delegating to VISION" },
+          },
+        },
+        outputSchema: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            imageUrl: { type: "string", description: "URL of the generated image" },
+            attempts: { type: "number", minimum: 1, maximum: 3 },
+            passedQuality: { type: "boolean", description: "Whether the quality threshold (72/100) was met" },
+            qualityReport: {
+              type: "object",
+              properties: {
+                score: { type: "number", minimum: 0, maximum: 100 },
+                passed: { type: "array", items: { type: "string" } },
+                failed: { type: "array", items: { type: "string" } },
+                notes: { type: "string" },
+              },
+            },
+            finalPrompt: { type: "string" },
+            attemptHistory: { type: "array", items: { type: "object" } },
+          },
+        },
+        examples: [
+          { input: "brief: AI agents exchanging tokens, context: hero_banner", output: "16:9 image, 2 attempts, score 84/100, passed" },
+          { input: "brief: market data visualization, context: research_report", output: "1:1 infographic, 1 attempt, score 91/100, passed" },
+        ],
+        endpoint: `${baseUrl}/api/agents/vision`,
+        method: "POST",
+        authentication: { type: "none", description: "No payment required — VISION is called internally by Interpreter/Composer" },
+        maxAttempts: 3,
+        qualityThreshold: 72,
+        poweredBy: "NanoBanana (nanobnana.com) — Gemini 2.5 Flash Image",
+      },
+
       seller: {
         id: "seller",
         name: "Seller",
@@ -315,13 +374,14 @@ export async function GET() {
 
     // ── Pipeline definition ────────────────────────────────────
     pipeline: {
-      canonical: "Seller → Interpreter → Composer → Buyer (optional) → Seller",
+      canonical: "Seller → Interpreter → Composer → Buyer (optional) → Seller + VISION (on-demand)",
       stages: [
         { step: 1, agent: "seller",      role: "Intake & payment verification. Creates tracked job with lifecycle state machine." },
         { step: 2, agent: "interpreter", role: "Converts raw request into StructuredBrief. Scores quality, detects clarification needs, applies workspace context." },
         { step: 3, agent: "composer",    role: "2-pass web research and document synthesis. Outline pass then full section expansion with source scoring." },
         { step: 4, agent: "buyer",       role: "Optional: Nevermined marketplace scan for gap-filling external data assets.", optional: true },
         { step: 5, agent: "seller",      role: "Quality gate (word/section/source minimums), multi-format packaging, credit settlement." },
+        { step: "on-demand", agent: "vision", role: "Image generation via NanoBanana with quality loop. Called by Interpreter or Composer when visual output needed.", optional: true },
       ],
       shortcutModes: {
         strategist: "Run Interpreter in standalone — returns structured brief only",
@@ -380,6 +440,7 @@ export async function GET() {
       clarify:         { url: `${baseUrl}/api/pipeline/clarify`,     methods: ["POST"],        description: "Pre-run brief quality check + clarification questions" },
       followup:        { url: `${baseUrl}/api/pipeline/followup`,    methods: ["POST"],        description: "Follow-up Q&A on a delivered report" },
       extractActions:  { url: `${baseUrl}/api/pipeline/extract-actions`, methods: ["POST"],   description: "Extract action items, risks, decisions from a report" },
+      vision:          { url: `${baseUrl}/api/agents/vision`,         methods: ["GET", "POST"], description: "VISION agent — NanoBanana image generation with quality loop" },
       stats:           { url: `${baseUrl}/api/agent/stats`,          methods: ["GET"],         description: "Live agent run statistics" },
       events:          { url: `${baseUrl}/api/agent/events`,         methods: ["GET"],         description: "SSE stream of pipeline stage events" },
       transactions:    { url: `${baseUrl}/api/pipeline/transactions`,methods: ["GET"],         description: "Credit transaction history" },

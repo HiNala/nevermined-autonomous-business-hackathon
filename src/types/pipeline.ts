@@ -115,9 +115,9 @@ export interface ProvenanceInfo {
 }
 
 export interface SponsorToolUsage {
-  tool: "apify-search" | "apify-crawl" | "exa-search" | "exa-contents" | "duckduckgo" | "raw-fetch" | "nevermined-402" | "nevermined-settled" | "zeroclick-ad" | "llm-synthesis" | "llm-outline";
+  tool: "apify-search" | "apify-crawl" | "exa-search" | "exa-contents" | "duckduckgo" | "raw-fetch" | "nevermined-402" | "nevermined-settled" | "zeroclick-ad" | "llm-synthesis" | "llm-outline" | "nanobanana-generate" | "nanobanana-judge";
   label: string;
-  sponsor: "Apify" | "Exa" | "Nevermined" | "ZeroClick" | "DuckDuckGo" | "LLM";
+  sponsor: "Apify" | "Exa" | "Nevermined" | "ZeroClick" | "DuckDuckGo" | "LLM" | "NanoBanana";
   timestamp: string;
   detail?: string;
 }
@@ -338,6 +338,14 @@ export interface PipelineResult {
   };
   /** NEW: seller enrichment summary — procurement status, external providers, credits spent */
   enrichmentSummary?: EnrichmentSummary;
+  /** NEW: VISION agent result — image generation with quality loop */
+  visionResult?: {
+    imageUrl: string;
+    attempts: number;
+    passedQuality: boolean;
+    qualityScore: number;
+    finalPrompt: string;
+  };
   /** NEW: seller delivery package with variants, quality gate, and metadata */
   deliveryPackage?: {
     orderId: string;

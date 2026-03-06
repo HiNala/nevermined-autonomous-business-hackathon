@@ -9,6 +9,7 @@ const SPONSOR_COLORS: Record<string, { bg: string; border: string; text: string;
   ZeroClick: { bg: "rgba(245, 158, 11, 0.08)", border: "rgba(245, 158, 11, 0.22)", text: "#F59E0B", dot: "#F59E0B" },
   DuckDuckGo: { bg: "rgba(251, 146, 60, 0.08)", border: "rgba(251, 146, 60, 0.22)", text: "#FB923C", dot: "#FB923C" },
   LLM: { bg: "rgba(168, 162, 158, 0.08)", border: "rgba(168, 162, 158, 0.22)", text: "var(--gray-500)", dot: "var(--gray-400)" },
+  NanoBanana: { bg: "rgba(234, 179, 8, 0.08)", border: "rgba(234, 179, 8, 0.22)", text: "#CA8A04", dot: "#EAB308" },
 };
 
 function SponsorBadge({ usage }: { usage: SponsorToolUsage }) {
