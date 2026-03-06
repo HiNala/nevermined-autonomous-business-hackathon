@@ -16,11 +16,6 @@ const PIPELINE_STEPS = [
   { label: "VISION",      sublabel: "image (opt)",    color: "#CA8A04", icon: ImageIcon, optional: true },
 ];
 
-const TRUST_BADGES = [
-  { label: "From 1 credit", sub: "$0.10 USDC" },
-  { label: "No signup", sub: "required" },
-  { label: "A2A ready", sub: "Nevermined x402" },
-];
 
 interface LiveStats { totalTransactions: number; totalCreditsFlowed: number; }
 
@@ -111,7 +106,7 @@ export function HeroSection() {
             className="max-w-xl text-[16px] leading-relaxed"
             style={{ color: "var(--gray-500)" }}
           >
-            Send a request from Studio, the Store, or via API. Five agents handle structuring, research, enrichment, delivery, and image generation.
+            Get a structured deliverable in minutes — research reports, strategy briefs, or design specs. Pay per job, no subscription.
           </p>
 
           {/* Animated pipeline flow */}
@@ -199,20 +194,10 @@ export function HeroSection() {
             </Link>
           </div>
 
-          {/* Trust badges */}
-          <div className="flex flex-wrap items-center gap-3">
-            {TRUST_BADGES.map((b) => (
-              <div
-                key={b.label}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1"
-                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
-              >
-                <span className="text-[11px] font-medium" style={{ color: "var(--gray-700)" }}>{b.label}</span>
-                <span className="text-[10px]" style={{ color: "var(--gray-400)" }}>·</span>
-                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{b.sub}</span>
-              </div>
-            ))}
-          </div>
+          {/* Trust strip — compact inline */}
+          <p className="font-mono text-[11px]" style={{ color: "var(--gray-400)" }}>
+            From 1 credit ($0.10 USDC) · No signup required · Nevermined x402
+          </p>
 
           {/* Live stats bar — client-only to prevent hydration mismatch */}
           {mounted && (animTx > 0 || animCredits > 0) && (
