@@ -658,9 +658,18 @@ export function StudioPage() {
           {sidebarOpen ? <PanelLeftClose size={14} style={{ color: "var(--gray-400)" }} /> : <PanelLeftOpen size={14} style={{ color: "var(--gray-400)" }} />}
         </button>
 
+        {/* Mobile backdrop — tap outside to close sidebar */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-10 bg-black/30 backdrop-blur-[1px] lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* â”€â”€ LEFT PANE: Controls â”€â”€ */}
         <div
-          className={`flex w-[380px] shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-10 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
+          className={`flex w-[380px] max-lg:w-full shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-20 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
           style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
         >
 
@@ -1030,7 +1039,7 @@ export function StudioPage() {
 
           {/* Stats bar */}
           <div
-            className="flex items-center gap-3 border-t px-3 py-2"
+            className="flex items-center gap-3 border-t px-3 py-2 overflow-x-auto scrollbar-hide"
             style={{ borderColor: "var(--border-default)", background: "var(--bg-surface)" }}
           >
             <div className="flex items-center gap-1.5" title="Credits used">
@@ -1120,7 +1129,7 @@ export function StudioPage() {
         <ErrorBoundary>
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Tabs */}
-          <div className="flex items-center gap-1 border-b px-3 py-1.5" style={{ borderColor: "var(--border-default)" }}>
+          <div className="flex items-center gap-1 border-b px-3 py-1.5 overflow-x-auto scrollbar-hide" style={{ borderColor: "var(--border-default)" }}>
             {result?.document && (
               <button
                 onClick={() => setRightTab("document")}
