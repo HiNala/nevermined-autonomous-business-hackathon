@@ -163,6 +163,30 @@ export interface PurchasedAsset {
   error?: string;
 }
 
+export interface BuyerRankedCandidate {
+  asset: { did: string; name: string; description: string; provider: string; price: { credits: number }; type: string };
+  relevanceScore: number;
+  priceValueScore: number;
+  informationGainScore: number;
+  compositeScore: number;
+  rankReason: string;
+}
+
+export interface BuyerPurchaseRationale {
+  assetId: string;
+  assetName: string;
+  gapFilled: string;
+  whyWorthIt: string;
+  expectedImprovement: string;
+  priceValueScore: number;
+}
+
+export interface BuyerApprovalRequired {
+  assets: BuyerRankedCandidate["asset"][];
+  totalCost: number;
+  reason: string;
+}
+
 export interface PipelineResult {
   mode?: string;
   brief?: StructuredBrief;
@@ -182,4 +206,13 @@ export interface PipelineResult {
   jobId?: string;
   /** NEW: workspace ID that was used */
   workspaceId?: string;
+  /** NEW: buyer agent result with ranked candidates and rationales */
+  buyerResult?: {
+    discovered: PurchasedAsset[];
+    purchased: PurchasedAsset[];
+    totalCreditsSpent: number;
+    rankedCandidates?: BuyerRankedCandidate[];
+    rationales?: BuyerPurchaseRationale[];
+    requiresApproval?: BuyerApprovalRequired;
+  };
 }

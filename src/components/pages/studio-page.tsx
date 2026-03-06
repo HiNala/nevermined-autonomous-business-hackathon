@@ -29,6 +29,7 @@ import {
   Award,
   ChevronDown,
   CreditCard,
+  GitBranch,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -37,6 +38,12 @@ import { PurchasedAssetGrid } from "@/components/ui/purchased-asset-card";
 import { SponsorRail } from "@/components/ui/sponsor-rail";
 import { JudgeMode, type JudgePreset } from "@/components/ui/judge-mode";
 import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
+import { WorkspaceProfilePanel } from "@/components/ui/workspace-profile-panel";
+import { ConfidenceBadge } from "@/components/ui/confidence-badge";
+import { BriefScoreCard } from "@/components/ui/brief-score-card";
+import { BuyerRationalePanel } from "@/components/ui/buyer-rationale-panel";
+import { ProvenanceBlockCard } from "@/components/ui/provenance-block";
+import type { ResearchConfidence, ProvenanceInfo } from "@/types/pipeline";
 import type {
   ResearchSource,
   ResearchDocument,
@@ -462,6 +469,14 @@ function BriefView({ brief, adsMuted, onAdServed }: { brief: StructuredBrief; ad
         </p>
       </div>
 
+      {brief.score && (
+        <BriefScoreCard
+          score={brief.score}
+          routing={brief.routing}
+          workspaceApplied={brief.workspaceApplied}
+        />
+      )}
+
       {brief.scope.length > 0 && (
         <div>
           <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>Scope</p>
@@ -662,6 +677,13 @@ function DocumentView({
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
+        {/* Confidence badge — shown when available */}
+        {(doc as ResearchDocument & { confidence?: ResearchConfidence }).confidence && (
+          <div className="mb-4">
+            <ConfidenceBadge confidence={(doc as ResearchDocument & { confidence: ResearchConfidence }).confidence} />
+          </div>
+        )}
+
         <div className="mb-6 rounded-xl p-4" style={{ background: "rgba(14, 165, 233, 0.04)", border: "1px solid rgba(14, 165, 233, 0.10)" }}>
           <p className="text-[13px] leading-relaxed" style={{ color: "var(--gray-600)" }}>{doc.summary}</p>
         </div>
@@ -683,15 +705,44 @@ function DocumentView({
               Sources ({doc.sources.length})
             </p>
             <div className="space-y-2">
-              {doc.sources.map((source, i) => (
-                <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-black/3">
-                  <ExternalLink size={12} className="mt-0.5 shrink-0" style={{ color: "var(--gray-400)" }} />
-                  <div className="min-w-0">
-                    <p className="truncate text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>{source.title}</p>
-                    <p className="truncate font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{source.url}</p>
-                  </div>
-                </a>
-              ))}
+              {doc.sources.map((source, i) => {
+                const scored = source as ResearchSource & { overallScore?: number; freshnessLabel?: string; authorityScore?: number };
+                return (
+                  <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-black/3">
+                    <ExternalLink size={12} className="mt-0.5 shrink-0" style={{ color: "var(--gray-400)" }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="truncate text-[12px] font-medium" style={{ color: "var(--gray-600)" }}>{source.title}</p>
+                        {scored.overallScore !== undefined && (
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            {scored.freshnessLabel && (
+                              <span
+                                className="rounded px-1 py-0.5 font-mono text-[8px]"
+                                style={{
+                                  background: scored.freshnessLabel === "recent" ? "rgba(34,197,94,0.1)" : scored.freshnessLabel === "stale" ? "rgba(239,68,68,0.1)" : "rgba(251,146,60,0.1)",
+                                  color: scored.freshnessLabel === "recent" ? "#22C55E" : scored.freshnessLabel === "stale" ? "#EF4444" : "#FB923C",
+                                }}
+                              >
+                                {scored.freshnessLabel}
+                              </span>
+                            )}
+                            <span
+                              className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold"
+                              style={{
+                                background: scored.overallScore >= 7 ? "rgba(34,197,94,0.1)" : scored.overallScore >= 4 ? "rgba(251,146,60,0.1)" : "rgba(239,68,68,0.1)",
+                                color: scored.overallScore >= 7 ? "#22C55E" : scored.overallScore >= 4 ? "#FB923C" : "#EF4444",
+                              }}
+                            >
+                              {scored.overallScore}/10
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="truncate font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{source.url}</p>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1160,7 +1211,7 @@ export function StudioPage() {
   const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases">("document");
+  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases" | "provenance">("document");
   const [bottomTab, setBottomTab] = useState<"stages" | "transactions">("stages");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number }; buyer: { earned: number; handled: number }; seller: { earned: number; handled: number } }>({
@@ -1177,6 +1228,7 @@ export function StudioPage() {
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
   const [judgeMode, setJudgeMode] = useState(false);
   const [adToolsUsed, setAdToolsUsed] = useState<SponsorToolUsage[]>([]);
+  const [workspaceId] = useState<string>("default");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const handleAdServed = useCallback(() => {
@@ -1354,6 +1406,7 @@ export function StudioPage() {
           outputType,
           mode,
           toolSettings,
+          workspaceId,
         }),
         signal: controller.signal,
       });
@@ -1606,6 +1659,11 @@ export function StudioPage() {
             </div>
           )}
 
+          {/* Workspace Profile Panel */}
+          <div className="border-b px-3 py-2.5" style={{ borderColor: "var(--border-default)" }}>
+            <WorkspaceProfilePanel workspaceId={workspaceId} />
+          </div>
+
           {/* Cost estimate + Input */}
           <div className="border-b p-3" style={{ borderColor: "var(--border-default)" }}>
             {input.trim() && !isLoading && (
@@ -1820,6 +1878,18 @@ export function StudioPage() {
                 <Package size={12} /> Purchases ({result?.purchasedAssets?.length})
               </button>
             )}
+            {result && (result.provenance || result.buyerResult) && (
+              <button
+                onClick={() => setRightTab("provenance")}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
+                style={{
+                  color: rightTab === "provenance" ? "#818CF8" : "var(--gray-400)",
+                  background: rightTab === "provenance" ? "rgba(99,102,241,0.10)" : "transparent",
+                }}
+              >
+                <GitBranch size={12} /> Provenance
+              </button>
+            )}
 
             {/* New Request button */}
             {(result || isLoading) && (
@@ -1866,6 +1936,25 @@ export function StudioPage() {
                   signals={[{ category: "purchase_intent" as const, confidence: 0.85, subject: result.purchasedAssets[0]?.name || "marketplace asset", sentiment: "positive" as const }]}
                   onAdServed={handleAdServed}
                 />
+              </div>
+            ) : rightTab === "provenance" ? (
+              <div className="h-full overflow-y-auto p-4 space-y-3">
+                {result.provenance && (
+                  <ProvenanceBlockCard provenance={result.provenance as ProvenanceInfo} />
+                )}
+                {result.buyerResult && (
+                  <BuyerRationalePanel
+                    rankedCandidates={result.buyerResult.rankedCandidates}
+                    rationales={result.buyerResult.rationales}
+                    requiresApproval={result.buyerResult.requiresApproval}
+                    totalCreditsSpent={result.buyerResult.totalCreditsSpent}
+                  />
+                )}
+                {!result.provenance && !result.buyerResult && (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-[12px]" style={{ color: "var(--gray-400)" }}>No provenance data for this run</p>
+                  </div>
+                )}
               </div>
             ) : (
               <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />
