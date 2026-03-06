@@ -30,6 +30,7 @@ import {
   ChevronDown,
   CreditCard,
   GitBranch,
+  PackageCheck,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -43,6 +44,7 @@ import { ConfidenceBadge } from "@/components/ui/confidence-badge";
 import { BriefScoreCard } from "@/components/ui/brief-score-card";
 import { BuyerRationalePanel } from "@/components/ui/buyer-rationale-panel";
 import { ProvenanceBlockCard } from "@/components/ui/provenance-block";
+import { DeliveryPackageView } from "@/components/ui/delivery-package-view";
 import type { ResearchConfidence, ProvenanceInfo } from "@/types/pipeline";
 import type {
   ResearchSource,
@@ -1211,7 +1213,7 @@ export function StudioPage() {
   const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases" | "provenance">("document");
+  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases" | "provenance" | "delivery">("document");
   const [bottomTab, setBottomTab] = useState<"stages" | "transactions">("stages");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number }; buyer: { earned: number; handled: number }; seller: { earned: number; handled: number } }>({
@@ -1880,6 +1882,23 @@ export function StudioPage() {
                 <Package size={12} /> Purchases ({result?.purchasedAssets?.length})
               </button>
             )}
+            {result?.deliveryPackage && (
+              <button
+                onClick={() => setRightTab("delivery")}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
+                style={{
+                  color: rightTab === "delivery" ? AGENT_CONFIG.seller.color : "var(--gray-400)",
+                  background: rightTab === "delivery" ? `${AGENT_CONFIG.seller.color}10` : "transparent",
+                }}
+              >
+                <PackageCheck size={12} /> Delivery
+                {result.deliveryPackage.qualityGate.passed ? (
+                  <span className="ml-0.5 size-1.5 rounded-full" style={{ background: "#22C55E", display: "inline-block" }} />
+                ) : (
+                  <span className="ml-0.5 size-1.5 rounded-full" style={{ background: "#EF4444", display: "inline-block" }} />
+                )}
+              </button>
+            )}
             {result && (result.provenance || result.buyerResult) && (
               <button
                 onClick={() => setRightTab("provenance")}
@@ -1939,6 +1958,8 @@ export function StudioPage() {
                   onAdServed={handleAdServed}
                 />
               </div>
+            ) : rightTab === "delivery" && result?.deliveryPackage ? (
+              <DeliveryPackageView pkg={result.deliveryPackage as import("@/lib/agent/seller").DeliveryPackage} />
             ) : rightTab === "provenance" ? (
               <div className="h-full overflow-y-auto p-4 space-y-3">
                 {result.provenance && (

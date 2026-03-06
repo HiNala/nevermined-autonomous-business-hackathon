@@ -215,4 +215,31 @@ export interface PipelineResult {
     rationales?: BuyerPurchaseRationale[];
     requiresApproval?: BuyerApprovalRequired;
   };
+  /** NEW: seller delivery package with variants, quality gate, and metadata */
+  deliveryPackage?: {
+    orderId: string;
+    productId: string;
+    productName: string;
+    variants: Array<{
+      format: "markdown" | "json" | "summary" | "full_report";
+      label: string;
+      sizeHint: string;
+      content: string;
+    }>;
+    primaryVariant: "markdown" | "json" | "summary" | "full_report";
+    wordCount: number;
+    sectionCount: number;
+    sourceCount: number;
+    enriched: boolean;
+    qualityGate: {
+      passed: boolean;
+      score: number;
+      checks: { name: string; passed: boolean; detail: string }[];
+      blockedReason?: string;
+    };
+    generatedAt: string;
+    creditsCharged: number;
+    durationMs: number;
+    jobId?: string;
+  };
 }

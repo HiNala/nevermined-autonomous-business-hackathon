@@ -8,15 +8,25 @@ export async function GET() {
   const products = catalog.listProducts();
 
   return NextResponse.json({
-    name: "Auto Business Agent Team",
+    name: "Auto Business — Job-Based Agent Commerce System",
     description:
-      "Four-agent system: Strategist (planning), Researcher (web research), Buyer (marketplace procurement), and Seller (autonomous order fulfillment). Powered by Nevermined x402 payments. Multi-provider AI (OpenAI, Gemini, Anthropic).",
-    version: "2.0.0",
+      "Canonical pipeline: Seller (intake + delivery) → Interpreter (intent structuring) → Composer (document creation) → Buyer (optional enrichment) → Seller (quality gate + packaging). Powered by Nevermined x402 payments. Multi-provider AI (OpenAI, Gemini, Anthropic).",
+    version: "3.0.0",
     url: `${baseUrl}/api/agent/seller`,
     protocol: "x402",
+    pipeline: {
+      canonical: "Seller → Interpreter → Composer → Buyer (optional) → Seller",
+      stages: [
+        { step: 1, agent: "Seller", role: "Intake & payment verification. Creates tracked job." },
+        { step: 2, agent: "Interpreter", role: "Converts raw request into a structured execution brief." },
+        { step: 3, agent: "Composer", role: "Web research, source synthesis, document creation." },
+        { step: 4, agent: "Buyer", role: "Optional: Nevermined marketplace enrichment when Composer needs external data.", optional: true },
+        { step: 5, agent: "Seller", role: "Quality gate, delivery packaging (markdown/summary/JSON), settlement." },
+      ],
+    },
     capabilities: {
       streaming: false,
-      agents: ["strategist", "researcher", "buyer", "seller"],
+      agents: ["interpreter", "composer", "buyer", "seller"],
       sellsTo: "any-agent-with-x402-token",
       extensions: [
         {
