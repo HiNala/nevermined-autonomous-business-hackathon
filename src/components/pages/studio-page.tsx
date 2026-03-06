@@ -59,6 +59,9 @@ import { ArtifactLibrary, saveArtifact, type ArtifactEntry } from "@/components/
 import { BuyerApprovalModal } from "@/components/ui/buyer-approval-modal";
 import { ActionPanel, type ActionIntelligence } from "@/components/ui/action-panel";
 import { FollowUpAssistant } from "@/components/ui/followup-assistant";
+import { VisionImageBanner } from "@/components/ui/vision-image-banner";
+import { useTransactionStream } from "@/hooks/use-transaction-stream";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { SmartSuggestions, type InputSuggestion } from "@/components/ui/smart-suggestions";
 import type { BriefRouting } from "@/lib/agent/strategist";
 import type { MarketplaceAsset } from "@/lib/agent/buyer";
@@ -86,23 +89,6 @@ const OUTPUT_TYPES: { value: OutputType; label: string; icon: typeof FileText }[
   { value: "general", label: "General", icon: Globe },
 ];
 
-// ─── Transaction stream hook ────────────────────────────────────────
-function useTransactionStream() {
-  const [transactions, setTransactions] = useState<AgentTransaction[]>([]);
-
-  useEffect(() => {
-    const es = new EventSource("/api/pipeline/transactions");
-    es.onmessage = (e) => {
-      try {
-        const tx = JSON.parse(e.data) as AgentTransaction;
-        setTransactions((prev) => [...prev.slice(-49), tx]);
-      } catch { /* ignore */ }
-    };
-    return () => es.close();
-  }, []);
-
-  return transactions;
-}
 
 // ─── Tool provider badge colors ─────────────────────────────────────
 const TOOL_BADGE: Record<string, { label: string; color: string; bg: string }> = {
@@ -919,75 +905,6 @@ function MarkdownContent({ text }: { text: string }) {
   return <div className="space-y-1">{elements}</div>;
 }
 
-// ─── Vision Image Banner ─────────────────────────────────────────────
-function VisionImageBanner({
-  visionResult,
-  title,
-}: {
-  visionResult: { imageUrl: string; attempts: number; passedQuality: boolean; qualityScore: number; finalPrompt: string };
-  title: string;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <>
-      <div className="mb-5 overflow-hidden rounded-xl cursor-pointer group" style={{ border: "1px solid var(--border-default)" }} onClick={() => setExpanded(true)}>
-        <div className="relative overflow-hidden">
-          <img
-            src={visionResult.imageUrl}
-            alt={title}
-            className="w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            style={{ maxHeight: "220px" }}
-            loading="lazy"
-          />
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.35)" }}>
-            <span className="font-mono text-[10px] font-bold text-white rounded-full px-3 py-1.5" style={{ background: "rgba(0,0,0,0.5)" }}>Click to expand</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-2" style={{ background: "var(--bg-elevated)", borderTop: "1px solid var(--border-default)" }}>
-          <span
-            className="flex items-center gap-1.5 font-mono text-[8px] font-semibold rounded-full px-2 py-0.5"
-            style={{
-              background: visionResult.passedQuality ? "rgba(34,197,94,0.10)" : "rgba(234,179,8,0.10)",
-              color: visionResult.passedQuality ? "#22C55E" : "#CA8A04",
-              border: `1px solid ${visionResult.passedQuality ? "rgba(34,197,94,0.22)" : "rgba(234,179,8,0.22)"}`,
-            }}
-          >
-            <ImageIcon size={9} />
-            VISION · NanoBanana · {visionResult.attempts} attempt{visionResult.attempts !== 1 ? "s" : ""} · {visionResult.qualityScore}/100
-          </span>
-          {visionResult.passedQuality && <span className="font-mono text-[8px]" style={{ color: "#22C55E" }}>✓ quality passed</span>}
-          <span className="ml-auto font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>click to expand</span>
-        </div>
-      </div>
-      {expanded && (
-        <div
-          className="fixed inset-0 z-100 flex items-center justify-center p-6"
-          style={{ background: "rgba(0,0,0,0.85)" }}
-          onClick={() => setExpanded(false)}
-        >
-          <div className="relative max-w-5xl w-full overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
-            <img src={visionResult.imageUrl} alt={title} className="w-full object-contain rounded-t-2xl" style={{ maxHeight: "80vh" }} />
-            <div className="flex items-center gap-3 px-4 py-3 rounded-b-2xl" style={{ background: "var(--bg-elevated)", borderTop: "1px solid var(--border-default)" }}>
-              <ImageIcon size={12} style={{ color: "#CA8A04" }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold truncate" style={{ color: "var(--gray-700)" }}>{title}</p>
-                <p className="font-mono text-[9px] truncate" style={{ color: "var(--gray-400)" }}>{visionResult.finalPrompt}</p>
-              </div>
-              <button
-                onClick={() => setExpanded(false)}
-                className="shrink-0 rounded-lg px-3 py-1.5 font-mono text-[10px] transition-opacity hover:opacity-70"
-                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
-              >
-                ✕ Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
 // ─── Document View ──────────────────────────────────────────────────
 function DocumentView({
   doc,
@@ -1773,8 +1690,8 @@ function extractAdContext(brief?: StructuredBrief, purchasedAssets?: PurchasedAs
 // ─── Main Studio Page ───────────────────────────────────────────────
 export function StudioPage() {
   const [input, setInput] = useState("");
-  const [mode, setMode] = useState<ViewMode>("pipeline");
-  const [outputType, setOutputType] = useState<OutputType>("research");
+  const [mode, setMode] = useLocalStorage<ViewMode>("ab:viewMode", "pipeline");
+  const [outputType, setOutputType] = useLocalStorage<OutputType>("ab:outputType", "research");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [pipelineEvents, setPipelineEvents] = useState<PipelineEvent[]>([]);
@@ -1796,7 +1713,7 @@ export function StudioPage() {
   const [adsMuted, setAdsMuted] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiMode, setApiMode] = useState<"demo" | "live" | "checking">("checking");
-  const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
+  const [toolSettings, setToolSettings] = useLocalStorage<ToolSettings>("ab:toolSettings", loadToolSettings());
   const [judgeMode, setJudgeMode] = useState(false);
   const [adToolsUsed, setAdToolsUsed] = useState<SponsorToolUsage[]>([]);
   const [workspaceId] = useState<string>("default");
@@ -1839,15 +1756,11 @@ export function StudioPage() {
     setMode(preset.mode);
     setOutputType(preset.outputType);
     // Apply tool overrides
-    setToolSettings((prev) => {
-      const next = {
-        ...prev,
-        ...(preset.toolOverrides.researcher ? { researcher: { ...prev.researcher, ...preset.toolOverrides.researcher } } : {}),
-        ...(preset.toolOverrides.trading ? { trading: { ...prev.trading, ...preset.toolOverrides.trading } } : {}),
-      };
-      saveToolSettings(next);
-      return next;
-    });
+    setToolSettings((prev) => ({
+      ...prev,
+      ...(preset.toolOverrides.researcher ? { researcher: { ...prev.researcher, ...preset.toolOverrides.researcher } } : {}),
+      ...(preset.toolOverrides.trading ? { trading: { ...prev.trading, ...preset.toolOverrides.trading } } : {}),
+    }));
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);
 
@@ -2275,7 +2188,6 @@ export function StudioPage() {
       settings={toolSettings}
       onChange={(next) => {
         setToolSettings(next);
-        saveToolSettings(next);
       }}
     />
     <div className="flex h-screen flex-col" style={{ background: "var(--bg-base)" }}>
