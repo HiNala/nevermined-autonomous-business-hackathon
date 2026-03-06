@@ -36,6 +36,7 @@ import {
   ShoppingBag,
   ShoppingCart,
   BookOpen,
+  Building2,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -734,6 +735,48 @@ function BriefView({ brief, adsMuted, onAdServed }: { brief: StructuredBrief; ad
           routing={brief.routing}
           workspaceApplied={brief.workspaceApplied}
         />
+      )}
+
+      {/* Routing recommendation chips */}
+      {brief.routing && (
+        <div
+          className="rounded-xl p-3.5"
+          style={{ background: "rgba(124,58,237,0.04)", border: "1px solid rgba(124,58,237,0.12)" }}
+        >
+          <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#7C3AED" }}>
+            Strategist routing recommendation
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {brief.routing.recommendedMode && (
+              <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1" style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.20)" }}>
+                <Brain size={10} style={{ color: "#7C3AED" }} />
+                <span className="font-mono text-[10px] font-semibold" style={{ color: "#7C3AED" }}>mode</span>
+                <span className="text-[10px]" style={{ color: "var(--gray-600)" }}>{brief.routing.recommendedMode}</span>
+              </div>
+            )}
+            {brief.routing.recommendedDepth && (
+              <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1" style={{ background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.20)" }}>
+                <Search size={10} style={{ color: "#0EA5E9" }} />
+                <span className="font-mono text-[10px] font-semibold" style={{ color: "#0EA5E9" }}>depth</span>
+                <span className="text-[10px]" style={{ color: "var(--gray-600)" }}>{brief.routing.recommendedDepth}</span>
+              </div>
+            )}
+            {brief.routing.enrichmentLikelihood !== undefined && (
+              <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.20)" }}>
+                <ShoppingBag size={10} style={{ color: "#F59E0B" }} />
+                <span className="font-mono text-[10px] font-semibold" style={{ color: "#F59E0B" }}>enrichment</span>
+                <span className="text-[10px]" style={{ color: "var(--gray-600)" }}>{brief.routing.enrichmentLikelihood}</span>
+              </div>
+            )}
+            {brief.workspaceApplied && (
+              <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.20)" }}>
+                <Building2 size={10} style={{ color: "#22C55E" }} />
+                <span className="font-mono text-[10px] font-semibold" style={{ color: "#22C55E" }}>workspace</span>
+                <span className="text-[10px]" style={{ color: "var(--gray-600)" }}>applied</span>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {brief.scope.length > 0 && (
@@ -1573,6 +1616,8 @@ export function StudioPage() {
   const [approvalAssets, setApprovalAssets] = useState<MarketplaceAsset[]>([]);
   const [approvalCost, setApprovalCost] = useState(0);
   const [approvalReason, setApprovalReason] = useState("");
+  // Clarification pre-check loading state
+  const [isCheckingClarify, setIsCheckingClarify] = useState(false);
 
   const handleAdServed = useCallback(() => {
     setAdToolsUsed((prev) => {
@@ -1817,6 +1862,7 @@ export function StudioPage() {
 
     // For pipeline/strategist mode — check if clarification is needed first
     if ((mode === "pipeline" || mode === "strategist") && input.trim().length < 40) {
+      setIsCheckingClarify(true);
       try {
         const res = await fetch("/api/pipeline/clarify", {
           method: "POST",
@@ -1830,10 +1876,13 @@ export function StudioPage() {
             setClarifyRouting(data.routing);
             setPendingInput(input.trim());
             setClarifyOpen(true);
+            setIsCheckingClarify(false);
             return;
           }
         }
-      } catch { /* fall through to normal run on error */ }
+      } catch { /* fall through to normal run on error */ } finally {
+        setIsCheckingClarify(false);
+      }
     }
 
     await runPipeline();
@@ -2171,13 +2220,19 @@ export function StudioPage() {
                 />
                 <button
                   type="submit"
-                  disabled={!input.trim() || isLoading}
+                  disabled={!input.trim() || isLoading || isCheckingClarify}
                   className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
-                  style={{ background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
-                  title="Send (Enter ↵)"
+                  style={{ background: isCheckingClarify ? "rgba(124,58,237,0.7)" : "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
+                  title={isCheckingClarify ? "Checking brief quality…" : "Send (Enter ↵)"}
                 >
-                  {isLoading ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
+                  {isLoading || isCheckingClarify ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
                 </button>
+                {isCheckingClarify && (
+                  <div className="absolute left-3 bottom-3 flex items-center gap-1.5 rounded-md px-2 py-1" style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
+                    <Loader2 size={9} className="animate-spin" style={{ color: "#7C3AED" }} />
+                    <span className="font-mono text-[9px]" style={{ color: "#7C3AED" }}>checking brief quality…</span>
+                  </div>
+                )}
               </div>
               {error && (
                 <div className="mt-2 rounded-lg px-3 py-2.5" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>

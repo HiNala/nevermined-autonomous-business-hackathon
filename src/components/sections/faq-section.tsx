@@ -50,6 +50,18 @@ const FAQS = [
     a: "Deliverables are returned as structured documents with sections, headings, and source citations. You can copy the full text to clipboard or download it as a .md (Markdown) file directly from the Studio. Markdown renders cleanly in Notion, GitHub, Obsidian, and most editors.",
   },
   {
+    q: "What happens when I type a short or vague request?",
+    a: "If your request is under 40 characters and you're in Pipeline or Interpreter mode, the Strategist runs a brief quality pre-check first. If it detects your intent is ambiguous, a Clarification Dialog appears with 1–2 targeted questions before the pipeline runs. Answering them appends context to your request automatically — so the Interpreter builds a more precise brief. You can always skip and run immediately.",
+  },
+  {
+    q: "What is the Artifact Library?",
+    a: "Every successful run is saved to your browser's local storage as an artifact — including the prompt, mode, title, credit cost, source count, and whether enrichment was used. Open the Library panel (the 'library' button in the Studio toolbar) to browse your run history, restore a previous prompt to the input, or re-run it instantly. Nothing is sent to a server — it's purely local and private.",
+  },
+  {
+    q: "What does 2-pass Composer mean?",
+    a: "The Composer (Researcher agent) now runs two LLM passes instead of one. Pass 1 builds a structured outline — specific section headings and key claims per section, guided by your brief. Pass 2 expands each section with full evidence synthesis from the web sources retrieved. This produces much higher quality reports with consistent structure, proper section flow, and explicit source attribution. The Sponsor Rail shows a '◈ 2-pass synthesis' badge when both passes ran.",
+  },
+  {
     q: "How long does a request actually take?",
     a: "A Research Sprint (1cr) typically finishes in 45–90 seconds with the Composer agent only. The Full Pipeline — Interpreter → Composer → optional Buyer → Seller packaging — takes 3–7 minutes depending on web scraping speed and model response time. The Studio shows live stage progress (Intake → Interpreting → Composing → Enriching → Packaging) so you always know what's happening.",
   },
