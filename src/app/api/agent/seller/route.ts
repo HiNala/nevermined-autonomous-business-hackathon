@@ -200,10 +200,24 @@ export async function POST(request: Request) {
 
     const result = await fulfillSellerOrder(order, undefined, undefined, body.toolSettings);
 
-    // Settle credits after successful execution
+    // Settle credits BEFORE returning results — if settlement fails, block response
     if (!isInternalRequest && paymentSignature) {
       const creditsToSettle = result.sellerResult.creditsCharged || estimatedCredits;
       const settlement = await settleX402Token(paymentSignature, ENDPOINT, creditsToSettle);
+
+      if (!settlement.settled) {
+        console.error(`[x402/seller] Settlement FAILED for caller ${caller}:`, settlement.error);
+        agentEvents.push({
+          id: generateEventId(),
+          type: "settlement_failed",
+          timestamp: new Date().toISOString(),
+          data: { agent: "seller", caller, query, credits: creditsToSettle, error: settlement.error },
+        });
+        return NextResponse.json(
+          { error: "Payment settlement failed — credits could not be burned", reason: settlement.error },
+          { status: 402 }
+        );
+      }
 
       agentEvents.push({
         id: generateEventId(),
@@ -213,6 +227,7 @@ export async function POST(request: Request) {
           agent: "seller",
           caller,
           credits: settlement.creditsRedeemed ?? creditsToSettle,
+          settled: true,
           mode: "live",
           orderId,
         },

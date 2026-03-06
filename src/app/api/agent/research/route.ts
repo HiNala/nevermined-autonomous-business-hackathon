@@ -141,9 +141,24 @@ export async function POST(request: Request) {
 
     const document = await runResearch(researchRequest);
 
-    // Step 4: Settle — burn credits after successful execution
+    // Step 4: Settle — burn credits BEFORE returning results
+    // If settlement fails, do NOT return the document
     if (!isInternalRequest && paymentSignature) {
       const settlement = await settleX402Token(paymentSignature, ENDPOINT, credits);
+
+      if (!settlement.settled) {
+        console.error(`[x402] Settlement FAILED for caller ${caller}:`, settlement.error);
+        agentEvents.push({
+          id: generateEventId(),
+          type: "settlement_failed",
+          timestamp: new Date().toISOString(),
+          data: { agent: "researcher", caller, query, credits, error: settlement.error },
+        });
+        return NextResponse.json(
+          { error: "Payment settlement failed — credits could not be burned", reason: settlement.error },
+          { status: 402 }
+        );
+      }
 
       agentEvents.push({
         id: generateEventId(),
@@ -154,7 +169,7 @@ export async function POST(request: Request) {
           caller,
           query,
           credits: settlement.creditsRedeemed ?? credits,
-          settled: settlement.settled,
+          settled: true,
           mode: "live",
         },
       });
@@ -176,10 +191,9 @@ export async function POST(request: Request) {
       },
     });
 
-    // Log on Nevermined network (awaited so it completes before response)
-    // External x402 calls always log; internal calls respect nvmTracking toggle
-    const shouldLogNvm = !isInternalRequest || (body.toolSettings?.trading?.nvmTracking ?? true);
-    if (shouldLogNvm) {
+    // Log on Nevermined network — only for internal UI calls (tracking)
+    // External x402 calls are already tracked via verify+settle
+    if (isInternalRequest && (body.toolSettings?.trading?.nvmTracking ?? true)) {
       await logNeverminedTask({
         credits: document.creditsUsed,
         description: `Research (${depth}): "${query.slice(0, 60)}"`,

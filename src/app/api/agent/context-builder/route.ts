@@ -135,32 +135,47 @@ export async function POST(request: Request) {
   try {
     const contextDoc = await buildContext({ query });
 
-    // ── Step 4: Settle credits ─────────────────────────────────────────
+    // ── Step 4: Settle credits — BLOCK response if settlement fails ────
     if (!isInternal && token) {
       const { planId, agentId } = getAgent1Config();
       const payments = getPaymentsClient();
 
-      if (payments && planId && agentId) {
-        const paymentRequired = buildPaymentRequired(planId, {
-          endpoint: ENDPOINT,
-          agentId,
-          httpVerb: "POST",
+      if (!payments || !planId || !agentId) {
+        return NextResponse.json(
+          { error: "Payment system not configured — cannot settle" },
+          { status: 503 }
+        );
+      }
+
+      const paymentRequired = buildPaymentRequired(planId, {
+        endpoint: ENDPOINT,
+        agentId,
+        httpVerb: "POST",
+      });
+      try {
+        await payments.facilitator.settlePermissions({
+          paymentRequired,
+          x402AccessToken: token,
+          maxAmount: CREDITS,
         });
-        try {
-          await payments.facilitator.settlePermissions({
-            paymentRequired,
-            x402AccessToken: token,
-            maxAmount: CREDITS,
-          });
-          agentEvents.push({
-            id: genId(),
-            type: "transaction",
-            timestamp: new Date().toISOString(),
-            data: { agent: "architect", caller, credits: Number(CREDITS), mode: "live" },
-          });
-        } catch {
-          // settle failed — log but don't fail the response
-        }
+        agentEvents.push({
+          id: genId(),
+          type: "transaction",
+          timestamp: new Date().toISOString(),
+          data: { agent: "architect", caller, credits: Number(CREDITS), settled: true, mode: "live" },
+        });
+      } catch (settleErr) {
+        console.error(`[x402/architect] Settlement FAILED for caller ${caller}:`, settleErr);
+        agentEvents.push({
+          id: genId(),
+          type: "settlement_failed",
+          timestamp: new Date().toISOString(),
+          data: { agent: "architect", caller, credits: Number(CREDITS), error: String(settleErr) },
+        });
+        return NextResponse.json(
+          { error: "Payment settlement failed — credits could not be burned" },
+          { status: 402 }
+        );
       }
     }
 
