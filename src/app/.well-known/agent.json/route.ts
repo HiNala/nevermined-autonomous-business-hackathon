@@ -4,7 +4,7 @@ import { catalog } from "@/lib/agent/inventory";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000").trim().replace(/\/+$/, "");
   const products = catalog.listProducts();
 
   return NextResponse.json({

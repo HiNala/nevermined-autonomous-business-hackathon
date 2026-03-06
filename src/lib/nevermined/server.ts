@@ -93,7 +93,7 @@ export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X
   if (!planId || !agentId) return null;
 
   // Resolve full URL — the endpoint registered in Nevermined is the full URL
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NVM_SELLER_ENDPOINT?.replace(/\/api\/agent\/research$/, "") || "";
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || process.env.NVM_SELLER_ENDPOINT?.replace(/\/api\/agent\/research$/, "") || "").trim().replace(/\/+$/, "");
   const fullEndpoint = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`;
 
   return buildPaymentRequired(planId, {
