@@ -9,6 +9,7 @@ import { AgentCards } from "@/components/sections/agent-cards";
 import { FaqSection } from "@/components/sections/faq-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { OutputShowcase } from "@/components/sections/output-showcase";
+import { HowToBuy } from "@/components/sections/how-to-buy";
 import { SectionDivider } from "@/components/ui/section-divider";
 
 export function HomePage() {
@@ -21,6 +22,8 @@ export function HomePage() {
         <OutputShowcase />
         <SectionDivider />
         <DecisionLogic />
+        <SectionDivider />
+        <HowToBuy />
         <SectionDivider />
         <AgentCards />
         <SectionDivider />

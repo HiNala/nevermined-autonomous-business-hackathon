@@ -340,7 +340,7 @@ function TradingSection({
       <div className="space-y-2">
         <TradingToggle
           label="Internal Trading"
-          description="Agents charge credits between each other (Strategist ↔ Researcher). Turn off to let your agents collaborate for free."
+          description="Interpreter → Composer → Seller credit accounting. When ON, each agent charges credits for its work using IncomingOrder/ComposedReport contracts. Turn OFF to run the pipeline without internal billing."
           enabled={trading.internalTrading}
           onChange={(v) => onChange({ ...trading, internalTrading: v })}
           accentColor="#22C55E"
@@ -365,14 +365,14 @@ function TradingSection({
         )}
         <TradingToggle
           label="Seller Agent"
-          description="Enable Seller mode — accept and orchestrate orders through the full canonical pipeline: Interpreter → Composer → optional Buyer → packaged delivery."
+          description="The Seller is the commerce and delivery layer — it owns intake (IncomingOrder), job lifecycle, enrichment decisions, quality gate, and final packaging. Disabling returns 503 to external callers."
           enabled={trading.sellerEnabled}
           onChange={(v) => onChange({ ...trading, sellerEnabled: v })}
           accentColor="#EF4444"
         />
         <TradingToggle
           label="Nevermined Tracking"
-          description="Log internal pipeline runs to the Nevermined network. External x402 transactions always log regardless of this setting."
+          description="Log internal pipeline runs to the Nevermined network for auditability. External x402 payments (A2A buyer orders) always log regardless — this only controls internal Studio/Store runs."
           enabled={trading.nvmTracking}
           onChange={(v) => onChange({ ...trading, nvmTracking: v })}
           accentColor="#8B5CF6"
