@@ -2047,8 +2047,25 @@ export function StudioPage() {
       // Auto-extract action intelligence from the composed document
       if (data.document) {
         extractActionsFromResult(data.document);
-        // Trigger VISION agent async — non-blocking, generates hero image for the report
-        if (toolSettings.trading.visionEnabled !== false) {
+        if (data.visionResult) {
+          // Server already ran VISION — apply result directly, no second call
+          setVisionResult(data.visionResult);
+          setAdToolsUsed((prev) => {
+            if (prev.some((t) => t.tool === "nanobanana-generate")) return prev;
+            const tools: SponsorToolUsage[] = [
+              ...prev,
+              {
+                tool: "nanobanana-generate",
+                label: "Image Generation",
+                sponsor: "NanoBanana",
+                timestamp: new Date().toISOString(),
+                detail: `${data.visionResult!.attempts} attempt${data.visionResult!.attempts !== 1 ? "s" : ""} · score ${data.visionResult!.qualityScore}/100`,
+              },
+            ];
+            return tools;
+          });
+        } else if (toolSettings.trading.visionEnabled !== false) {
+          // Server did not run VISION (researcher/strategist standalone modes) — run client-side
           triggerVision(data.document.title ?? finalInput, data.document.summary ?? "");
         }
       }
