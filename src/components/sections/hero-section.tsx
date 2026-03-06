@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Globe } from "@/components/ui/globe";
-import { ArrowRight, Brain, ImageIcon, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart, Zap } from "lucide-react";
+import { ArrowRight, Brain, ImageIcon, PackageCheck, PenLine, ShoppingBag, ShoppingCart, Zap } from "lucide-react";
 import Link from "next/link";
 import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
@@ -16,12 +16,6 @@ const PIPELINE_STEPS = [
   { label: "VISION",      sublabel: "image (opt)",    color: "#CA8A04", icon: ImageIcon, optional: true },
 ];
 
-const PROOF_CARDS = [
-  { color: "#7C3AED", icon: Brain,       title: "Clarification-aware", body: "Interpreter scores brief quality and asks 1–2 targeted questions before ambiguous jobs run. Workspace context applied automatically." },
-  { color: "#0EA5E9", icon: PenLine,     title: "2-pass composition",  body: "Composer builds a full outline first, then expands each section with source attribution, contradiction detection, and confidence scoring." },
-  { color: "#CA8A04", icon: ImageIcon,   title: "VISION image loop",   body: "After every report, VISION generates a hero image via NanoBanana with a GPT-4o-mini quality judge — up to 3 attempts, automatically refined." },
-];
-
 const TRUST_BADGES = [
   { label: "From 1 credit", sub: "$0.10 USDC" },
   { label: "No signup", sub: "required" },
@@ -31,7 +25,6 @@ const TRUST_BADGES = [
 interface LiveStats { totalTransactions: number; totalCreditsFlowed: number; }
 
 export function HeroSection() {
-  const [q, setQ] = useState("");
   const [activeStep, setActiveStep] = useState(0);
   const [liveStats, setLiveStats] = useState<LiveStats>({ totalTransactions: 0, totalCreditsFlowed: 0 });
 
@@ -64,12 +57,6 @@ export function HeroSection() {
 
   const animTx      = useAnimatedCounter(liveStats.totalTransactions, 1200, 600);
   const animCredits = useAnimatedCounter(liveStats.totalCreditsFlowed, 1400, 700);
-
-  function handleSearch(e: FormEvent) {
-    e.preventDefault();
-    const trimmed = q.trim();
-    if (trimmed) window.location.href = `/studio?q=${encodeURIComponent(trimmed)}`;
-  }
 
   return (
     <section className="relative flex min-h-[70vh] sm:min-h-[82vh] flex-col overflow-hidden">
@@ -185,64 +172,7 @@ export function HeroSection() {
             })}
           </motion.div>
 
-          {/* CTA input */}
-          <motion.form
-            onSubmit={handleSearch}
-            className="flex flex-col gap-3 sm:flex-row"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.28 }}
-          >
-            <div className="relative flex-1">
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                aria-label="Describe your business task"
-                placeholder="e.g. Research the AI agent market in 2025…"
-                className="w-full rounded-xl px-4 py-3.5 text-[14px] transition-all"
-                style={{
-                  background: "var(--bg-elevated)",
-                  border: "1px solid var(--border-default)",
-                  color: "var(--gray-800)",
-                  outline: "none",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.10), 0 1px 4px rgba(0,0,0,0.04)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border-default)";
-                  e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
-                }}
-              />
-              {q.trim() && (
-                <motion.span
-                  className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[9px]"
-                  style={{ color: "var(--gray-400)" }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  Enter ↵
-                </motion.span>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={!q.trim()}
-              className="flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-[14px] font-semibold text-white transition-all duration-200 disabled:opacity-30 btn-press"
-              style={{
-                background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
-                boxShadow: q.trim() ? "0 4px 18px -4px rgba(201,125,78,0.50)" : "none",
-                minWidth: "80px",
-              }}
-            >
-              <Send size={14} />
-              <span>Go</span>
-            </button>
-          </motion.form>
-
-          {/* CTA buttons row */}
+          {/* CTA buttons — max 2 primary actions */}
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/studio"

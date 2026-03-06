@@ -3,9 +3,6 @@
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
 import { HeroSection } from "@/components/sections/hero-section";
-import { DecisionLogic } from "@/components/sections/decision-logic";
-import { StudioServices } from "@/components/sections/studio-services";
-import { AgentCards } from "@/components/sections/agent-cards";
 import { FaqSection } from "@/components/sections/faq-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { OutputShowcase } from "@/components/sections/output-showcase";
@@ -20,12 +17,6 @@ export function HomePage() {
         <HeroSection />
         <SectionDivider />
         <OutputShowcase />
-        <SectionDivider />
-        <DecisionLogic />
-        <SectionDivider />
-        <AgentCards />
-        <SectionDivider />
-        <StudioServices />
         <SectionDivider />
         <FaqSection />
         <CtaSection />
