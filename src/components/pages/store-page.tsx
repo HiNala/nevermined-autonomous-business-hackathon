@@ -932,8 +932,7 @@ export function StorePage() {
     <VGSCheckoutModal
       open={checkoutOpen}
       onClose={() => setCheckoutOpen(false)}
-      onSuccess={(credits, paymentId) => {
-        console.log(`[VGS] Store payment: ${credits} credits, ID: ${paymentId}`);
+      onSuccess={(_credits, _paymentId) => {
         setCheckoutOpen(false);
       }}
     />

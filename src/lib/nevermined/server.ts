@@ -96,8 +96,6 @@ export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NVM_SELLER_ENDPOINT?.replace(/\/api\/agent\/research$/, "") || "";
   const fullEndpoint = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`;
 
-  console.log(`[NVM] buildPaymentSpec: planId=${planId}, agentId=${agentId}, endpoint=${fullEndpoint}`);
-
   return buildPaymentRequired(planId, {
     endpoint: fullEndpoint,
     agentId,
@@ -160,7 +158,6 @@ export async function logNeverminedTask(opts: {
 
   try {
     // Step 1: Start simulation request via SDK
-    console.log(`[NVM] Starting simulation request (tag: ${opts.tag}, credits: ${opts.credits})`);
     const simResult = await payments.requests.startSimulationRequest({
       agentName: opts.tag ?? "Auto Business Agent",
       planName: "plan one",
@@ -172,8 +169,6 @@ export async function logNeverminedTask(opts: {
       return { success: false, error: "No agentRequestId returned" };
     }
 
-    console.log(`[NVM] Simulation started: ${agentRequestId}`);
-
     // Step 2: Track sub-task with credit info via SDK (best-effort)
     try {
       const trackResult = await payments.requests.trackAgentSubTask({
@@ -183,7 +178,7 @@ export async function logNeverminedTask(opts: {
         description: opts.description ?? "Agent task completed",
         status: "SUCCESS" as never,
       });
-      console.log(`[NVM] Sub-task tracked: ${JSON.stringify(trackResult)}`);
+      void trackResult;
     } catch (e) {
       console.warn("[NVM] trackAgentSubTask failed (non-fatal):", e instanceof Error ? e.message : e);
     }
@@ -191,7 +186,7 @@ export async function logNeverminedTask(opts: {
     // Step 3: Finish simulation via SDK (best-effort)
     try {
       const finishResult = await payments.requests.finishSimulationRequest(agentRequestId, 0.2, false);
-      console.log(`[NVM] Simulation finished: ${JSON.stringify(finishResult)}`);
+      void finishResult;
     } catch (e) {
       console.warn("[NVM] finishSimulationRequest failed (non-fatal):", e instanceof Error ? e.message : e);
     }
@@ -217,9 +212,7 @@ export async function orderOwnPlan(): Promise<{ success: boolean; txHash?: strin
   }
 
   try {
-    console.log(`[NVM] Ordering own plan: ${planId}`);
     const result = await payments.plans.orderPlan(planId);
-    console.log(`[NVM] Plan ordered: ${JSON.stringify(result)}`);
     return {
       success: true,
       txHash: typeof result === "string" ? result : (result as { txHash?: string })?.txHash,
@@ -244,7 +237,6 @@ export async function getPlanBalance(): Promise<{ balance?: string; isSubscriber
 
   try {
     const result = await payments.plans.getPlanBalance(planId);
-    console.log(`[NVM] Plan balance: ${JSON.stringify(result)}`);
     return {
       balance: String(result?.balance ?? "unknown"),
       isSubscriber: result?.isSubscriber ?? false,

@@ -60,6 +60,7 @@ import { BuyerApprovalModal } from "@/components/ui/buyer-approval-modal";
 import { ActionPanel, type ActionIntelligence } from "@/components/ui/action-panel";
 import { FollowUpAssistant } from "@/components/ui/followup-assistant";
 import { VisionImageBanner } from "@/components/ui/vision-image-banner";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useTransactionStream } from "@/hooks/use-transaction-stream";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { SmartSuggestions, type InputSuggestion } from "@/components/ui/smart-suggestions";
@@ -2662,6 +2663,7 @@ export function StudioPage() {
         </div>
 
         {/* ── RIGHT PANE: Output ── */}
+        <ErrorBoundary>
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Tabs */}
           <div className="flex items-center gap-1 border-b px-3 py-1.5" style={{ borderColor: "var(--border-default)" }}>
@@ -2963,13 +2965,13 @@ export function StudioPage() {
             )}
           </div>
         </div>
+        </ErrorBoundary>
       </div>
     </div>
     <VGSCheckoutModal
       open={checkoutOpen}
       onClose={() => setCheckoutOpen(false)}
-      onSuccess={(credits, paymentId) => {
-        console.log(`[VGS] Payment success: ${credits} credits, ID: ${paymentId}`);
+      onSuccess={(_credits, _paymentId) => {
         setCheckoutOpen(false);
       }}
     />

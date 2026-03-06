@@ -12,9 +12,6 @@ export async function runVisionAgent(request: VisionRequest): Promise<VisionResu
   let bestAttempt: AttemptRecord | null = null;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    console.log(`[VISION] Attempt ${attempt}/${MAX_ATTEMPTS}`);
-    console.log(`[VISION] Prompt: ${currentPrompt.slice(0, 120)}...`);
-
     let imageUrl = "";
     const taskId = `attempt_${attempt}_${Date.now()}`;
 
@@ -72,10 +69,6 @@ export async function runVisionAgent(request: VisionRequest): Promise<VisionResu
       bestAttempt = record;
     }
 
-    console.log(
-      `[VISION] Attempt ${attempt} score: ${judgement.score} | passed: ${judgement.passed}`
-    );
-
     // --- Pass: return immediately ---
     if (judgement.passed) {
       return {
@@ -104,8 +97,6 @@ export async function runVisionAgent(request: VisionRequest): Promise<VisionResu
 
       record.refinementReasoning = reasoning;
       currentPrompt = refinedPrompt;
-
-      console.log(`[VISION] Refining for attempt ${attempt + 1}: ${reasoning}`);
     }
   }
 
