@@ -301,6 +301,7 @@ export function VGSCheckoutModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close checkout"
             className="flex size-7 items-center justify-center rounded-lg transition-all hover:opacity-70"
             style={{
               background: "var(--bg-surface)",

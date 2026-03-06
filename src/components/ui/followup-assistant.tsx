@@ -172,6 +172,8 @@ export function FollowUpAssistant({ reportTitle, reportSummary, reportContent, i
         <div className="flex items-center gap-1">
           <button
             onClick={() => setCollapsed((v) => !v)}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? "Expand follow-up assistant" : "Collapse follow-up assistant"}
             className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-black/5"
             style={{ color: "var(--gray-400)" }}
           >
@@ -180,6 +182,7 @@ export function FollowUpAssistant({ reportTitle, reportSummary, reportContent, i
           {onClose && (
             <button
               onClick={onClose}
+              aria-label="Close follow-up assistant"
               className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-black/5"
               style={{ color: "var(--gray-400)" }}
             >
@@ -263,6 +266,7 @@ export function FollowUpAssistant({ reportTitle, reportSummary, reportContent, i
                       {msg.role === "assistant" && (
                         <button
                           onClick={() => handleCopy(msg.id, msg.content)}
+                          aria-label="Copy message"
                           className="absolute right-2 top-2 hidden rounded p-0.5 transition-colors group-hover:flex"
                           style={{ color: "var(--gray-400)" }}
                         >
@@ -337,6 +341,7 @@ export function FollowUpAssistant({ reportTitle, reportSummary, reportContent, i
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
+                aria-label="Send message"
                 className="flex size-9 shrink-0 items-center justify-center rounded-xl transition-all disabled:opacity-30"
                 style={{ background: "linear-gradient(135deg, #0284C7, #0EA5E9)" }}
               >
