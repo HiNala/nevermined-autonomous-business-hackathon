@@ -1,3 +1,4 @@
+// Auto Business v3.2.0 — VISION + Blob storage integration
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Serif_Display } from "next/font/google";
 import { SITE_DESCRIPTION } from "@/lib/constants";
