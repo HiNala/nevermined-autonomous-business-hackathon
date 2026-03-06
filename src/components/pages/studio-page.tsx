@@ -37,6 +37,7 @@ import {
   ShoppingCart,
   BookOpen,
   Building2,
+  MessageSquare,
 } from "lucide-react";
 import { ZeroClickAd, type ZeroClickSignal } from "@/components/ui/zeroclick-ad";
 import { SettingsPanel } from "@/components/ui/settings-panel";
@@ -55,6 +56,9 @@ import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge
 import { ClarificationDialog } from "@/components/ui/clarification-dialog";
 import { ArtifactLibrary, saveArtifact, type ArtifactEntry } from "@/components/ui/artifact-library";
 import { BuyerApprovalModal } from "@/components/ui/buyer-approval-modal";
+import { ActionPanel, type ActionIntelligence } from "@/components/ui/action-panel";
+import { FollowUpAssistant } from "@/components/ui/followup-assistant";
+import { SmartSuggestions, type InputSuggestion } from "@/components/ui/smart-suggestions";
 import type { BriefRouting } from "@/lib/agent/strategist";
 import type { MarketplaceAsset } from "@/lib/agent/buyer";
 import type { ResearchConfidence, ProvenanceInfo, EnrichmentSummary } from "@/types/pipeline";
@@ -1618,6 +1622,14 @@ export function StudioPage() {
   const [approvalReason, setApprovalReason] = useState("");
   // Clarification pre-check loading state
   const [isCheckingClarify, setIsCheckingClarify] = useState(false);
+  // Action intelligence (extracted from report)
+  const [actionIntelligence, setActionIntelligence] = useState<ActionIntelligence | null>(null);
+  const [isExtractingActions, setIsExtractingActions] = useState(false);
+  // Follow-up assistant
+  const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [followUpPrompt, setFollowUpPrompt] = useState<string | undefined>(undefined);
+  // Smart suggestions visible when input focused
+  const [suggestionsVisible, setSuggestionsVisible] = useState(false);
 
   const handleAdServed = useCallback(() => {
     setAdToolsUsed((prev) => {
@@ -1809,9 +1821,14 @@ export function StudioPage() {
       }
 
       setResult(data);
+      setActionIntelligence(null);
       if (data.events) setPipelineEvents(data.events);
       if (data.deliveryPackage) setRightTab("delivery");
       else if (data.document) setRightTab("document");
+      // Auto-extract action intelligence from the composed document
+      if (data.document) {
+        extractActionsFromResult(data.document);
+      }
       else if (data.brief) setRightTab("brief");
 
       // Check if Buyer requires approval for next run context
@@ -1854,6 +1871,29 @@ export function StudioPage() {
       if (timerRef.current) clearInterval(timerRef.current);
       setIsLoading(false);
     }
+  }
+
+  async function extractActionsFromResult(doc: ResearchDocument) {
+    if (!doc.summary && !doc.sections?.length) return;
+    setIsExtractingActions(true);
+    setActionIntelligence(null);
+    setFollowUpOpen(false);
+    try {
+      const res = await fetch("/api/pipeline/extract-actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: doc.query,
+          summary: doc.summary,
+          sections: doc.sections?.slice(0, 6),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.actions) setActionIntelligence(data.actions);
+      }
+    } catch { /* silent — action extraction is non-critical */ }
+    finally { setIsExtractingActions(false); }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -2212,10 +2252,12 @@ export function StudioPage() {
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
+                    setSuggestionsVisible(true);
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderColor = "var(--border-default)";
                     e.currentTarget.style.boxShadow = "none";
+                    setTimeout(() => setSuggestionsVisible(false), 200);
                   }}
                 />
                 <button
@@ -2234,6 +2276,38 @@ export function StudioPage() {
                   </div>
                 )}
               </div>
+              {/* Smart suggestions — appear on focus when typing */}
+              {suggestionsVisible && !isLoading && (
+                <div className="mt-2">
+                  <SmartSuggestions
+                    input={input}
+                    workspaceMarket={undefined}
+                    visible={suggestionsVisible && !isLoading}
+                    onApply={(suggestion) => {
+                      const modeMap: Record<string, ViewMode> = {
+                        pipeline: "pipeline",
+                        researcher: "researcher",
+                        strategist: "strategist",
+                        seller: "seller",
+                      };
+                      const newMode = modeMap[suggestion.mode] ?? mode;
+                      setMode(newMode);
+                      const typeMap: Record<string, OutputType> = {
+                        research: "research",
+                        analysis: "analysis",
+                        plan: "plan",
+                        spec: "prd",
+                        brief: "general",
+                        report: "research",
+                        comparison: "analysis",
+                      };
+                      setOutputType((typeMap[suggestion.outputType] ?? outputType) as OutputType);
+                      setSuggestionsVisible(false);
+                      inputRef.current?.focus();
+                    }}
+                  />
+                </div>
+              )}
               {error && (
                 <div className="mt-2 rounded-lg px-3 py-2.5" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
                   <div className="flex items-start justify-between gap-2">
@@ -2459,22 +2533,55 @@ export function StudioPage() {
                 <GitBranch size={12} /> Provenance
               </button>
             )}
-
-            {/* New Request button */}
-            {(result || isLoading) && (
+            {(actionIntelligence || isExtractingActions) && (
               <button
-                onClick={handleNewRequest}
-                disabled={isLoading}
-                className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-150 hover:scale-[1.02] disabled:opacity-30"
+                onClick={() => setRightTab("actions" as typeof rightTab)}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
-                  background: result ? "rgba(201, 125, 78, 0.08)" : "var(--bg-surface)",
-                  border: result ? "1px solid rgba(201, 125, 78, 0.20)" : "1px solid var(--border-default)",
-                  color: result ? "var(--accent-400)" : "var(--gray-500)",
+                  color: rightTab === ("actions" as typeof rightTab) ? "var(--accent-400)" : "var(--gray-400)",
+                  background: rightTab === ("actions" as typeof rightTab) ? "rgba(201,125,78,0.10)" : "transparent",
                 }}
               >
-                <RotateCcw size={11} /> New Request
+                {isExtractingActions ? <Loader2 size={11} className="animate-spin" /> : <Zap size={11} />}
+                Actions
+                {actionIntelligence && (
+                  <span className="rounded-full px-1.5 py-0.5 font-mono text-[7px] font-bold" style={{ background: "rgba(201,125,78,0.15)", color: "var(--accent-400)" }}>
+                    {Object.values(actionIntelligence).reduce((s, a) => s + a.length, 0)}
+                  </span>
+                )}
               </button>
             )}
+
+            {/* Follow-up + New Request buttons */}
+            <div className="ml-auto flex items-center gap-1.5">
+              {result?.document && (
+                <button
+                  onClick={() => { setFollowUpOpen((v) => !v); setFollowUpPrompt(undefined); }}
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all duration-150"
+                  style={{
+                    background: followUpOpen ? "rgba(14,165,233,0.10)" : "var(--bg-surface)",
+                    border: `1px solid ${followUpOpen ? "rgba(14,165,233,0.25)" : "var(--border-default)"}`,
+                    color: followUpOpen ? "#0EA5E9" : "var(--gray-500)",
+                  }}
+                >
+                  <MessageSquare size={11} /> Ask
+                </button>
+              )}
+              {(result || isLoading) && (
+                <button
+                  onClick={handleNewRequest}
+                  disabled={isLoading}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-150 hover:scale-[1.02] disabled:opacity-30"
+                  style={{
+                    background: result ? "rgba(201, 125, 78, 0.08)" : "var(--bg-surface)",
+                    border: result ? "1px solid rgba(201, 125, 78, 0.20)" : "1px solid var(--border-default)",
+                    color: result ? "var(--accent-400)" : "var(--gray-500)",
+                  }}
+                >
+                  <RotateCcw size={11} /> New Request
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Sponsor Proof Rail */}
@@ -2487,13 +2594,41 @@ export function StudioPage() {
             ) : !result ? (
               <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />
             ) : rightTab === "document" && result.document ? (
-              <DocumentView
-                doc={result.document}
-                adQuery={adContext.query || result.brief?.title || result.document?.query}
-                adSignals={adContext.signals}
-                adsMuted={adsMuted}
-                onAdServed={handleAdServed}
-              />
+              <div className="flex h-full flex-col overflow-hidden">
+                <div className="flex-1 overflow-hidden">
+                  <DocumentView
+                    doc={result.document}
+                    adQuery={adContext.query || result.brief?.title || result.document?.query}
+                    adSignals={adContext.signals}
+                    adsMuted={adsMuted}
+                    onAdServed={handleAdServed}
+                  />
+                </div>
+                {/* Action panel + follow-up below document */}
+                {(actionIntelligence || followUpOpen) && (
+                  <div className="shrink-0 space-y-2 overflow-y-auto border-t p-4" style={{ borderColor: "var(--border-default)", maxHeight: "400px" }}>
+                    {actionIntelligence && (
+                      <ActionPanel
+                        actions={actionIntelligence}
+                        reportTitle={result.document.query}
+                        onFollowUp={(prompt) => {
+                          setFollowUpPrompt(prompt);
+                          setFollowUpOpen(true);
+                        }}
+                      />
+                    )}
+                    {followUpOpen && (
+                      <FollowUpAssistant
+                        reportTitle={result.document.query}
+                        reportSummary={result.document.summary}
+                        reportContent={result.document.sections?.map((s) => `## ${s.heading}\n${s.content}`).join("\n\n")}
+                        initialPrompt={followUpPrompt}
+                        onClose={() => setFollowUpOpen(false)}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
             ) : rightTab === "brief" && result.brief ? (
               <BriefView brief={result.brief} adsMuted={adsMuted} onAdServed={handleAdServed} />
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
