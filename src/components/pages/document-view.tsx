@@ -112,12 +112,40 @@ export function DocumentView({
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {/* VISION image banner */}
         {isGeneratingImage && !visionResult && (
-          <div
-            className="mb-5 flex items-center gap-3 rounded-xl p-3 animate-pulse"
-            style={{ background: "rgba(234,179,8,0.05)", border: "1px solid rgba(234,179,8,0.15)" }}
-          >
-            <ImageIcon size={14} style={{ color: "#CA8A04" }} />
-            <span className="font-mono text-[10px]" style={{ color: "#CA8A04" }}>VISION agent generating image…</span>
+          <div className="mb-5 overflow-hidden rounded-xl" style={{ border: "1px solid rgba(234,179,8,0.20)" }}>
+            {/* 16:9 skeleton */}
+            <div
+              className="relative w-full animate-pulse"
+              style={{ paddingBottom: "56.25%", background: "rgba(234,179,8,0.06)" }}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5">
+                <ImageIcon size={22} style={{ color: "rgba(234,179,8,0.40)" }} />
+                <span className="font-mono text-[10px]" style={{ color: "rgba(202,138,4,0.70)" }}>
+                  VISION agent generating image…
+                </span>
+                <div className="flex items-center gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="size-1.5 rounded-full animate-pulse"
+                      style={{ background: "#CA8A04", opacity: 0.35 + i * 0.18, animationDelay: `${i * 200}ms` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div
+              className="flex items-center gap-2 px-3 py-2"
+              style={{ background: "var(--bg-elevated)", borderTop: "1px solid rgba(234,179,8,0.12)" }}
+            >
+              <span
+                className="flex items-center gap-1.5 font-mono text-[8px] font-semibold rounded-full px-2 py-0.5 animate-pulse"
+                style={{ background: "rgba(234,179,8,0.08)", color: "#CA8A04", border: "1px solid rgba(234,179,8,0.18)" }}
+              >
+                <ImageIcon size={9} />
+                NanoBanana · generating…
+              </span>
+            </div>
           </div>
         )}
         {visionResult?.imageUrl && (

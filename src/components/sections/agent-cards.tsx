@@ -130,15 +130,25 @@ function AgentCard({ agent, index, liveStats }: { agent: StudioAgent; index: num
         {/* Stats row */}
         <div className="mb-4 flex items-center gap-3 rounded-lg px-3 py-2 border-t pt-3" style={{ borderColor: "var(--border-default)" }}>
           <Activity size={10} style={{ color: "var(--gray-300)" }} />
-          <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-            {real ? `${real.requestsHandled} runs` : "—"}
-          </span>
-          <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-            {real ? `${real.creditsSpent}cr spent` : "—"}
-          </span>
-          <span className="ml-auto font-mono text-[10px] font-semibold" style={{ color: agent.accentColor }}>
-            {real ? `${real.creditsEarned}cr earned` : "—"}
-          </span>
+          {liveStats === null ? (
+            <>
+              <span className="h-2.5 w-10 animate-pulse rounded" style={{ background: "var(--border-default)" }} />
+              <span className="h-2.5 w-14 animate-pulse rounded" style={{ background: "var(--border-default)" }} />
+              <span className="ml-auto h-2.5 w-16 animate-pulse rounded" style={{ background: "var(--border-default)" }} />
+            </>
+          ) : (
+            <>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                {real ? `${real.requestsHandled} runs` : "0 runs"}
+              </span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
+                {real ? `${real.creditsSpent}cr spent` : "0cr spent"}
+              </span>
+              <span className="ml-auto font-mono text-[10px] font-semibold" style={{ color: agent.accentColor }}>
+                {real ? `${real.creditsEarned}cr earned` : "0cr earned"}
+              </span>
+            </>
+          )}
         </div>
 
         {/* CTA */}
