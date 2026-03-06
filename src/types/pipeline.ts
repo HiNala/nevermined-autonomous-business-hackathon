@@ -163,6 +163,39 @@ export interface PurchasedAsset {
   error?: string;
 }
 
+// ─── Async Job Lifecycle Types ──────────────────────────────────────
+/** Canonical lifecycle stages matching the canonical pipeline */
+export type JobLifecycleStage =
+  | "received"
+  | "interpreting"
+  | "composing"
+  | "enriching"
+  | "packaging"
+  | "delivered"
+  | "failed";
+
+export interface JobRecord {
+  jobId: string;
+  orderId: string;
+  workspaceId?: string;
+  query: string;
+  productId?: string;
+  productName?: string;
+  stage: JobLifecycleStage;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  /** Elapsed ms at last update */
+  elapsedMs?: number;
+  /** Quality gate result */
+  qualityScore?: number;
+  qualityPassed?: boolean;
+  /** Credit accounting */
+  creditsCharged?: number;
+  /** Error detail if failed */
+  error?: string;
+}
+
 export interface BuyerRankedCandidate {
   asset: { did: string; name: string; description: string; provider: string; price: { credits: number }; type: string };
   relevanceScore: number;

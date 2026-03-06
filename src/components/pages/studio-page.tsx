@@ -1626,7 +1626,8 @@ export function StudioPage() {
 
       setResult(data);
       if (data.events) setPipelineEvents(data.events);
-      if (data.document) setRightTab("document");
+      if (data.deliveryPackage) setRightTab("delivery");
+      else if (data.document) setRightTab("document");
       else if (data.brief) setRightTab("brief");
 
       // Persist last result to localStorage
