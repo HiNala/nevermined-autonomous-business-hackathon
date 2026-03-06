@@ -178,13 +178,8 @@ export function ServicesPage() {
       <Nav />
       <main className="pt-24 pb-20">
         <div className="mx-auto max-w-6xl px-6">
-          {/* Page header */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-12"
-          >
+          {/* Page header — renders immediately, no animation delay */}
+          <div className="mb-10">
             <div className="mb-4 flex items-center gap-3">
               <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
               <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>Service Catalog</span>
@@ -193,18 +188,15 @@ export function ServicesPage() {
               High-signal{" "}<span className="text-gradient-accent">deliverables.</span>
             </h1>
             <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-              Research, analysis, strategy, and more — generated on-demand by four specialist agents,
+              Research, analysis, strategy, and more — generated on-demand by five specialist agents,
               settled via Nevermined credit-based payments.
             </p>
-          </motion.div>
+          </div>
 
           <LiveStatsBar />
 
-          {/* Pricing overview */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          {/* Pricing overview — no delay */}
+          <div
             className="glass mb-10 flex flex-wrap items-center justify-between gap-4 p-5"
           >
             <div className="flex items-center gap-6">
@@ -226,7 +218,7 @@ export function ServicesPage() {
                 1 credit ≈ $0.10 USDC
               </span>
             </div>
-          </motion.div>
+          </div>
 
           {/* Service cards */}
           <div className="flex flex-col gap-6">

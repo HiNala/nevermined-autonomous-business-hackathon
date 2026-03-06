@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Globe } from "@/components/ui/globe";
-import { ArrowRight, Brain, ImageIcon, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Brain, ImageIcon, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart, Zap } from "lucide-react";
 import Link from "next/link";
 import { useAnimatedCounter } from "@/hooks/use-animated-counter";
 
@@ -59,6 +59,9 @@ export function HeroSection() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const animTx      = useAnimatedCounter(liveStats.totalTransactions, 1200, 600);
   const animCredits = useAnimatedCounter(liveStats.totalCreditsFlowed, 1400, 700);
 
@@ -98,44 +101,31 @@ export function HeroSection() {
         {/* Left — copy */}
         <div className="flex w-full max-w-2xl flex-col gap-6 sm:gap-7 lg:flex-1">
 
-          {/* Pill badge */}
-          <motion.div
-            className="glass-pill w-fit px-3 py-1.5 flex items-center gap-2"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-          >
+          {/* Pill badge — renders instantly */}
+          <div className="glass-pill w-fit px-3 py-1.5 flex items-center gap-2">
             <span className="pulse-dot-accent" />
             <span className="font-mono text-[10px] uppercase tracking-[0.22em]" style={{ color: "var(--accent-400)" }}>
               Job-Based Agent Commerce · Nevermined x402
             </span>
-          </motion.div>
+          </div>
 
-          {/* Headline */}
-          <motion.h1
-            className="font-display leading-none tracking-tight"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
-          >
+          {/* Headline — renders instantly */}
+          <h1 className="font-display leading-none tracking-tight">
             <span className="block text-[2.6rem] sm:text-[3.6rem] lg:text-[4.5rem]" style={{ color: "var(--gray-900)" }}>
               Describe the work.
             </span>
             <span className="block text-[2.6rem] sm:text-[3.6rem] lg:text-[4.5rem] text-gradient-accent">
               Agents build it.
             </span>
-          </motion.h1>
+          </h1>
 
-          {/* Description */}
-          <motion.p
+          {/* Description — renders instantly */}
+          <p
             className="max-w-xl text-[16px] leading-relaxed"
             style={{ color: "var(--gray-500)" }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.16 }}
           >
-            Send a request from Studio, the Store, or directly via API. Five agents handle intake, structuring, research, enrichment, delivery, and image generation — with full provenance and quality gates.
-          </motion.p>
+            Send a request from Studio, the Store, or via API. Five agents handle structuring, research, enrichment, delivery, and image generation.
+          </p>
 
           {/* Animated pipeline flow */}
           <motion.div
@@ -253,12 +243,7 @@ export function HeroSection() {
           </motion.form>
 
           {/* CTA buttons row */}
-          <motion.div
-            className="flex flex-wrap items-center gap-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.33 }}
-          >
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/studio"
               className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white transition-all duration-200 btn-press"
@@ -282,23 +267,10 @@ export function HeroSection() {
               Browse the Store
               <ArrowRight size={13} />
             </Link>
-            <a
-              href="#agents"
-              className="flex items-center gap-1.5 text-[13px] font-medium transition-all duration-200 hover:opacity-70"
-              style={{ color: "var(--accent-400)" }}
-            >
-              <Sparkles size={12} />
-              Meet the agents
-            </a>
-          </motion.div>
+          </div>
 
           {/* Trust badges */}
-          <motion.div
-            className="flex flex-wrap items-center gap-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.38 }}
-          >
+          <div className="flex flex-wrap items-center gap-3">
             {TRUST_BADGES.map((b) => (
               <div
                 key={b.label}
@@ -310,75 +282,30 @@ export function HeroSection() {
                 <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{b.sub}</span>
               </div>
             ))}
-          </motion.div>
+          </div>
 
-          {/* Proof cards */}
-          <motion.div
-            className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-3"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.42 }}
-          >
-            {PROOF_CARDS.map((item, i) => (
-              <motion.div
-                key={item.title}
-                className="group rounded-xl p-4 transition-all duration-200 cursor-default"
-                style={{
-                  background: "rgba(255,255,255,0.85)",
-                  border: `1px solid ${item.color}18`,
-                  boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
-                }}
-                whileHover={{
-                  y: -3,
-                  boxShadow: `0 8px 24px -8px ${item.color}22, 0 2px 8px rgba(0,0,0,0.06)`,
-                  borderColor: `${item.color}35`,
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 28 }}
-              >
-                <div className="mb-2.5 flex items-center gap-2">
-                  <motion.div
-                    className="flex size-7 items-center justify-center rounded-lg"
-                    style={{ background: `${item.color}12` }}
-                    whileHover={{ scale: 1.15, background: `${item.color}22` }}
-                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                  >
-                    <item.icon size={13} style={{ color: item.color }} />
-                  </motion.div>
-                  <p className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>
-                    {item.title}
-                  </p>
-                </div>
-                <p className="text-[11.5px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-                  {item.body}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-          {/* Live stats bar */}
-          <motion.div
-            className="flex flex-wrap items-center gap-2 pt-1"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.48 }}
-          >
-            <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
-              <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
-              <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>
-                {animTx}
-              </span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>agent transactions</span>
+          {/* Live stats bar — client-only to prevent hydration mismatch */}
+          {mounted && (animTx > 0 || animCredits > 0) && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.14)" }}>
+                <span className="size-1.5 rounded-full animate-pulse" style={{ background: "var(--accent-400)" }} />
+                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "var(--accent-400)" }}>
+                  {animTx}
+                </span>
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>agent transactions</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
+                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>
+                  {animCredits}cr
+                </span>
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits flowed</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.14)" }}>
+                <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#7C3AED" }}>5</span>
+                <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>active agents</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
-              <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#059669" }}>
-                {animCredits}cr
-              </span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>credits flowed</span>
-            </div>
-            <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.14)" }}>
-              <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: "#7C3AED" }}>5</span>
-              <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>active agents</span>
-            </div>
-          </motion.div>
+          )}
         </div>
 
         {/* Right — Globe with glow ring */}

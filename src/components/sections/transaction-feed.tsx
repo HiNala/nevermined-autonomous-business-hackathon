@@ -9,11 +9,17 @@ import type { Transaction } from "@/types";
 import { Pause, Play } from "lucide-react";
 
 export function TransactionFeed() {
-  const [transactions, setTransactions] = useState<Transaction[]>(() =>
-    generateInitialTransactions(12)
-  );
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [paused, setPaused] = useState(false);
-  const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
+  const [currentTimestamp, setCurrentTimestamp] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  // Hydration-safe: only generate transactions client-side
+  useEffect(() => {
+    setTransactions(generateInitialTransactions(12));
+    setCurrentTimestamp(Date.now());
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {

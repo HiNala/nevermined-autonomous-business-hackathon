@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Nav } from "@/components/layout/nav";
-import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check, PanelLeftClose, PanelLeftOpen, Download } from "lucide-react";
+import { Send, FileText, Globe, Clock, Zap, Loader2, ChevronRight, ExternalLink, Copy, Check, Download } from "lucide-react";
 import type { AIProvider } from "@/lib/ai/providers";
 import { ToolSettingsButton } from "@/components/ui/tool-settings-panel";
 import { loadToolSettings, type ToolSettings } from "@/lib/tool-settings";
@@ -309,7 +309,6 @@ export function ResearchPage() {
   const [document, setDocument] = useState<ResearchDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showEventLog, setShowEventLog] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const events = useSSE();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
@@ -364,20 +363,12 @@ export function ResearchPage() {
     <div className="flex h-screen flex-col" style={{ background: "var(--bg-base)" }}>
       <Nav />
 
-      {/* Main content */}
-      <div className="flex flex-1 overflow-hidden pt-14">
-        {/* Sidebar toggle (mobile) */}
-        <button
-          onClick={() => setSidebarOpen((v) => !v)}
-          className="absolute left-3 top-[68px] z-20 flex size-8 items-center justify-center rounded-lg lg:hidden"
-          style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
-        >
-          {sidebarOpen ? <PanelLeftClose size={14} style={{ color: "var(--gray-400)" }} /> : <PanelLeftOpen size={14} style={{ color: "var(--gray-400)" }} />}
-        </button>
+      {/* Main content — stacked on mobile, side-by-side on lg+ */}
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden pt-14">
 
         {/* LEFT PANE: Input + Event Log */}
         <div
-          className={`flex w-[420px] shrink-0 flex-col border-r transition-all duration-200 max-lg:absolute max-lg:inset-y-14 max-lg:left-0 max-lg:z-10 ${sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"}`}
+          className="flex w-full lg:w-[420px] shrink-0 flex-col border-b lg:border-b-0 lg:border-r"
           style={{ borderColor: "var(--border-default)", background: "var(--bg-base)" }}
         >
           {/* Input area */}
@@ -551,7 +542,7 @@ export function ResearchPage() {
         </div>
 
         {/* RIGHT PANE: Document output */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden min-h-[50vh] lg:min-h-0">
           {document ? <DocumentView doc={document} /> : <EmptyState />}
         </div>
       </div>
