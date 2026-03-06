@@ -33,8 +33,8 @@ function SponsorBadge({ usage }: { usage: SponsorToolUsage }) {
 export function SponsorRail({ toolsUsed }: { toolsUsed?: SponsorToolUsage[] }) {
   if (!toolsUsed || toolsUsed.length === 0) return null;
 
-  // Dedupe by tool name and count unique sponsors
   const uniqueSponsors = [...new Set(toolsUsed.filter((t) => t.sponsor !== "LLM").map((t) => t.sponsor))];
+  const has2Pass = toolsUsed.some((t) => t.tool === "llm-outline") && toolsUsed.some((t) => t.tool === "llm-synthesis");
 
   return (
     <div
@@ -48,6 +48,14 @@ export function SponsorRail({ toolsUsed }: { toolsUsed?: SponsorToolUsage[] }) {
         <span className="font-mono text-[8px]" style={{ color: "var(--gray-300)" }}>
           {uniqueSponsors.length} sponsor{uniqueSponsors.length !== 1 ? "s" : ""} · {toolsUsed.length} tool call{toolsUsed.length !== 1 ? "s" : ""}
         </span>
+        {has2Pass && (
+          <span
+            className="flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[8px] font-semibold"
+            style={{ background: "rgba(14,165,233,0.10)", color: "#0EA5E9", border: "1px solid rgba(14,165,233,0.22)" }}
+          >
+            ◈ 2-pass synthesis
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap gap-1.5">
         {toolsUsed.map((usage, i) => (

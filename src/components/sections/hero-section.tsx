@@ -204,9 +204,9 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.38 }}
           >
             {[
-              { color: "#7C3AED", icon: Brain, title: "Structured briefs", body: "Every order runs through the Interpreter first. Vague text becomes a precise execution contract before Composer touches it." },
-              { color: "#0EA5E9", icon: PenLine, title: "Composed artifacts", body: "Real web search via Apify or Exa. Source synthesis. Structured sections, citations, and confidence scoring." },
-              { color: "#EF4444", icon: PackageCheck, title: "Branded delivery", body: "Seller runs a quality gate, packages markdown + summary + JSON variants, and attaches full provenance. Not a raw blob." },
+              { color: "#7C3AED", icon: Brain, title: "Clarification-aware", body: "Interpreter scores brief quality and asks 1–2 clarifying questions before ambiguous jobs run. Workspace context applied automatically." },
+              { color: "#0EA5E9", icon: PenLine, title: "2-pass composition", body: "Composer runs an outline pass then full synthesis — specific headings, source attribution, contradiction detection, and confidence scoring." },
+              { color: "#EF4444", icon: PackageCheck, title: "Provenance + delivery", body: "Seller quality-gates every report, packages 3 delivery variants, and saves each run to your local artifact library for restore and re-run." },
             ].map((item) => (
               <div
                 key={item.title}

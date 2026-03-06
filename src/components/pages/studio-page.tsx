@@ -2271,6 +2271,17 @@ export function StudioPage() {
                 {result?.purchasedAssets?.length ?? 0}
               </span>
             </div>
+            <button
+              onClick={() => setLibraryOpen(true)}
+              className="flex items-center gap-1.5 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all hover:opacity-80"
+              style={{ color: "var(--gray-400)", background: "transparent", border: "1px solid transparent" }}
+              title="Artifact Library"
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-elevated)"; e.currentTarget.style.borderColor = "var(--border-default)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "transparent"; }}
+            >
+              <BookOpen size={9} />
+              library
+            </button>
             {result?.enrichmentSummary && (
               <div className="flex items-center">
                 <div className="h-2.5 w-px mr-1.5" style={{ background: "var(--border-default)" }} />
@@ -2431,7 +2442,16 @@ export function StudioPage() {
             ) : rightTab === "brief" && result.brief ? (
               <BriefView brief={result.brief} adsMuted={adsMuted} onAdServed={handleAdServed} />
             ) : rightTab === "purchases" && result.purchasedAssets?.length ? (
-              <div className="h-full overflow-y-auto p-6">
+              <div className="h-full overflow-y-auto p-6 space-y-5">
+                {/* Buyer Intelligence panel — ranking + rationale */}
+                {(result as PipelineResult & { buyerResult?: { rankedCandidates?: import("@/components/ui/buyer-rationale-panel").RankedAsset[]; rationales?: import("@/components/ui/buyer-rationale-panel").PurchaseRationale[]; requiresApproval?: import("@/components/ui/buyer-rationale-panel").RequiresApproval; totalCreditsSpent?: number } }).buyerResult && (
+                  <BuyerRationalePanel
+                    rankedCandidates={(result as PipelineResult & { buyerResult?: { rankedCandidates?: import("@/components/ui/buyer-rationale-panel").RankedAsset[] } }).buyerResult?.rankedCandidates}
+                    rationales={(result as PipelineResult & { buyerResult?: { rationales?: import("@/components/ui/buyer-rationale-panel").PurchaseRationale[] } }).buyerResult?.rationales}
+                    requiresApproval={(result as PipelineResult & { buyerResult?: { requiresApproval?: import("@/components/ui/buyer-rationale-panel").RequiresApproval } }).buyerResult?.requiresApproval}
+                    totalCreditsSpent={(result as PipelineResult & { buyerResult?: { totalCreditsSpent?: number } }).buyerResult?.totalCreditsSpent}
+                  />
+                )}
                 <PurchasedAssetGrid assets={result.purchasedAssets} />
                 <ZeroClickAd
                   query={result.brief?.title || result.document?.query || input}
