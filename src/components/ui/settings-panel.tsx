@@ -279,6 +279,8 @@ function TradingToggle({
 }) {
   return (
     <button
+      role="switch"
+      aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition-all"
       style={{
@@ -410,6 +412,15 @@ export function SettingsPanel({
       .catch(() => {});
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const statusEntries: {
@@ -439,6 +450,9 @@ export function SettingsPanel({
 
       {/* Panel */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tool Settings"
         className="fixed right-0 top-0 z-50 flex h-full w-[360px] flex-col overflow-hidden"
         style={{
           background: "var(--bg-base)",

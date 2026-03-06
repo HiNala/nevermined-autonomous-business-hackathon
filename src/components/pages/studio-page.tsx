@@ -652,6 +652,8 @@ export function StudioPage() {
         {/* Sidebar toggle (mobile) */}
         <button
           onClick={() => setSidebarOpen((v) => !v)}
+          aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+          aria-expanded={sidebarOpen}
           className="absolute left-3 top-[68px] z-20 flex size-8 items-center justify-center rounded-lg lg:hidden"
           style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}
         >
@@ -903,6 +905,7 @@ export function StudioPage() {
                 <textarea
                   ref={inputRef}
                   value={input}
+                  aria-label="Describe your request"
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -936,9 +939,9 @@ export function StudioPage() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading || isCheckingClarify}
+                  aria-label={isCheckingClarify ? "Checking brief quality…" : "Send request"}
                   className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
                   style={{ background: isCheckingClarify ? "rgba(124,58,237,0.7)" : "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
-                  title={isCheckingClarify ? "Checking brief qualityâ€¦" : "Send (Enter â†µ)"}
                 >
                   {isLoading || isCheckingClarify ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
                 </button>
@@ -1012,10 +1015,12 @@ export function StudioPage() {
           </div>
 
           {/* Bottom section: Stages / Transactions toggle */}
-          <div className="flex border-b" style={{ borderColor: "var(--border-default)" }}>
+          <div role="tablist" className="flex border-b" style={{ borderColor: "var(--border-default)" }}>
             {(["stages", "transactions"] as const).map((tab) => (
               <button
                 key={tab}
+                role="tab"
+                aria-selected={bottomTab === tab}
                 onClick={() => setBottomTab(tab)}
                 className="flex-1 px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-widest transition-colors"
                 style={{
@@ -1110,7 +1115,8 @@ export function StudioPage() {
               </button>
               <button
                 onClick={toggleAdsMuted}
-                title={adsMuted ? "Ads muted â€” click to enable" : "Click to mute ads"}
+                aria-label={adsMuted ? "Ads muted — click to enable" : "Mute ads"}
+                aria-pressed={adsMuted}
                 className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all"
                 style={{
                   background: adsMuted ? "rgba(239, 68, 68, 0.06)" : "transparent",
@@ -1129,9 +1135,11 @@ export function StudioPage() {
         <ErrorBoundary>
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Tabs */}
-          <div className="flex items-center gap-1 border-b px-3 py-1.5 overflow-x-auto scrollbar-hide" style={{ borderColor: "var(--border-default)" }}>
+          <div role="tablist" className="flex items-center gap-1 border-b px-3 py-1.5 overflow-x-auto scrollbar-hide" style={{ borderColor: "var(--border-default)" }}>
             {result?.document && (
               <button
+                role="tab"
+                aria-selected={rightTab === "document"}
                 onClick={() => setRightTab("document")}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
@@ -1150,6 +1158,8 @@ export function StudioPage() {
             )}
             {result?.brief && (
               <button
+                role="tab"
+                aria-selected={rightTab === "brief"}
                 onClick={() => setRightTab("brief")}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
@@ -1162,6 +1172,8 @@ export function StudioPage() {
             )}
             {(result?.purchasedAssets?.length ?? 0) > 0 && (
               <button
+                role="tab"
+                aria-selected={rightTab === "purchases"}
                 onClick={() => setRightTab("purchases")}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
@@ -1174,6 +1186,8 @@ export function StudioPage() {
             )}
             {result?.deliveryPackage && (
               <button
+                role="tab"
+                aria-selected={rightTab === "delivery"}
                 onClick={() => setRightTab("delivery")}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
@@ -1197,6 +1211,8 @@ export function StudioPage() {
             )}
             {result && (
               <button
+                role="tab"
+                aria-selected={rightTab === "provenance"}
                 onClick={() => setRightTab("provenance")}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{
@@ -1209,6 +1225,8 @@ export function StudioPage() {
             )}
             {(actionIntelligence || isExtractingActions) && (
               <button
+                role="tab"
+                aria-selected={rightTab === ("actions" as typeof rightTab)}
                 onClick={() => setRightTab("actions" as typeof rightTab)}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
                 style={{

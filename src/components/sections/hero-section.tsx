@@ -184,6 +184,7 @@ export function HeroSection() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
+                aria-label="Describe your business task"
                 placeholder="e.g. Research the AI agent market in 2025…"
                 className="w-full rounded-xl px-4 py-3.5 text-[14px] transition-all"
                 style={{
