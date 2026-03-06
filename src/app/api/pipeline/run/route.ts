@@ -7,7 +7,7 @@ import {
 } from "@/lib/agent/pipeline";
 import type { AIProvider } from "@/lib/ai/providers";
 import type { ToolSettings } from "@/lib/tool-settings";
-import { validateInput, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
+import { validateInput, sanitizeError, checkRateLimit, getClientId, isSameOriginRequest } from "@/lib/security";
 
 interface RequestBody {
   input?: string;
@@ -27,6 +27,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Too many requests. Please try again shortly." },
       { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
+    );
+  }
+
+  // Block external requests — this route is internal-only (Studio UI)
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json(
+      { error: "Forbidden — use /api/agent/seller or /api/agent/research with x402 payment" },
+      { status: 403 }
     );
   }
 

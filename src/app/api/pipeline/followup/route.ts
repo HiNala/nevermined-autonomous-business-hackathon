@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { complete } from "@/lib/ai/providers";
-import { checkRateLimit, getClientId } from "@/lib/security";
+import { checkRateLimit, getClientId, isSameOriginRequest } from "@/lib/security";
 import { withTimeout } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
@@ -11,6 +11,10 @@ export async function POST(req: NextRequest) {
       { error: "Too many requests. Please try again shortly." },
       { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
     );
+  }
+
+  if (!isSameOriginRequest(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let body: { question?: string; context?: string; history?: { role: string; content: string }[] };

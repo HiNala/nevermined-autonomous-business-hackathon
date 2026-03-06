@@ -3,7 +3,7 @@ import { buildPaymentRequired } from "@nevermined-io/payments";
 import { buildContext } from "@/lib/agent/context-builder";
 import { agentEvents } from "@/lib/agent/event-store";
 import { getPaymentsClient } from "@/lib/nevermined/server";
-import { checkRateLimit, getClientId, sanitizeError } from "@/lib/security";
+import { checkRateLimit, getClientId, sanitizeError, isSameOriginRequest } from "@/lib/security";
 
 const CREDITS = BigInt(2);
 const ENDPOINT = "/api/agent/context-builder";
@@ -55,15 +55,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
 
-  // Internal requests: must come from same-origin (browser UI) or include server secret
-  const internalHeader = request.headers.get("x-internal-request") === "true";
-  const internalSecret = process.env.INTERNAL_API_SECRET || "";
-  const hasServerSecret = internalSecret.length > 0 && request.headers.get("x-internal-secret") === internalSecret;
-  const reqOrigin = request.headers.get("origin") || request.headers.get("referer") || "";
-  const appBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-  const isSameOrigin = appBaseUrl.length > 0 && reqOrigin.startsWith(appBaseUrl);
-  const isLocalDev = reqOrigin.includes("localhost") || reqOrigin.includes("127.0.0.1");
-  const isInternal = internalHeader && (hasServerSecret || isSameOrigin || isLocalDev);
+  // Internal requests: must come from same-origin (browser UI), localhost, or have server secret
+  const isInternal = request.headers.get("x-internal-request") === "true" && isSameOriginRequest(request);
   const token = request.headers.get("payment-signature");
 
   // ── Step 1: No token on external request → 402 ──────────────────────────
@@ -90,39 +83,44 @@ export async function POST(request: Request) {
     const { planId, agentId } = getAgent1Config();
     const payments = getPaymentsClient();
 
-    if (payments && planId && agentId) {
-      const paymentRequired = buildPaymentRequired(planId, {
-        endpoint: ENDPOINT,
-        agentId,
-        httpVerb: "POST",
+    if (!payments || !planId || !agentId) {
+      return NextResponse.json(
+        { error: "Payment system not configured — cannot verify token" },
+        { status: 503 }
+      );
+    }
+
+    const paymentRequired = buildPaymentRequired(planId, {
+      endpoint: ENDPOINT,
+      agentId,
+      httpVerb: "POST",
+    });
+
+    try {
+      const verification = await payments.facilitator.verifyPermissions({
+        paymentRequired,
+        x402AccessToken: token,
+        maxAmount: CREDITS,
       });
 
-      try {
-        const verification = await payments.facilitator.verifyPermissions({
-          paymentRequired,
-          x402AccessToken: token,
-          maxAmount: CREDITS,
-        });
+      agentEvents.push({
+        id: genId(),
+        type: "payment_verified",
+        timestamp: new Date().toISOString(),
+        data: { agent: "architect", caller, credits: Number(CREDITS) },
+      });
 
-        agentEvents.push({
-          id: genId(),
-          type: "payment_verified",
-          timestamp: new Date().toISOString(),
-          data: { agent: "architect", caller, credits: Number(CREDITS) },
-        });
-
-        if (!verification.isValid) {
-          return NextResponse.json(
-            { error: "Invalid payment token" },
-            { status: 402 }
-          );
-        }
-      } catch {
+      if (!verification.isValid) {
         return NextResponse.json(
-          { error: "Payment verification failed" },
+          { error: "Invalid payment token" },
           { status: 402 }
         );
       }
+    } catch {
+      return NextResponse.json(
+        { error: "Payment verification failed" },
+        { status: 402 }
+      );
     }
   }
 

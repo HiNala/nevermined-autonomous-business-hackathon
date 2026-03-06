@@ -33,6 +33,23 @@ export function validateQuery(query: string | undefined | null): { valid: boolea
   return { valid: true, sanitized: trimmed };
 }
 
+// ─── Origin verification ─────────────────────────────────────────────
+
+/**
+ * Check if a request originates from same-origin (browser UI) or localhost.
+ * Use this to protect internal-only routes from external abuse.
+ */
+export function isSameOriginRequest(request: Request): boolean {
+  const origin = request.headers.get("origin") || request.headers.get("referer") || "";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  if (baseUrl.length > 0 && origin.startsWith(baseUrl)) return true;
+  if (origin.includes("localhost") || origin.includes("127.0.0.1")) return true;
+  // Allow server-side secret for programmatic internal calls
+  const internalSecret = process.env.INTERNAL_API_SECRET || "";
+  if (internalSecret.length > 0 && request.headers.get("x-internal-secret") === internalSecret) return true;
+  return false;
+}
+
 // ─── Error sanitization ──────────────────────────────────────────────
 
 /**

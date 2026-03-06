@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runVisionAgent } from "@/lib/agents/vision";
 import { isNanobananaConfigured } from "@/lib/agents/vision/nanobanana";
 import type { VisionRequest } from "@/lib/agents/vision/types";
-import { checkRateLimit, getClientId, sanitizeError } from "@/lib/security";
+import { checkRateLimit, getClientId, sanitizeError, isSameOriginRequest } from "@/lib/security";
 
 // ─── Helpers for dynamic Unsplash fallback ─────────────────────────
 const STOP_WORDS = new Set(["a","an","the","and","or","but","in","on","at","to","for","of","with","by","is","are","was","were","be","been","being","have","has","had","do","does","did","will","would","shall","should","may","might","can","could","about","from","into","through","during","before","after","above","below","between","under","over","out","up","down","off","then","than","so","no","not","only","very","just","also","its","it","this","that","these","those","each","every","both","few","more","most","other","some","such","what","which","who","whom","how","all","any","you","your","we","our","they","their","i","me","my","he","she","him","her","us","them","write","report","research","create","make","build","describe","please","need","want"]);
@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
       { error: "Too many requests. Please try again shortly." },
       { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
     );
+  }
+
+  if (!isSameOriginRequest(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let body: VisionRequest;

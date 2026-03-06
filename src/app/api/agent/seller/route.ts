@@ -3,7 +3,7 @@ import { fulfillSellerOrder } from "@/lib/agent/pipeline";
 import { catalog } from "@/lib/agent/inventory";
 import { agentEvents } from "@/lib/agent/event-store";
 import { buildPaymentSpec, verifyX402Token, settleX402Token, getPaymentStatus } from "@/lib/nevermined/server";
-import { validateQuery, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
+import { validateQuery, sanitizeError, checkRateLimit, getClientId, isSameOriginRequest } from "@/lib/security";
 import type { SellerOrder } from "@/lib/agent/seller";
 import type { ToolSettings } from "@/lib/tool-settings";
 
@@ -82,15 +82,8 @@ export async function POST(request: Request) {
   }
   const query = validation.sanitized ?? "";
 
-  // Internal requests: must come from same-origin (browser UI) or include server secret
-  const internalHeader = request.headers.get("x-internal-request") === "true";
-  const internalSecret = process.env.INTERNAL_API_SECRET || "";
-  const hasServerSecret = internalSecret.length > 0 && request.headers.get("x-internal-secret") === internalSecret;
-  const origin = request.headers.get("origin") || request.headers.get("referer") || "";
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-  const isSameOrigin = baseUrl.length > 0 && origin.startsWith(baseUrl);
-  const isLocalhost = origin.includes("localhost") || origin.includes("127.0.0.1");
-  const isInternalRequest = internalHeader && (hasServerSecret || isSameOrigin || isLocalhost);
+  // Internal requests: must come from same-origin (browser UI), localhost, or have server secret
+  const isInternalRequest = request.headers.get("x-internal-request") === "true" && isSameOriginRequest(request);
   const paymentSignature = request.headers.get("payment-signature");
 
   // Estimate credits for the order

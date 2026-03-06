@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { runStrategist } from "@/lib/agent/strategist";
 import type { AIProvider } from "@/lib/ai/providers";
-import { validateInput, sanitizeError, checkRateLimit, getClientId } from "@/lib/security";
+import { validateInput, sanitizeError, checkRateLimit, getClientId, isSameOriginRequest } from "@/lib/security";
 
 /**
  * Pre-run clarification check endpoint.
@@ -21,6 +21,10 @@ export async function POST(request: Request) {
       { error: "Too many requests. Please try again shortly." },
       { status: 429, headers: { "Retry-After": String(Math.ceil((rateCheck.retryAfterMs ?? 60000) / 1000)) } }
     );
+  }
+
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let body: { input?: string; outputType?: string; provider?: AIProvider; workspaceId?: string };
