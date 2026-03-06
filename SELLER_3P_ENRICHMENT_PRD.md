@@ -1,7 +1,7 @@
 # Seller-Led Third-Party Enrichment PRD
 
 > Date: 2026-03-05
-> Product: Auto Business
+> Product: Undermind
 > Feature: Seller agent orchestrates third-party procurement and incorporates purchased assets into the final report
 > Status: PRD
 
@@ -35,7 +35,7 @@ This means the system must support two execution modes:
 
 ## 2. Problem Statement
 
-Auto Business already has:
+Undermind already has:
 
 - a `Seller` route
 - a `Seller` fulfillment planner
@@ -66,7 +66,7 @@ Without a clear PRD, this feature risks becoming:
 
 ## 3. Product Vision
 
-Auto Business should support a professional seller-led enrichment flow where:
+Undermind should support a professional seller-led enrichment flow where:
 
 - the `Seller` is the public intake and delivery boundary
 - the `Seller` decides whether external enrichment is needed

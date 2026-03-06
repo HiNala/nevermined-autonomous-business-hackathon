@@ -56,7 +56,7 @@ Once Vercel finishes, copy your URL: `https://your-app.vercel.app`
 |---|---|
 | Agent Definition URL | `https://your-app.vercel.app/.well-known/agent.json` |
 | Protected Endpoint | `POST https://your-app.vercel.app/api/agent/research` |
-| Agent Name | "Auto Business Research Agent" |
+| Agent Name | "Undermind Research Agent" |
 | Description | "Web research agent that structures information into professional documents." |
 
 3. Link to your plan from the previous step

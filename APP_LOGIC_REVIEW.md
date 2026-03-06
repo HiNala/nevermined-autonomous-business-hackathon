@@ -1,4 +1,4 @@
-# Auto Business Application Logic Review
+# Undermind Application Logic Review
 
 > Date: 2026-03-05
 > Scope: Current application review, agent/workflow logic review, and a proposed architecture that makes the product easier to understand and scale
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Auto Business already has a strong technical base:
+Undermind already has a strong technical base:
 
 - A real multi-agent backend
 - A working seller flow
@@ -938,7 +938,7 @@ Notable engineering observations:
 
 ## 17. One-Sentence Product Definition After Refactor
 
-**Auto Business is a commerce-ready agent workflow where the Seller accepts and delivers work, the Interpreter structures it, the Composer builds it, and the Buyer enriches it when necessary.**
+**Undermind is a commerce-ready agent workflow where the Seller accepts and delivers work, the Interpreter structures it, the Composer builds it, and the Buyer enriches it when necessary.**
 
 ---
 
@@ -980,7 +980,7 @@ External API guidance for long-running operations is very clear:
 - provide explicit status transitions
 - attach progress metadata and partial failure information
 
-For Auto Business, this means your future seller/composer flow should not ultimately remain a long blocking POST if you want the architecture to feel professional.
+For Undermind, this means your future seller/composer flow should not ultimately remain a long blocking POST if you want the architecture to feel professional.
 
 Best-practice pattern:
 
@@ -1037,7 +1037,7 @@ For your app, that means users should be able to see:
 - what stage failed if something breaks
 - what the final document contains and where it came from
 
-The strongest design lesson for Auto Business is:
+The strongest design lesson for Undermind is:
 
 **show, explain, and guide**
 
@@ -1169,7 +1169,7 @@ That makes Seller a meaningful end-stage, not an invisible wrapper.
 
 ---
 
-## 20. Best-Practice Architecture For Auto Business
+## 20. Best-Practice Architecture For Undermind
 
 If you apply both your intended workflow and the external guidance, the best-practice version of the app becomes:
 
@@ -1261,5 +1261,4 @@ That gives you a product that is not only more logical, but also more:
 
 ### Updated one-sentence definition
 
-**Auto Business should become a job-based agent commerce system where the Seller owns payment and delivery, the Interpreter structures intent, the Composer builds the report, and the Buyer enriches it only when required.**
-
+**Undermind should become a job-based agent commerce system where the Seller owns payment and delivery, the Interpreter structures intent, the Composer builds the report, and the Buyer enriches it only when required.**

@@ -19,7 +19,7 @@ async function step(name, url, opts = {}) {
 
 async function main() {
   console.log("═══════════════════════════════════════════════════");
-  console.log(" Buy Report — Auto-Business Agent Pipeline");
+  console.log(" Buy Report — Undermind Agent Pipeline");
   console.log(" Card: 4242 4242 4242 4242 | 12/30 | 123");
   console.log("═══════════════════════════════════════════════════");
 
@@ -36,7 +36,7 @@ async function main() {
           expDate: "12/30",
           cvc: "123",
         },
-        email: "agent-tester@auto-business.ai",
+        email: "agent-tester@undermind.ai",
       }),
     }
   );

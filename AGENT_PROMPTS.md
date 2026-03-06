@@ -1,4 +1,4 @@
-# Auto-Business — Agent Improvement Prompts
+# Undermind — Agent Improvement Prompts
 
 Run these one at a time in order. Each prompt is self-contained: the agent will audit
 the relevant area, produce a prioritised todo list, and then execute all items automatically.
@@ -9,7 +9,7 @@ Push to GitHub after each prompt completes.
 ## Prompt 1 — Type Safety & Duplicate Interface Audit
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit and fix all TypeScript type-safety issues across the codebase.
 
@@ -36,7 +36,7 @@ Step 4 — Commit: `git add -A && git commit -m "fix: TypeScript type consolidat
 ## Prompt 2 — API Route Hardening & Error Handling
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit every API route under `src/app/api/` and harden error handling, input validation, and response consistency.
 
@@ -65,7 +65,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 3 — Performance: studio-page.tsx Refactor
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: `src/components/pages/studio-page.tsx` is a very large file (3000+ lines). Audit it for performance and maintainability issues and execute improvements.
 
@@ -92,7 +92,7 @@ Step 3 — Commit: `git add -A && git commit -m "refactor: extract VisionImageBa
 ## Prompt 4 — Pipeline Agent Error Resilience
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit `src/lib/agent/pipeline.ts`, `src/lib/agent/researcher.ts`, `src/lib/agent/buyer.ts`, and `src/lib/agent/seller.ts` for error resilience and timeout handling.
 
@@ -119,7 +119,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 5 — Accessibility (a11y) Audit
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit all components for accessibility issues and fix them.
 
@@ -152,7 +152,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 6 — SEO, Metadata & OG Image Audit
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit and complete all SEO metadata across every page route.
 
@@ -160,7 +160,7 @@ Step 1 — Read `src/app/layout.tsx` and every `page.tsx` file under `src/app/` 
 - Pages missing a `metadata` export: check `/studio`, `/store`, `/services`, `/agents`, `/research`.
 - `layout.tsx` — verify `metadataBase`, `openGraph`, `twitter` card, `robots`, and `keywords` are fully populated.
 - Check that every page `metadata.description` is unique (not the same boilerplate) and under 160 characters.
-- Check that `metadata.title` on each page follows the pattern `"Page Name — Auto Business"`.
+- Check that `metadata.title` on each page follows the pattern `"Page Name — Undermind"`.
 - Verify a `sitemap.ts` or `sitemap.xml` exists under `src/app/` — if not, create one listing all static routes.
 - Verify a `robots.ts` exists under `src/app/` — if not, create one allowing crawl of public pages and disallowing `/api/`.
 - Check `public/` for an `og-image.png` (1200x630) — if missing, note it as a manual task but add a placeholder reference in metadata.
@@ -181,7 +181,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 7 — Mobile Responsiveness Audit
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit and fix mobile responsiveness across all pages and key components.
 
@@ -207,7 +207,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 8 — Settings Persistence & State Management
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit all client-side state in the Studio page that should be persisted across page refreshes, and implement localStorage persistence where appropriate.
 
@@ -232,7 +232,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 9 — Loading States, Skeleton Screens & Empty States
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Audit all loading and empty states across the app and improve them for polish and user experience.
 
@@ -256,7 +256,7 @@ Step 3 — Run `npm run build`, fix any errors, then commit:
 ## Prompt 10 — Final Production Readiness Sweep
 
 ```
-You are working in the Auto-Business Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Auto-Business.
+You are working in the Undermind Next.js 16 / TypeScript codebase at c:\Users\NalaBook\Desktop\Undermind.
 
 TASK: Run a full production readiness sweep across the entire codebase. This is the final pass before demo day.
 

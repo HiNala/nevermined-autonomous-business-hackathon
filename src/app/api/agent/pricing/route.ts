@@ -7,7 +7,7 @@ export async function GET() {
   const products = catalog.listProducts();
 
   return NextResponse.json({
-    agent: "Auto Business Agent Studio",
+    agent: "Undermind Agent Studio",
     version: "2.0.0",
     description:
       "Four specialist AI agents — Strategist plans, Researcher discovers, Buyer procures, Seller fulfills — delivering structured work in minutes. Powered by multi-provider AI (OpenAI, Gemini, Anthropic) and Nevermined x402 payments.",

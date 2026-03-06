@@ -502,7 +502,7 @@ This app serves its agent card dynamically at `/.well-known/agent.json`. The `ur
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
 
 return NextResponse.json({
-  name: 'Auto Business Research Agent',
+  name: 'Undermind Research Agent',
   url: `${baseUrl}/api/agent/research`,     // ← must match Nevermined registration
   capabilities: {
     extensions: [{

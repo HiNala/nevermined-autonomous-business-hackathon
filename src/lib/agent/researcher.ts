@@ -383,7 +383,7 @@ Rules:
     ? `\n\nPre-planned section structure (follow these headings exactly):\n${outlineSections.map((h, i) => `${i + 1}. ${h}`).join("\n")}`
     : "";
 
-  const systemPrompt = `You are an expert research synthesis agent for Auto Business. Analyze web sources and produce a structured, decision-useful research document.
+  const systemPrompt = `You are an expert research synthesis agent for Undermind. Analyze web sources and produce a structured, decision-useful research document.
 
 Output strict JSON:
 {

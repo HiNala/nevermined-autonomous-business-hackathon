@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hit the deployed Auto-Business API to generate Nevermined transactions.
+ * Hit the deployed Undermind API to generate Nevermined transactions.
  * Usage: node scripts/hit-api.mjs
  */
 
@@ -93,7 +93,7 @@ async function run(task) {
 }
 
 async function main() {
-  console.log(`\nAuto-Business API Agent Script`);
+  console.log(`\nUndermind API Agent Script`);
   console.log(`Target: ${BASE}`);
   console.log(`Tasks: ${TASKS.length}`);
   console.log(`Time: ${new Date().toISOString()}\n`);

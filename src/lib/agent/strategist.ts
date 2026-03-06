@@ -86,7 +86,7 @@ function inferRouting(
 }
 
 function buildBriefPrompt(typeLabel: string, profileContext: string): string {
-  return `You are the Strategist Agent for Auto Business — a world-class request intelligence engine.
+  return `You are the Strategist Agent for Undermind — a world-class request intelligence engine.
 
 Your role: take raw, potentially vague user input and transform it into a precise, actionable brief that the Research Agent can execute on perfectly.
 
@@ -234,7 +234,7 @@ export async function runFollowUp(
   const startTime = Date.now();
   const id = `brief-followup-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-  const systemPrompt = `You are the Strategist Agent for Auto Business. A Research Agent has requested additional context on a topic it's investigating. 
+  const systemPrompt = `You are the Strategist Agent for Undermind. A Research Agent has requested additional context on a topic it's investigating. 
 
 You previously produced this brief:
 Title: ${originalBrief.title}

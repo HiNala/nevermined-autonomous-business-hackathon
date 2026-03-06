@@ -4,7 +4,7 @@
 
 ## Overview
 
-Auto Business uses [Apify](https://apify.com/) as its primary web search and scraping engine.
+Undermind uses [Apify](https://apify.com/) as its primary web search and scraping engine.
 The integration uses two official Apify actors:
 
 | Actor | Purpose | Actor ID |

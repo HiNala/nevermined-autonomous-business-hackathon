@@ -182,7 +182,7 @@ async function planFulfillment(
           .join("\n")
       : "No third-party services currently available.";
 
-  const systemPrompt = `You are the Seller Agent's decision engine for Auto Business. You must plan how to fulfill an incoming buyer order.
+  const systemPrompt = `You are the Seller Agent's decision engine for Undermind. You must plan how to fulfill an incoming buyer order.
 
 You have:
 1. A buyer query describing what they want

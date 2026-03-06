@@ -1,4 +1,4 @@
-# Auto Business — Autonomous Agent Economy
+# Undermind — Autonomous Agent Economy
 
 > **"Four agents that buy from and sell to each other — autonomously, with payment settlement, image generation, and full A2A discoverability."**
 >

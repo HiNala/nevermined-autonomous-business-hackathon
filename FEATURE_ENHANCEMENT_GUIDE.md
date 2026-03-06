@@ -1,14 +1,14 @@
-# Auto Business Feature Enhancement Guide
+# Undermind Feature Enhancement Guide
 
 > Date: 2026-03-05
-> Goal: turn Auto Business into a highly intelligent, highly useful, commerce-ready agent product
+> Goal: turn Undermind into a highly intelligent, highly useful, commerce-ready agent product
 > Scope: product intelligence, UX, data architecture, trust, automation, marketplace, and roadmap
 
 ---
 
 ## 1. Executive Summary
 
-Auto Business already has a strong foundation:
+Undermind already has a strong foundation:
 
 - a real multi-agent workflow
 - a strong `Studio` experience
@@ -55,7 +55,7 @@ into:
 
 ## 2. What The App Has Today
 
-Based on the current codebase, Auto Business already supports:
+Based on the current codebase, Undermind already supports:
 
 ### Product surfaces
 
@@ -96,7 +96,7 @@ Based on the current codebase, Auto Business already supports:
 
 ## 3. North Star Product Vision
 
-Auto Business should become:
+Undermind should become:
 
 **A persistent agent commerce and execution system that accepts requests, clarifies them, gathers intelligence, decides when to enrich with external assets, produces high-quality deliverables, and keeps improving those deliverables over time.**
 
@@ -649,7 +649,7 @@ This is especially important for paid and marketplace workflows.
 
 ## 10. Feature Pillar 6: Commerce And Marketplace Intelligence
 
-Auto Business has a rare advantage: it already has commerce and external agent purchase concepts. This should become a major differentiator.
+Undermind has a rare advantage: it already has commerce and external agent purchase concepts. This should become a major differentiator.
 
 ### Features to add
 
@@ -1156,7 +1156,7 @@ Timeframe: ongoing
 
 ## 18. Product Positioning After These Enhancements
 
-If you implement the roadmap above, Auto Business stops being just:
+If you implement the roadmap above, Undermind stops being just:
 
 - a flashy AI report generator
 
@@ -1173,7 +1173,7 @@ That is a much stronger product.
 
 ## 19. Final Recommendation
 
-To make Auto Business highly intelligent and maximally useful, focus on these three principles:
+To make Undermind highly intelligent and maximally useful, focus on these three principles:
 
 ### 1. Make it remember
 
@@ -1197,4 +1197,4 @@ That is the clearest path from "good demo" to "seriously valuable product."
 
 ## 20. One-Sentence Product Definition
 
-**Auto Business should become a persistent agent intelligence and commerce platform that interprets requests, researches and composes deliverables, enriches them when necessary, remembers prior context, and continuously delivers decision-ready business outputs.**
+**Undermind should become a persistent agent intelligence and commerce platform that interprets requests, researches and composes deliverables, enriches them when necessary, remembers prior context, and continuously delivers decision-ready business outputs.**

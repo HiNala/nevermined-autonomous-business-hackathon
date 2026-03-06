@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amountCents,
         currency: "usd",
-        description: `Auto-Business: ${creditPack.credits} credits`,
+        description: `Undermind: ${creditPack.credits} credits`,
         metadata: {
           credits: String(creditPack.credits),
           source: "vgs_checkout",
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: "usd",
-      description: `Auto-Business: ${creditPack.credits} credits`,
+      description: `Undermind: ${creditPack.credits} credits`,
       payment_method: paymentMethod.id,
       confirm: true,
       automatic_payment_methods: { enabled: true, allow_redirects: "never" },

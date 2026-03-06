@@ -128,7 +128,7 @@ export function Footer() {
           style={{ borderColor: "var(--border-default)" }}
         >
           <p className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-            &copy; {new Date().getFullYear()} Auto Business. Powered by Nevermined.
+            &copy; {new Date().getFullYear()} Undermind. Powered by Nevermined.
           </p>
           <div className="flex items-center gap-1.5" role="status" aria-label="System status">
             <span className="relative flex size-1.5" aria-hidden="true">

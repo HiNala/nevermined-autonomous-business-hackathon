@@ -1,4 +1,4 @@
-# Auto Business Agent Expansion Playbook
+# Undermind Agent Expansion Playbook
 
 > Date: 2026-03-05
 > Purpose: expand the usefulness of every current agent with practical, finite, high-leverage improvements
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Auto Business already has four real agents with distinct value:
+Undermind already has four real agents with distinct value:
 
 - `Strategist`
 - `Researcher`
@@ -87,7 +87,7 @@ If a proposed feature fails these questions, do not ship it.
 
 ## 3. External Best-Practice Patterns Worth Adopting
 
-The online research points to a few patterns that are especially relevant for Auto Business.
+The online research points to a few patterns that are especially relevant for Undermind.
 
 ### 1. Layered memory
 
@@ -1013,7 +1013,7 @@ If you want the best practical expansion of your current agent system, do these 
 4. Add async jobs and delivery packaging so `Seller` becomes a real product boundary
 5. Add persistent artifacts and shared contracts so every agent handoff becomes durable and reusable
 
-This is the finite, logical path that will make Auto Business more intelligent without making it chaotic.
+This is the finite, logical path that will make Undermind more intelligent without making it chaotic.
 
 ---
 

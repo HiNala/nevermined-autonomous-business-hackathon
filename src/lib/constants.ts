@@ -1,4 +1,4 @@
-export const SITE_NAME = "AUTO BUSINESS";
+export const SITE_NAME = "UNDERMIND";
 export const SITE_DESCRIPTION =
   "A multi-agent studio — Strategist plans, Researcher discovers, Buyer procures, Seller fulfills — powered by Nevermined payments.";
 

@@ -1,4 +1,4 @@
-# VGS Payment Integration — Auto-Business
+# VGS Payment Integration — Undermind
 
 ## Overview
 
@@ -71,7 +71,7 @@ STRIPE_SECRET_KEY=sk_test_your_key              # Stripe secret key (server-only
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx  # Stripe publishable key (client)
 ```
 
-## Integration Points in Auto-Business
+## Integration Points in Undermind
 
 ### Buy Credits (Studio page)
 Users click "Buy Credits" → modal opens with VGS secure form → payment processes → credits added to session.

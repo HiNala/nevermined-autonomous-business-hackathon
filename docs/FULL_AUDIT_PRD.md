@@ -1,4 +1,4 @@
-# Auto Business — Full Product Audit & PRD
+# Undermind — Full Product Audit & PRD
 
 > **Date:** March 5, 2025
 > **Scope:** Complete codebase audit — agents, API routes, UI pages, settings, infrastructure, UX, design tokens, contracts
@@ -24,7 +24,7 @@
 
 ## 1. Executive Summary
 
-Auto Business is a **multi-agent AI studio** with four specialist agents (Strategist, Researcher, Buyer, Seller) that collaborate through a pipeline to produce structured deliverables (research reports, PRDs, strategic plans, market analyses). It integrates Nevermined for payments, supports internal credit trading between agents, external marketplace procurement, and a storefront where external buyers can purchase AI-generated outputs.
+Undermind is a **multi-agent AI studio** with four specialist agents (Strategist, Researcher, Buyer, Seller) that collaborate through a pipeline to produce structured deliverables (research reports, PRDs, strategic plans, market analyses). It integrates Nevermined for payments, supports internal credit trading between agents, external marketplace procurement, and a storefront where external buyers can purchase AI-generated outputs.
 
 **What's working well:**
 - Clean separation of agent logic into individual modules
@@ -737,7 +737,7 @@ If a user double-clicks the submit button (despite `disabled` state), two identi
 
 ## 10. Legendary Design Interrogation
 
-Applying the framework of the greatest designers to Auto Business.
+Applying the framework of the greatest designers to Undermind.
 
 ### Alan Kay's Questions
 
@@ -902,7 +902,7 @@ The input-to-output flow is efficient. But the output consumption is slow — us
 
 ## Final Verdict
 
-Auto Business has **exceptional agent architecture** — the 4-agent pipeline with trading toggles, event streaming, multi-provider fallbacks, and AI-powered seller reasoning is genuinely impressive engineering. The settings system is one of the best I've seen in any agent product.
+Undermind has **exceptional agent architecture** — the 4-agent pipeline with trading toggles, event streaming, multi-provider fallbacks, and AI-powered seller reasoning is genuinely impressive engineering. The settings system is one of the best I've seen in any agent product.
 
 The gap between the backend capability and the frontend representation is the biggest issue. The Seller agent is a fully-functional reverse pipeline on the backend but invisible in the Studio. Closing this gap and adding real-time pipeline events would transform the product from "interesting demo" to "product people want to use."
 

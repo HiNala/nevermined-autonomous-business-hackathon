@@ -159,7 +159,7 @@ export async function logNeverminedTask(opts: {
   try {
     // Step 1: Start simulation request via SDK
     const simResult = await payments.requests.startSimulationRequest({
-      agentName: opts.tag ?? "Auto Business Agent",
+      agentName: opts.tag ?? "Undermind Agent",
       planName: "plan one",
     });
 

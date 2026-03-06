@@ -11,7 +11,7 @@ export async function GET() {
     // ── Core identity ──────────────────────────────────────────
     "@context": "https://schema.org/",
     "@type": "SoftwareApplication",
-    name: "Auto Business — Job-Based Agent Commerce System",
+    name: "Undermind — Job-Based Agent Commerce System",
     description: "A five-agent autonomous economy: Seller (intake + delivery) → Interpreter (intent structuring) → Composer (2-pass document creation) → Buyer (optional Nevermined marketplace enrichment) → Seller (quality gate + packaging) + VISION (on-demand NanoBanana image generation with iterative quality loop). Powered by Nevermined x402 micro-payments.",
     applicationCategory: "BusinessApplication",
     version: "3.1.0",

@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Research",
   description: "Run web research requests and get structured intelligence documents. Powered by the Composer AI agent.",
   openGraph: {
-    title: "Research | Auto Business",
+    title: "Research | Undermind",
     description: "Run web research requests and get structured intelligence documents.",
   },
 };

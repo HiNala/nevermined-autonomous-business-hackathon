@@ -2,7 +2,7 @@
 
 ## Overview
 
-VISION is the image generation stage of the Auto Business pipeline. After the Composer produces a research report, VISION generates a professional hero image using **NanoBanana** (which wraps Gemini image models) and runs an iterative quality loop to ensure the result meets a minimum quality bar before being attached to the report.
+VISION is the image generation stage of the Undermind pipeline. After the Composer produces a research report, VISION generates a professional hero image using **NanoBanana** (which wraps Gemini image models) and runs an iterative quality loop to ensure the result meets a minimum quality bar before being attached to the report.
 
 VISION is **non-blocking and best-effort** — if it fails or is disabled, the core pipeline result is unaffected.
 
