@@ -1455,6 +1455,7 @@ function LoadingSkeleton({ mode, events, elapsed, onCancel }: { mode: ViewMode; 
     seller_planning: "Seller planning fulfillment strategy…",
     seller_fulfilling: "Seller dispatching to internal pipeline…",
     seller_complete: "Seller order fulfilled and delivered",
+    vision_complete: "VISION agent generated image via NanoBanana",
   };
   const currentLabel = lastEvent ? (stageLabels[lastEvent.stage] ?? lastEvent.message) : "Initializing pipeline…";
 
@@ -2307,6 +2308,18 @@ export function StudioPage() {
               stats={agentStats.seller}
               toolLabel="nevermined"
               index={3}
+            />
+            {mode === "pipeline" && (
+              <AgentConnector isActive={isGeneratingImage} color={AGENT_CONFIG.vision.color} />
+            )}
+            <AgentCard
+              agent={AGENT_CONFIG.vision}
+              isActive={isGeneratingImage}
+              isSelected={false}
+              onClick={() => {}}
+              stats={{ earned: 0, handled: visionResult ? 1 : 0 }}
+              toolLabel="nanobanana"
+              index={4}
             />
           </div>
 

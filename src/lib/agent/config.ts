@@ -53,4 +53,14 @@ export const AGENT_CONFIG: Record<string, AgentConfig> = {
     bgColor: "rgba(239, 68, 68, 0.08)",
     borderColor: "rgba(239, 68, 68, 0.20)",
   },
+  vision: {
+    id: "vision",
+    name: "VISION",
+    role: "Image Generation",
+    description: "Generates images via NanoBanana (Gemini) with an iterative quality loop. Constructs prompts, assesses quality with GPT-4o-mini, refines and retries up to 3 times.",
+    avatar: "◉",
+    color: "#CA8A04",
+    bgColor: "rgba(234, 179, 8, 0.08)",
+    borderColor: "rgba(234, 179, 8, 0.20)",
+  },
 };
