@@ -700,6 +700,166 @@ function DocumentView({
   );
 }
 
+function TypingStatusWords({ words, color }: { words: string[]; color: string }) {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentWord = words[wordIndex] ?? "";
+    const isWordComplete = charIndex === currentWord.length;
+    const isWordCleared = charIndex === 0;
+
+    const delay = isDeleting
+      ? 45
+      : isWordComplete
+      ? 900
+      : 85;
+
+    const timer = window.setTimeout(() => {
+      if (!isDeleting && !isWordComplete) {
+        setCharIndex((value) => value + 1);
+        return;
+      }
+
+      if (!isDeleting && isWordComplete) {
+        setIsDeleting(true);
+        return;
+      }
+
+      if (isDeleting && !isWordCleared) {
+        setCharIndex((value) => value - 1);
+        return;
+      }
+
+      setIsDeleting(false);
+      setWordIndex((value) => (value + 1) % words.length);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [charIndex, isDeleting, wordIndex, words]);
+
+  const visibleWord = (words[wordIndex] ?? "").slice(0, charIndex);
+
+  return (
+    <div
+      className="mb-2 inline-flex min-w-[92px] items-center justify-center rounded-full px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.28em]"
+      style={{
+        color,
+        background: `${color}10`,
+        border: `1px solid ${color}20`,
+      }}
+      aria-live="polite"
+    >
+      <span>{visibleWord || "\u00A0"}</span>
+      <span
+        className="ml-1 inline-block h-3 w-px animate-pulse"
+        style={{ background: color }}
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
+function LoadingPulseDots({ color }: { color: string }) {
+  return (
+    <div className="mt-2 flex items-center justify-center gap-1.5" aria-hidden="true">
+      {[0, 1, 2].map((index) => (
+        <span
+          key={index}
+          className="size-1.5 rounded-full animate-pulse"
+          style={{
+            background: color,
+            opacity: 0.35 + index * 0.18,
+            animationDelay: `${index * 180}ms`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function LoadingMicroHint({ hints, color }: { hints: string[]; color: string }) {
+  const [hintIndex, setHintIndex] = useState(0);
+
+  useEffect(() => {
+    if (hints.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setHintIndex((value) => (value + 1) % hints.length);
+    }, 1800);
+
+    return () => window.clearInterval(timer);
+  }, [hints]);
+
+  return (
+    <div className="mt-3 flex items-center justify-center gap-2 text-[10px]">
+      <span
+        className="rounded-full px-2 py-0.5 font-mono uppercase tracking-[0.18em]"
+        style={{
+          color,
+          background: `${color}08`,
+          border: `1px solid ${color}18`,
+        }}
+      >
+        live
+      </span>
+      <span className="transition-opacity duration-300" style={{ color: "var(--gray-400)" }}>
+        {hints[hintIndex]}
+      </span>
+    </div>
+  );
+}
+
+function getLoadingWords(mode: ViewMode, stage?: string, agent?: string) {
+  if (mode === "seller" || agent === "seller") {
+    if (stage === "seller_received") return ["receive", "route", "deliver"];
+    if (stage === "seller_planning") return ["match", "price", "plan"];
+    if (stage === "seller_fulfilling") return ["dispatch", "merge", "deliver"];
+    return ["route", "package", "deliver"];
+  }
+
+  if (mode === "strategist" || agent === "strategist") {
+    return ["review", "scope", "plan"];
+  }
+
+  if (mode === "researcher" || agent === "researcher") {
+    if (stage === "researcher_evaluating") return ["review", "score", "refine"];
+    if (stage === "researcher_followup") return ["question", "expand", "retry"];
+    return ["search", "sift", "compose"];
+  }
+
+  if (stage === "buyer_discovering" || stage === "buyer_purchasing" || agent === "buyer") {
+    return ["scan", "price", "buy"];
+  }
+
+  return ["review", "plan", "act"];
+}
+
+function getLoadingHints(mode: ViewMode, stage?: string, agent?: string) {
+  if (mode === "seller" || agent === "seller") {
+    if (stage === "seller_planning") return ["matching the best product", "checking if outside data is worth it", "preparing the fulfillment path"];
+    if (stage === "seller_fulfilling") return ["dispatching work to the right agents", "assembling the delivery package", "tracking fulfillment across the pipeline"];
+    return ["receiving the order", "setting the commercial boundary", "preparing final delivery"];
+  }
+
+  if (mode === "strategist" || agent === "strategist") {
+    return ["tightening the brief", "expanding vague intent into scope", "turning your request into an execution plan"];
+  }
+
+  if (mode === "researcher" || agent === "researcher") {
+    if (stage === "researcher_evaluating") return ["checking for coverage gaps", "testing whether the report is complete", "deciding if another pass is needed"];
+    if (stage === "researcher_followup") return ["asking for sharper context", "opening a second pass", "resolving missing detail"];
+    return ["checking sources", "weighing signals", "shaping the report"];
+  }
+
+  if (stage === "buyer_discovering" || stage === "buyer_purchasing" || agent === "buyer") {
+    return ["searching marketplace options", "comparing asset value", "pulling in outside context"];
+  }
+
+  return ["coordinating agents", "moving work through the chain", "turning intent into output"];
+}
+
 // ─── Loading Skeleton ────────────────────────────────────────────────
 function LoadingSkeleton({ mode, events, elapsed, onCancel }: { mode: ViewMode; events: PipelineEvent[]; elapsed?: number; onCancel?: () => void }) {
   const lastEvent = events[events.length - 1];
@@ -722,6 +882,8 @@ function LoadingSkeleton({ mode, events, elapsed, onCancel }: { mode: ViewMode; 
 
   const agentWorking = lastEvent?.agent ?? "pipeline";
   const color = AGENT_CONFIG[agentWorking as keyof typeof AGENT_CONFIG]?.color ?? "var(--green-400)";
+  const typingWords = getLoadingWords(mode, lastEvent?.stage, agentWorking);
+  const loadingHints = getLoadingHints(mode, lastEvent?.stage, agentWorking);
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-8 px-8">
@@ -762,12 +924,15 @@ function LoadingSkeleton({ mode, events, elapsed, onCancel }: { mode: ViewMode; 
 
           {/* Title + description */}
           <div>
+            <TypingStatusWords words={typingWords} color={color} />
             <p className="mb-1.5 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>
               {mode === "pipeline" ? "Pipeline Running" : mode === "seller" ? "Seller Fulfilling" : agentWorking === "strategist" ? "Strategist Working" : "Researcher Working"}
             </p>
             <p className="text-[12px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
               {currentLabel}
             </p>
+            <LoadingPulseDots color={color} />
+            <LoadingMicroHint hints={loadingHints} color={color} />
           </div>
 
           {/* Stage chips */}

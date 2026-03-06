@@ -18,13 +18,13 @@ export function HomePage() {
       <main>
         <HeroSection />
         <SectionDivider />
+        <OutputShowcase />
+        <SectionDivider />
         <DecisionLogic />
         <SectionDivider />
         <AgentCards />
         <SectionDivider />
         <StudioServices />
-        <SectionDivider />
-        <OutputShowcase />
         <SectionDivider />
         <FaqSection />
         <CtaSection />

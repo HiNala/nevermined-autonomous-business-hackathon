@@ -14,9 +14,9 @@ const EXAMPLES = [
 ];
 
 const OUTPUTS = [
-  { agent: "SCOUT", label: "Research Sprint", time: "~2 min", credits: "1cr" },
-  { agent: "ORBIT", label: "Planning Pack", time: "~5 min", credits: "5cr" },
-  { agent: "CANVAS", label: "Design Spec", time: "~8 min", credits: "10cr" },
+  { agent: "RESEARCHER", label: "Research Sprint", time: "~2 min", credits: "1cr" },
+  { agent: "STRATEGIST", label: "Planning Pack", time: "~5 min", credits: "5cr" },
+  { agent: "PIPELINE", label: "Design Spec", time: "~8 min", credits: "10cr" },
 ];
 
 export function StudioEntry() {

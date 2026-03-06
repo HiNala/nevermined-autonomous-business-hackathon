@@ -83,11 +83,11 @@ export function StudioServices() {
             <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>004 / STUDIO SERVICES</span>
           </div>
           <h2 className="mb-1 text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-            What you get back.
+            Start with high-signal deliverables.
           </h2>
           <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-            Three deliverables for teams that need fast research, planning, and front-end direction.
-            Pay only for what you use &mdash; no subscription.
+            Three strong starting points for teams that need fast research, planning, and implementation direction.
+            Run them in the Studio, route them through the Seller, or enrich them with marketplace assets when needed.
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">

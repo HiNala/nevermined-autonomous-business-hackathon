@@ -43,19 +43,19 @@ const MOCK_DOC = {
     { title: "LangChain Enterprise Survey Results", url: "https://langchain.com" },
     { title: "MIT CSAIL: Multi-Agent System Latency Analysis", url: "https://csail.mit.edu" },
   ],
-  meta: { credits: 1, duration: "43s", sources: 5, agent: "SCOUT" },
+  meta: { credits: 1, duration: "43s", sources: 5, agent: "RESEARCHER" },
 };
 
 export function OutputShowcase() {
   return (
-    <section className="mx-auto max-w-6xl px-6 pb-20">
+    <section id="sample-output" className="mx-auto max-w-6xl px-6 pb-20">
       <div className="mb-8">
         <div className="mb-3 flex items-center gap-3">
           <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
           <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>004 / SAMPLE OUTPUT</span>
         </div>
         <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          This is what a Research Sprint looks like.
+          What the output actually looks like.
         </h2>
       </div>
 

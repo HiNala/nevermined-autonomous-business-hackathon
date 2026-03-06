@@ -14,9 +14,9 @@ const STEPS = [
   {
     icon: Cpu,
     number: "02",
-    title: "Agents execute it",
-    description: "The Strategist structures your brief. The Researcher searches the live web. CANVAS drafts the spec. All automatic.",
-    tag: "2–8 minutes",
+    title: "The pipeline runs",
+    description: "The Strategist scopes the job, the Researcher gathers live evidence, and the Buyer or Seller step in when enrichment or delivery is needed.",
+    tag: "4 agents working together",
   },
   {
     icon: FileCheck,
@@ -36,7 +36,7 @@ export function DecisionLogic() {
           <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>002 / HOW IT WORKS</span>
         </div>
         <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          Three steps. Real output.
+          From prompt to deliverable.
         </h2>
       </div>
 

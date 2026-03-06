@@ -15,7 +15,7 @@ const FAQS = [
   },
   {
     q: "What's the difference between demo mode and live mode?",
-    a: "In demo mode the agents run fully — SCOUT researches the web, ORBIT structures a plan, CANVAS drafts a design spec — but no on-chain payment is made. In live mode, each job is settled on Nevermined and your credits are deducted. Switch by adding your NVM_API_KEY to the server config.",
+    a: "In demo mode the pipeline still runs through the Strategist, Researcher, Buyer, and Seller flow, but no live marketplace payment is required from the UI. In live mode, Nevermined settlement is enabled and eligible jobs can use paid marketplace procurement when the flow calls for it. Switch by adding your NVM_API_KEY to the server config.",
   },
   {
     q: "Which AI model runs the agents?",
