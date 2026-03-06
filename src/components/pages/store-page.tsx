@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { ZeroClickAd } from "@/components/ui/zeroclick-ad";
 import { VGSCheckoutModal } from "@/components/ui/vgs-checkout-modal";
+import { EnrichmentSummaryBadge } from "@/components/ui/enrichment-summary-badge";
+import type { EnrichmentSummary } from "@/types/pipeline";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -64,6 +66,7 @@ interface OrderResult {
   document?: { title: string; summary: string; sections: { heading: string; content: string }[]; sources: { url: string; title: string }[] };
   totalCredits: number;
   totalDurationMs: number;
+  enrichmentSummary?: EnrichmentSummary;
 }
 
 // ─── Category config ─────────────────────────────────────────────────
@@ -237,10 +240,41 @@ function OrderModal({
           </button>
         </div>
 
-        <p className="mb-4 text-[13px]" style={{ color: "var(--gray-500)" }}>
-          Describe what you need. The Seller routes your request through the full pipeline:
-          Interpreter structures the brief → Composer builds the report → Seller packages and delivers.
+        <p className="mb-3 text-[13px]" style={{ color: "var(--gray-500)" }}>
+          The Seller routes your request through the full canonical pipeline:
+          Interpreter structures the brief → Composer builds the report → optional Buyer enrichment → Seller packages and delivers.
         </p>
+
+        {/* Pipeline flow visual */}
+        <div className="mb-3 flex items-center gap-1.5 overflow-x-auto rounded-lg px-3 py-2.5" style={{ background: "var(--glass-bg)", border: "1px solid var(--border-default)" }}>
+          {["Seller", "Interpreter", "Composer", "Buyer?", "Seller"].map((step, i, arr) => (
+            <div key={i} className="flex shrink-0 items-center gap-1.5">
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold"
+                style={{
+                  background: step === "Buyer?" ? "rgba(245,158,11,0.10)" : step === "Seller" ? "rgba(239,68,68,0.10)" : step === "Interpreter" ? "rgba(124,58,237,0.10)" : "rgba(14,165,233,0.10)",
+                  color: step === "Buyer?" ? "#F59E0B" : step === "Seller" ? "#EF4444" : step === "Interpreter" ? "#7C3AED" : "#0EA5E9",
+                  border: `1px solid ${step === "Buyer?" ? "rgba(245,158,11,0.20)" : step === "Seller" ? "rgba(239,68,68,0.20)" : step === "Interpreter" ? "rgba(124,58,237,0.20)" : "rgba(14,165,233,0.20)"}`,
+                }}
+              >
+                {step}
+              </span>
+              {i < arr.length - 1 && (
+                <ArrowRight size={9} style={{ color: "var(--gray-300)" }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {product.mayRequireExternalData && (
+          <div className="mb-3 flex items-start gap-2 rounded-lg px-3 py-2" style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.18)" }}>
+            <Sparkles size={11} className="mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
+            <p className="text-[10px] leading-snug" style={{ color: "#F59E0B" }}>
+              <span className="font-semibold">Buyer enrichment eligible</span> — Seller may instruct the Buyer to purchase third-party data from Nevermined to improve this report.
+              Requires <span className="font-mono">External Marketplace</span> enabled in Settings.
+            </p>
+          </div>
+        )}
 
         <div className="mb-4 flex items-center gap-2 rounded-lg p-3" style={{ background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.15)" }}>
           <CreditCard size={14} style={{ color: "#EF4444" }} />
@@ -358,6 +392,13 @@ function OrderResultView({ result, onClose }: { result: OrderResult; onClose: ()
           </div>
         </div>
 
+        {/* Enrichment Summary */}
+        {result.enrichmentSummary && (
+          <div className="mb-4">
+            <EnrichmentSummaryBadge summary={result.enrichmentSummary} expandable={true} />
+          </div>
+        )}
+
         {/* AI Reasoning */}
         <div
           className="mb-4 rounded-lg p-3"
@@ -370,7 +411,7 @@ function OrderResultView({ result, onClose }: { result: OrderResult; onClose: ()
             {result.fulfillmentPlan.reasoning}
             {result.fulfillmentPlan.usedExternalData && (
               <span className="ml-1 font-mono text-[10px]" style={{ color: "#F59E0B" }}>
-                (used 3rd-party data)
+                ✦ enriched with external data
               </span>
             )}
           </p>
