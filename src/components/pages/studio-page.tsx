@@ -508,6 +508,47 @@ function PipelineStages({ events, isRunning }: { events: PipelineEvent[]; isRunn
                 <p className="mt-0.5 text-[10px] leading-relaxed" style={{ color: "var(--gray-600)" }}>
                   {event.message}
                 </p>
+                {/* Procurement payload chips */}
+                {((): React.ReactNode => {
+                  if (!event.data) return null;
+                  const d = event.data as Record<string, unknown>;
+                  const status = typeof d.procurementStatus === "string" ? d.procurementStatus : null;
+                  const credits = typeof d.externalCreditsSpent === "number" ? d.externalCreditsSpent : null;
+                  const names = Array.isArray(d.assetNames) ? (d.assetNames as string[]) : [];
+                  if (!status && credits === null && names.length === 0) return null;
+                  return (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {status && (
+                        <span
+                          className="rounded px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-wide"
+                          style={{
+                            background: status === "purchased_and_merged" ? "rgba(245,158,11,0.12)" : "rgba(99,102,241,0.10)",
+                            color: status === "purchased_and_merged" ? "#F59E0B" : "#6366F1",
+                          }}
+                        >
+                          {status.replace(/_/g, " ")}
+                        </span>
+                      )}
+                      {credits !== null && credits > 0 && (
+                        <span
+                          className="rounded px-1.5 py-0.5 font-mono text-[7px] font-semibold"
+                          style={{ background: "rgba(245,158,11,0.10)", color: "#F59E0B" }}
+                        >
+                          {credits}cr external
+                        </span>
+                      )}
+                      {names.map((name, i) => (
+                        <span
+                          key={i}
+                          className="rounded px-1.5 py-0.5 font-mono text-[7px]"
+                          style={{ background: "var(--glass-bg)", color: "var(--gray-500)", border: "1px solid var(--border-default)" }}
+                        >
+                          ✦ {name.length > 30 ? name.slice(0, 30) + "…" : name}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );
