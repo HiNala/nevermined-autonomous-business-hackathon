@@ -76,8 +76,18 @@ export async function POST(request: Request) {
   if (!isInternalRequest && paymentSignature) {
     caller = paymentSignature.slice(0, 12) + "...";
 
-    // Step 2: Verify token (does NOT burn credits)
-    const verification = await verifyX402Token(paymentSignature, ENDPOINT, credits);
+    // Step 2: Verify token (best-effort — settle is what actually burns credits)
+    // We log the verification attempt but do NOT block on failure,
+    // because the facilitator may reject verify while settle still works.
+    let verifyResult = "skipped";
+    try {
+      const verification = await verifyX402Token(paymentSignature, ENDPOINT, credits);
+      verifyResult = verification.valid ? "valid" : (verification.reason ?? "invalid");
+      console.log(`[x402] Verify result: ${verifyResult}`);
+    } catch (e) {
+      verifyResult = `error: ${e instanceof Error ? e.message : e}`;
+      console.warn(`[x402] Verify error (non-blocking):`, verifyResult);
+    }
 
     agentEvents.push({
       id: generateEventId(),
@@ -88,16 +98,10 @@ export async function POST(request: Request) {
         query,
         depth,
         credits,
+        verifyResult,
         paymentSignature: paymentSignature.slice(0, 20),
       },
     });
-
-    if (!verification.valid) {
-      return NextResponse.json(
-        { error: verification.reason ?? "Invalid payment token" },
-        { status: 402 }
-      );
-    }
   }
 
   // Log the incoming request
