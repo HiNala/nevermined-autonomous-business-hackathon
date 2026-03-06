@@ -15,9 +15,9 @@ export interface AgentConfig {
 export const AGENT_CONFIG: Record<string, AgentConfig> = {
   strategist: {
     id: "strategist",
-    name: "Strategist",
-    role: "Planning & Structuring",
-    description: "Expands raw input into comprehensive structured briefs with search queries, scope, and deliverables.",
+    name: "Interpreter",
+    role: "Intent Structuring",
+    description: "Converts a vague request into a precise execution brief — objective, scope, search plan, required sections, and delivery format.",
     avatar: "◆",
     color: "#7C3AED",
     bgColor: "rgba(124, 58, 237, 0.08)",
@@ -25,9 +25,9 @@ export const AGENT_CONFIG: Record<string, AgentConfig> = {
   },
   researcher: {
     id: "researcher",
-    name: "Researcher",
-    role: "Web Research & Reporting",
-    description: "Searches and scrapes the web, analyzes sources, and produces detailed reports with citations.",
+    name: "Composer",
+    role: "Document Creation",
+    description: "Takes the Interpreter's brief, searches the web, synthesizes sources, and composes the final structured report artifact.",
     avatar: "◈",
     color: "#0EA5E9",
     bgColor: "rgba(14, 165, 233, 0.08)",
@@ -36,8 +36,8 @@ export const AGENT_CONFIG: Record<string, AgentConfig> = {
   buyer: {
     id: "buyer",
     name: "Buyer",
-    role: "Marketplace Procurement",
-    description: "Discovers and purchases outputs from third-party agents on the Nevermined marketplace.",
+    role: "Enrichment Procurement",
+    description: "Optional enrichment stage. Purchases third-party data assets from the Nevermined marketplace when the Composer needs external evidence.",
     avatar: "◎",
     color: "#F59E0B",
     bgColor: "rgba(245, 158, 11, 0.08)",
@@ -46,8 +46,8 @@ export const AGENT_CONFIG: Record<string, AgentConfig> = {
   seller: {
     id: "seller",
     name: "Seller",
-    role: "Marketplace Sales",
-    description: "Receives external orders, plans fulfillment, and delivers generated outputs to the marketplace.",
+    role: "Intake & Delivery",
+    description: "Commerce boundary and final packaging layer. Accepts orders, owns the transaction, and delivers the finished artifact as a branded deliverable package.",
     avatar: "◇",
     color: "#EF4444",
     bgColor: "rgba(239, 68, 68, 0.08)",

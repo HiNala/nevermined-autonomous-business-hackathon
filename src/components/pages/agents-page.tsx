@@ -6,7 +6,10 @@ import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
 import { StudioEntry } from "@/components/sections/studio-entry";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
-import { Zap, ArrowRight } from "lucide-react";
+import {
+  Brain, PenLine, ShoppingBag, PackageCheck, ShoppingCart,
+  ArrowRight, CheckCircle2, Zap, ChevronDown, ChevronUp
+} from "lucide-react";
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
 
@@ -14,114 +17,318 @@ interface AgentLiveStats {
   [agentId: string]: { creditsEarned: number; creditsSpent: number; requestsHandled: number };
 }
 
-function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
-  const agentKey = agent.id.replace("agent-", "");
-  const real = liveStats?.[agentKey];
+const AGENT_ICONS: Record<string, typeof Brain> = {
+  "agent-strategist": Brain,
+  "agent-researcher": PenLine,
+  "agent-buyer": ShoppingBag,
+  "agent-seller": PackageCheck,
+};
+
+const AGENT_PIPELINE_POSITION: Record<string, { stage: string; receives: string; produces: string; stageNum: string }> = {
+  "agent-strategist": {
+    stage: "Stage 2 in the canonical pipeline",
+    receives: "Raw order intent from Seller",
+    produces: "Structured execution brief",
+    stageNum: "02",
+  },
+  "agent-researcher": {
+    stage: "Stage 3 in the canonical pipeline",
+    receives: "Structured brief from Interpreter",
+    produces: "Composed report artifact",
+    stageNum: "03",
+  },
+  "agent-buyer": {
+    stage: "Stage 4 — optional enrichment branch",
+    receives: "Enrichment request from Composer",
+    produces: "Third-party assets for merging",
+    stageNum: "04",
+  },
+  "agent-seller": {
+    stage: "Stage 1 (intake) + Stage 5 (delivery)",
+    receives: "External order via API or Store",
+    produces: "Quality-gated delivery package",
+    stageNum: "01→05",
+  },
+};
+
+const PIPELINE_MINI = [
+  { label: "Seller", color: "#EF4444", icon: ShoppingCart },
+  { label: "Interpreter", color: "#7C3AED", icon: Brain },
+  { label: "Composer", color: "#0EA5E9", icon: PenLine },
+  { label: "Buyer", color: "#F59E0B", icon: ShoppingBag, optional: true },
+  { label: "Seller", color: "#EF4444", icon: PackageCheck },
+];
+
+function PipelineMiniMap({ highlightAgent }: { highlightAgent: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
-      className="glass relative overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1"
-      style={{
-        borderColor: agent.primary ? `${agent.accentColor}33` : "var(--glass-border)",
-        boxShadow: agent.primary ? `0 0 40px -10px ${agent.accentColor}18` : "none",
-      }}
-    >
-      {/* Top accent */}
-      <div
-        className="absolute top-0 left-8 right-8 h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${agent.accentColor}40, transparent)` }}
-      />
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {PIPELINE_MINI.map((s, i) => {
+        const isHighlighted =
+          (highlightAgent === "agent-strategist" && s.label === "Interpreter") ||
+          (highlightAgent === "agent-researcher" && s.label === "Composer") ||
+          (highlightAgent === "agent-buyer" && s.label === "Buyer") ||
+          (highlightAgent === "agent-seller" && s.label === "Seller");
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
-        {/* Left: identity */}
-        <div className="flex flex-col gap-4 lg:w-1/3">
-          <div className="flex items-center gap-3">
+        return (
+          <div key={`${s.label}-${i}`} className="flex items-center gap-1.5">
             <div
-              className="flex size-12 items-center justify-center rounded-xl"
-              style={{ background: `${agent.accentColor}12` }}
-            >
-              <Zap size={22} color={agent.accentColor} />
-            </div>
-            <div>
-              <h2 className="font-mono text-xl font-bold tracking-wider" style={{ color: "var(--gray-900)" }}>
-                {agent.name}
-              </h2>
-              <span className="text-[12px]" style={{ color: "var(--gray-400)" }}>{agent.specialty}</span>
-            </div>
-          </div>
-
-          <p className="text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-            {agent.summary}
-          </p>
-
-          <div className="flex items-center gap-3">
-            <span
-              className="rounded-lg px-3 py-1 font-mono text-[12px] font-bold"
+              className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[8px] font-semibold transition-all"
               style={{
-                background: `${agent.accentColor}10`,
-                color: agent.accentColor,
-                border: `1px solid ${agent.accentColor}22`,
+                background: isHighlighted ? `${s.color}20` : "var(--bg-surface)",
+                color: isHighlighted ? s.color : "var(--gray-400)",
+                border: `1px solid ${isHighlighted ? s.color + "40" : "var(--border-default)"}`,
+                opacity: s.optional && !isHighlighted ? 0.5 : 1,
               }}
             >
-              from {agent.startingCredits}cr
-            </span>
+              <s.icon size={8} />
+              {s.label}
+              {s.optional && <span className="opacity-60">*</span>}
+            </div>
+            {i < PIPELINE_MINI.length - 1 && (
+              <ArrowRight size={8} style={{ color: "var(--gray-300)", flexShrink: 0 }} />
+            )}
           </div>
-        </div>
+        );
+      })}
+    </div>
+  );
+}
 
-        {/* Right: outputs + stats */}
-        <div className="flex flex-1 flex-col gap-5">
-          <div>
-            <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
-              Deliverables
+function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
+  const [expanded, setExpanded] = useState(false);
+  const agentKey = agent.id.replace("agent-", "");
+  const real = liveStats?.[agentKey];
+  const Icon = AGENT_ICONS[agent.id] ?? Brain;
+  const position = AGENT_PIPELINE_POSITION[agent.id];
+
+  const ctaHref =
+    agent.id === "agent-strategist" ? "/studio?mode=strategist" :
+    agent.id === "agent-researcher" ? "/studio?mode=researcher" :
+    agent.id === "agent-seller" ? "/store" :
+    "/studio";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="glass relative overflow-hidden transition-all duration-300"
+      style={{
+        borderColor: agent.primary ? `${agent.accentColor}35` : "var(--glass-border)",
+        boxShadow: agent.primary ? `0 0 40px -12px ${agent.accentColor}18` : "none",
+      }}
+    >
+      {/* Top colored accent bar */}
+      <div
+        className="absolute top-0 inset-x-0 h-[2px]"
+        style={{ background: `linear-gradient(90deg, transparent, ${agent.accentColor}70, transparent)` }}
+      />
+
+      <div className="p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
+
+          {/* Left column: Identity */}
+          <div className="flex flex-col gap-5 lg:w-72 lg:shrink-0">
+            {/* Stage badge */}
+            <div className="flex items-center gap-2">
+              <span
+                className="rounded-full px-2.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest"
+                style={{
+                  background: `${agent.accentColor}10`,
+                  color: agent.accentColor,
+                  border: `1px solid ${agent.accentColor}25`,
+                }}
+              >
+                {position.stageNum}
+              </span>
+              <span className="text-[10px]" style={{ color: "var(--gray-400)" }}>{position.stage}</span>
+            </div>
+
+            {/* Name + icon */}
+            <div className="flex items-center gap-4">
+              <div
+                className="flex size-14 shrink-0 items-center justify-center rounded-2xl"
+                style={{ background: `${agent.accentColor}12`, border: `1px solid ${agent.accentColor}20` }}
+              >
+                <Icon size={26} style={{ color: agent.accentColor }} />
+              </div>
+              <div>
+                <h2 className="font-mono text-2xl font-bold tracking-wider" style={{ color: "var(--gray-900)" }}>
+                  {agent.name}
+                </h2>
+                <span className="text-[12px] font-medium" style={{ color: "var(--gray-400)" }}>{agent.specialty}</span>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <p className="text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+              {agent.summary}
             </p>
-            <div className="flex flex-wrap gap-2">
-              {agent.outputs.map((output) => (
-                <span
-                  key={output}
-                  className="rounded-lg px-3 py-1.5 text-[12px] font-medium"
-                  style={{ background: "var(--gray-100)", color: "var(--gray-500)" }}
-                >
-                  {output}
+
+            {/* Credit badge */}
+            {agent.startingCredits > 0 && (
+              <div className="flex items-center gap-2">
+                <Zap size={12} style={{ color: agent.accentColor }} />
+                <span className="font-mono text-[11px] font-semibold" style={{ color: agent.accentColor }}>
+                  from {agent.startingCredits} credit
                 </span>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Live stats */}
+            {real && (
+              <div
+                className="grid grid-cols-3 gap-2 rounded-xl p-3"
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
+              >
+                <div className="text-center">
+                  <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.requestsHandled}</p>
+                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>runs</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-mono text-sm font-bold" style={{ color: "var(--gray-900)" }}>{real.creditsSpent}</p>
+                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>spent</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-mono text-sm font-bold" style={{ color: "var(--accent-400)" }}>{real.creditsEarned}cr</p>
+                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>earned</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-6 border-t pt-4" style={{ borderColor: "var(--border-default)" }}>
-            <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--gray-900)" }}>{real ? real.requestsHandled : "—"}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Deliveries</p>
+          {/* Right column: Outputs + pipeline position */}
+          <div className="flex flex-1 flex-col gap-6">
+
+            {/* Pipeline position mini-map */}
+            <div
+              className="rounded-xl p-4"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
+            >
+              <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+                Position in pipeline
+              </p>
+              <PipelineMiniMap highlightAgent={agent.id} />
             </div>
-            <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--gray-900)" }}>{real ? real.creditsSpent : "—"}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Credits Spent</p>
+
+            {/* Handoff contracts */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div
+                className="rounded-xl p-4"
+                style={{ background: `${agent.accentColor}05`, border: `1px solid ${agent.accentColor}15` }}
+              >
+                <p className="mb-1.5 font-mono text-[8px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>receives</p>
+                <p className="text-[12px] font-medium" style={{ color: "var(--gray-700)" }}>{position.receives}</p>
+              </div>
+              <div
+                className="rounded-xl p-4"
+                style={{ background: `${agent.accentColor}05`, border: `1px solid ${agent.accentColor}15` }}
+              >
+                <p className="mb-1.5 font-mono text-[8px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>produces</p>
+                <p className="text-[12px] font-medium" style={{ color: agent.accentColor }}>{position.produces}</p>
+              </div>
             </div>
+
+            {/* Outputs */}
             <div>
-              <p className="font-mono text-lg font-bold" style={{ color: "var(--accent-400)" }}>{real ? `${real.creditsEarned}cr` : "—"}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>Earned</p>
+              <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>
+                Artifact outputs
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {agent.outputs.map((output) => (
+                  <span
+                    key={output}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium"
+                    style={{ background: "var(--bg-elevated)", color: "var(--gray-600)", border: "1px solid var(--border-default)" }}
+                  >
+                    <CheckCircle2 size={10} style={{ color: agent.accentColor }} />
+                    {output}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Expandable technical details */}
+            <div>
+              <button
+                onClick={() => setExpanded((v) => !v)}
+                className="flex items-center gap-1.5 font-mono text-[10px] transition-opacity hover:opacity-70"
+                style={{ color: "var(--gray-400)" }}
+              >
+                {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                {expanded ? "Hide" : "Show"} technical details
+              </button>
+
+              {expanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-3 space-y-2"
+                >
+                  {agent.id === "agent-strategist" && (
+                    <>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Uses LLM to infer missing fields from vague input</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Outputs a typed <code className="font-mono text-[10px]">StructuredBrief</code> with scoring + routing hints</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Can inject workspace profile context for personalization</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Scores brief quality (clarity, specificity, answerability)</p>
+                    </>
+                  )}
+                  {agent.id === "agent-researcher" && (
+                    <>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• 5-path search fallback: Exa → Apify → DuckDuckGo → raw fetch</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Scores each source for freshness, authority, and relevance</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Generates a confidence summary with contradiction detection</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Outputs typed <code className="font-mono text-[10px]">ResearchDocument</code> with provenance</p>
+                    </>
+                  )}
+                  {agent.id === "agent-buyer" && (
+                    <>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Discovers assets on Nevermined marketplace via x402</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Value-ranks candidates by relevance, price, and information gain</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Generates purchase rationale and approval threshold checks</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Only runs when Composer or Seller policy requires enrichment</p>
+                    </>
+                  )}
+                  {agent.id === "agent-seller" && (
+                    <>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Public API boundary — validates x402 payment signature</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Creates persistent job with state machine lifecycle</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Runs 5-check quality gate before packaging delivery</p>
+                      <p className="text-[12px]" style={{ color: "var(--gray-500)" }}>• Packages into 3 delivery variants: full report, summary, JSON</p>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </div>
+
+            {/* CTA */}
+            <div className="mt-auto">
+              <Link
+                href={ctaHref}
+                className="group inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium transition-all duration-200"
+                style={{
+                  background: `${agent.accentColor}12`,
+                  color: agent.accentColor,
+                  border: `1px solid ${agent.accentColor}22`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = `${agent.accentColor}22`;
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = `0 4px 16px -4px ${agent.accentColor}30`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = `${agent.accentColor}12`;
+                  e.currentTarget.style.transform = "";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                {agent.ctaLabel}
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </div>
           </div>
-
-          <Link
-            href="/studio"
-            className="group mt-auto flex w-fit items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium transition-all duration-200"
-            style={{
-              background: `${agent.accentColor}12`,
-              color: agent.accentColor,
-              border: `1px solid ${agent.accentColor}20`,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = `${agent.accentColor}20`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = `${agent.accentColor}12`;
-            }}
-          >
-            {agent.ctaLabel}
-            <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-          </Link>
         </div>
       </div>
     </motion.div>
@@ -143,20 +350,59 @@ export function AgentsPage() {
       <Nav />
       <main className="pt-24 pb-20">
         <div className="mx-auto max-w-6xl px-6">
+
           {/* Page header */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-12"
+            className="mb-6"
           >
+            <div className="mb-3 flex items-center gap-3">
+              <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+              <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>AGENT ARCHITECTURE</span>
+            </div>
             <h1 className="mb-3 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--gray-900)" }}>
-              Agent <span className="text-gradient-accent">Team</span>
+              Four agents. <span className="text-gradient-accent">One pipeline.</span>
             </h1>
-            <p className="max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-              Four specialist agents that strategize, research, procure, and sell on demand.
-              Each runs independently or chains together for full deliverables.
+            <p className="max-w-xl text-[15px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+              The Seller accepts and delivers. The Interpreter structures intent. The Composer builds the report.
+              The Buyer enriches it when needed. Each has one clear job, one clear handoff.
             </p>
+          </motion.div>
+
+          {/* Canonical flow bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-12 flex flex-wrap items-center gap-2 rounded-2xl px-5 py-4"
+            style={{ background: "rgba(201,125,78,0.04)", border: "1px solid rgba(201,125,78,0.12)" }}
+          >
+            {[
+              { label: "Seller intake", color: "#EF4444", icon: ShoppingCart },
+              { label: "Interpreter structures", color: "#7C3AED", icon: Brain },
+              { label: "Composer builds", color: "#0EA5E9", icon: PenLine },
+              { label: "Buyer enriches", color: "#F59E0B", icon: ShoppingBag, optional: true },
+              { label: "Seller delivers", color: "#EF4444", icon: PackageCheck },
+            ].map((s, i, arr) => (
+              <div key={`${s.label}-${i}`} className="flex items-center gap-2">
+                <span
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
+                  style={{
+                    background: `${s.color}10`,
+                    color: s.color,
+                    border: `1px solid ${s.color}25`,
+                    opacity: s.optional ? 0.7 : 1,
+                  }}
+                >
+                  <s.icon size={12} />
+                  {s.label}
+                  {s.optional && <span className="font-mono text-[8px] opacity-60">opt</span>}
+                </span>
+                {i < arr.length - 1 && <ArrowRight size={12} style={{ color: "var(--gray-300)" }} />}
+              </div>
+            ))}
           </motion.div>
 
           {/* Agent cards */}

@@ -179,14 +179,14 @@ export function AgentCards() {
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>003 / SPECIALIST AGENTS</span>
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>003 / THE PIPELINE TEAM</span>
           </div>
           <span className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
             {STUDIO_AGENTS.length} active
           </span>
         </div>
         <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          Your specialist team.
+          Four agents. One clear job each.
         </h2>
       </div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">

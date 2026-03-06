@@ -1044,10 +1044,10 @@ const EXAMPLE_PROMPTS: Record<ViewMode, string[]> = {
     "Research emerging trends in autonomous AI payments",
   ],
   strategist: [
-    "Build a go-to-market brief for a developer API product",
-    "Structure a launch plan for a B2B SaaS tool",
-    "Outline key questions for a market entry into healthcare AI",
-    "Define scope and deliverables for a mobile app MVP",
+    "Structure a brief for a developer API go-to-market launch",
+    "Interpret a launch plan request for a B2B SaaS tool",
+    "Build an execution brief for market entry into healthcare AI",
+    "Define scope and sections for a mobile app MVP deliverable",
   ],
   researcher: [
     "What are the top Nevermined use cases in 2025?",
@@ -1067,23 +1067,23 @@ function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p: string
   const config = {
     pipeline: {
       icon: Bot,
-      title: "Agent Pipeline",
-      desc: "Describe what you need. The Strategist structures your brief, the Researcher searches the web, the Buyer procures marketplace assets, and the Seller fulfills external orders.",
+      title: "Full Pipeline",
+      desc: "Describe what you need. The Interpreter structures your brief, the Composer searches and writes the report, the Buyer optionally enriches it, and the Seller packages and delivers the final artifact.",
     },
     strategist: {
       icon: Sparkles,
-      title: "Strategist Agent",
-      desc: "Enter a topic or idea. Get a structured brief with search queries, scope, and deliverables.",
+      title: "Interpreter",
+      desc: "Enter a topic or request. Get a precise execution brief — objective, scope, search plan, required sections, and delivery format.",
     },
     researcher: {
       icon: Search,
-      title: "Researcher Agent",
-      desc: "Enter a research query. The agent searches and scrapes the web, then returns a structured report with citations.",
+      title: "Composer",
+      desc: "Enter a research query. The Composer searches and scrapes the web, synthesizes sources, and returns a structured report with citations.",
     },
     seller: {
       icon: Package,
-      title: "Seller Agent",
-      desc: "Describe what a buyer needs. The Seller matches it to a product, plans fulfillment, and generates the output using the internal pipeline.",
+      title: "Seller",
+      desc: "Describe what a buyer needs. The Seller orchestrates the full pipeline, then packages and delivers a branded, quality-gated deliverable.",
     },
   };
   const c = config[mode];
@@ -1580,7 +1580,7 @@ export function StudioPage() {
                     AGENT_CONFIG[mode]?.borderColor ?? AGENT_CONFIG.researcher.borderColor}`,
                 }}
               >
-                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Strategist" : mode === "researcher" ? "◈ Researcher" : "◇ Seller"}
+                {mode === "pipeline" ? "⚡ Full Pipeline" : mode === "strategist" ? "◆ Interpreter" : mode === "researcher" ? "◈ Composer" : "◇ Seller"}
               </span>
               {mode !== "pipeline" && (
                 <button
@@ -1618,12 +1618,12 @@ export function StudioPage() {
             </div>
             <p className="mt-1.5 text-[10px] leading-snug" style={{ color: "var(--gray-400)" }}>
               {mode === "pipeline"
-                ? "Strategist → Researcher → Buyer → Seller. Full research + planning deliverable."
+                ? "Interpreter → Composer → optional Buyer → Seller. Full structured research + packaged delivery."
                 : mode === "strategist"
-                ? "Structured brief only. Fast strategy output, no web research."
+                ? "Interpreter only. Converts your request into a structured execution brief. Fast."
                 : mode === "researcher"
-                ? "Web research only. Searches and synthesizes from live sources."
-                : "Seller fulfillment mode. Matches to a product and generates output via internal pipeline."}
+                ? "Composer only. Web research + synthesis into a structured report. No brief step."
+                : "Seller mode. Orchestrates Interpreter → Composer → Seller packaging + quality gate."}
             </p>
           </div>
 
@@ -1688,10 +1688,12 @@ export function StudioPage() {
                   }}
                   placeholder={
                     mode === "researcher"
-                      ? "What would you like to research?"
+                      ? "What should the Composer research and write?"
                       : mode === "seller"
-                      ? "Describe what a buyer needs…"
-                      : "Describe what you need…"
+                      ? "Describe what the buyer ordered…"
+                      : mode === "strategist"
+                      ? "What should the Interpreter structure into a brief?"
+                      : "Describe what you need. The full pipeline handles the rest."
                   }
                   rows={3}
                   className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none transition-all"

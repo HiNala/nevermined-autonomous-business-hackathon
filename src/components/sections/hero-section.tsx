@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import { Globe } from "@/components/ui/globe";
-import { ArrowRight, FileText, Send, ShoppingBag, Sparkles } from "lucide-react";
+import { ArrowRight, Brain, PackageCheck, PenLine, Send, ShoppingBag, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
 const QUICK_STARTS = [
@@ -12,22 +12,12 @@ const QUICK_STARTS = [
   "Write a product plan",
 ];
 
-const HERO_PROOF = [
-  {
-    icon: Sparkles,
-    title: "4 specialist agents",
-    body: "Strategy, research, procurement, and delivery working as one pipeline.",
-  },
-  {
-    icon: FileText,
-    title: "Structured outputs",
-    body: "Reports, plans, and specs with real sections, clear takeaways, and citations.",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Marketplace-ready",
-    body: "Buyer and Seller can enrich work with third-party assets when the flow calls for it.",
-  },
+const PIPELINE_STEPS = [
+  { label: "Seller", sublabel: "accepts order", color: "#EF4444", icon: ShoppingCart },
+  { label: "Interpreter", sublabel: "structures it", color: "#7C3AED", icon: Brain },
+  { label: "Composer", sublabel: "builds it", color: "#0EA5E9", icon: PenLine },
+  { label: "Buyer", sublabel: "enriches (opt)", color: "#F59E0B", icon: ShoppingBag, optional: true },
+  { label: "Seller", sublabel: "delivers it", color: "#EF4444", icon: PackageCheck },
 ];
 
 export function HeroSection() {
@@ -82,27 +72,35 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            Turn a rough prompt into a structured report, plan, or spec. Auto Business routes work through four specialist agents so you get something decision-ready, not just a chat reply.
+            Send a request. The Interpreter clarifies it. The Composer builds the report.
+            The Buyer enriches it when needed. The Seller packages and delivers. One pipeline, one result.
           </motion.p>
 
+          {/* Pipeline mini-flow */}
           <motion.div
-            className="flex flex-wrap gap-2"
+            className="flex flex-wrap items-center gap-1.5"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.2 }}
           >
-            {QUICK_STARTS.map((label) => (
-              <span
-                key={label}
-                className="rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em]"
-                style={{
-                  color: "var(--gray-500)",
-                  background: "var(--bg-surface)",
-                  border: "1px solid var(--border-default)",
-                }}
-              >
-                {label}
-              </span>
+            {PIPELINE_STEPS.map((s, i) => (
+              <div key={`${s.label}-${i}`} className="flex items-center gap-1.5">
+                <div
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1"
+                  style={{
+                    background: `${s.color}10`,
+                    border: `1px solid ${s.color}25`,
+                    opacity: s.optional ? 0.65 : 1,
+                  }}
+                >
+                  <s.icon size={10} style={{ color: s.color }} />
+                  <span className="font-mono text-[9px] font-semibold" style={{ color: s.color }}>{s.label}</span>
+                  <span className="font-mono text-[8px]" style={{ color: "var(--gray-400)" }}>{s.sublabel}</span>
+                </div>
+                {i < PIPELINE_STEPS.length - 1 && (
+                  <ArrowRight size={9} style={{ color: "var(--gray-300)", flexShrink: 0 }} />
+                )}
+              </div>
             ))}
           </motion.div>
 
@@ -199,24 +197,29 @@ export function HeroSection() {
             </a>
           </motion.div>
 
+          {/* Proof cards */}
           <motion.div
             className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-3"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.38 }}
           >
-            {HERO_PROOF.map((item) => (
+            {[
+              { color: "#7C3AED", icon: Brain, title: "Interpreter first", body: "Every request is structured into a precise brief before a word of the report is written." },
+              { color: "#0EA5E9", icon: PenLine, title: "Composer writes it", body: "Real web search, source synthesis, structured sections, and citations. Not just a prompt repeat." },
+              { color: "#EF4444", icon: PackageCheck, title: "Seller delivers it", body: "Quality-gated delivery package — markdown, summary, and JSON variants. Provenance included." },
+            ].map((item) => (
               <div
                 key={item.title}
                 className="glass p-4"
-                style={{ background: "rgba(255,255,255,0.72)" }}
+                style={{ background: "rgba(255,255,255,0.72)", borderColor: `${item.color}18` }}
               >
                 <div className="mb-2 flex items-center gap-2">
                   <div
                     className="flex size-7 items-center justify-center rounded-lg"
-                    style={{ background: "rgba(201,125,78,0.10)" }}
+                    style={{ background: `${item.color}10` }}
                   >
-                    <item.icon size={14} style={{ color: "var(--accent-400)" }} />
+                    <item.icon size={14} style={{ color: item.color }} />
                   </div>
                   <p className="text-[12px] font-semibold" style={{ color: "var(--gray-800)" }}>
                     {item.title}

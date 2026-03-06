@@ -166,7 +166,7 @@ function ProductCard({
             className="rounded-full px-2 py-0.5 font-mono text-[9px]"
             style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.20)", color: "#F59E0B" }}
           >
-            may use 3rd-party data
+            ✦ Buyer enrichment eligible
           </span>
         )}
       </div>
@@ -238,8 +238,8 @@ function OrderModal({
         </div>
 
         <p className="mb-4 text-[13px]" style={{ color: "var(--gray-500)" }}>
-          Describe what you need. The Seller agent will match your request to this product, plan fulfillment,
-          and generate the output using our Strategist → Researcher → Buyer pipeline.
+          Describe what you need. The Seller routes your request through the full pipeline:
+          Interpreter structures the brief → Composer builds the report → Seller packages and delivers.
         </p>
 
         <div className="mb-4 flex items-center gap-2 rounded-lg p-3" style={{ background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.15)" }}>

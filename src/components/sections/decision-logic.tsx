@@ -1,109 +1,203 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MessageSquare, Cpu, FileCheck } from "lucide-react";
+import { ShoppingCart, Brain, PenLine, ShoppingBag, PackageCheck, ArrowRight } from "lucide-react";
 
-const STEPS = [
+const PIPELINE_STAGES = [
   {
-    icon: MessageSquare,
-    number: "01",
-    title: "Describe what you need",
-    description: "Type a brief in plain English — a market question, product problem, or design task. No templates, no forms.",
-    tag: "Free to try",
+    step: "01",
+    agent: "Seller",
+    icon: ShoppingCart,
+    color: "#EF4444",
+    bg: "rgba(239,68,68,0.08)",
+    border: "rgba(239,68,68,0.20)",
+    title: "Intake & Payment",
+    desc: "Seller accepts the order via API or Store. Validates intent, verifies x402 payment capability, and creates a tracked job.",
+    artifact: "Job created",
+    optional: false,
   },
   {
-    icon: Cpu,
-    number: "02",
-    title: "The pipeline runs",
-    description: "The Strategist scopes the job, the Researcher gathers live evidence, and the Buyer or Seller step in when enrichment or delivery is needed.",
-    tag: "4 agents working together",
+    step: "02",
+    agent: "Interpreter",
+    icon: Brain,
+    color: "#7C3AED",
+    bg: "rgba(124,58,237,0.08)",
+    border: "rgba(124,58,237,0.20)",
+    title: "Intent Structuring",
+    desc: "Converts the raw request into a precise execution brief — objective, scope, search plan, required sections, and output format.",
+    artifact: "Structured brief",
+    optional: false,
   },
   {
-    icon: FileCheck,
-    number: "03",
-    title: "Get a structured deliverable",
-    description: "A real document — research findings with citations, a planning doc with milestones, or a UI spec with copy. Ready to act on.",
-    tag: "1–10 credits",
+    step: "03",
+    agent: "Composer",
+    icon: PenLine,
+    color: "#0EA5E9",
+    bg: "rgba(14,165,233,0.08)",
+    border: "rgba(14,165,233,0.20)",
+    title: "Document Creation",
+    desc: "Takes the brief, searches and scrapes the web via Apify or Exa, synthesizes sources, and composes the full structured report artifact.",
+    artifact: "Raw report",
+    optional: false,
+  },
+  {
+    step: "04",
+    agent: "Buyer",
+    icon: ShoppingBag,
+    color: "#F59E0B",
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.20)",
+    title: "Enrichment",
+    desc: "When the Composer identifies a knowledge gap, the Buyer procures third-party assets from the Nevermined marketplace to fill it.",
+    artifact: "External assets",
+    optional: true,
+  },
+  {
+    step: "05",
+    agent: "Seller",
+    icon: PackageCheck,
+    color: "#EF4444",
+    bg: "rgba(239,68,68,0.08)",
+    border: "rgba(239,68,68,0.20)",
+    title: "Packaging & Delivery",
+    desc: "Seller runs the quality gate, packages the report into branded variants (markdown, summary, JSON), settles the transaction, and delivers.",
+    artifact: "Delivery package",
+    optional: false,
   },
 ];
 
 export function DecisionLogic() {
   return (
-    <section className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="mb-8">
+    <section className="mx-auto max-w-6xl px-6 pb-20">
+      <div className="mb-10">
         <div className="mb-3 flex items-center gap-3">
           <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>002 / HOW IT WORKS</span>
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>002 / CANONICAL PIPELINE</span>
         </div>
-        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          From prompt to deliverable.
+        <h2 className="mb-2 text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
+          One flow. Five stages.
         </h2>
+        <p className="max-w-lg text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+          Every request — whether from the Studio, the Store, or an external agent API call — runs through the same canonical pipeline.
+        </p>
       </div>
 
-      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Connector line — desktop only */}
+      {/* Pipeline flow — horizontal on desktop, vertical on mobile */}
+      <div className="relative">
+        {/* Connector line — desktop */}
         <div
-          className="absolute top-[52px] left-[33%] right-[33%] hidden h-px sm:block"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.25), transparent)" }}
+          className="absolute top-[52px] left-[10%] right-[10%] hidden h-px lg:block"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(201,125,78,0.15), rgba(201,125,78,0.30), rgba(201,125,78,0.15), transparent)" }}
         />
 
-        {STEPS.map((step, index) => (
-          <motion.div
-            key={step.number}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="glass relative overflow-hidden p-6 transition-transform duration-300 hover:-translate-y-1"
-          >
-            {/* Top accent */}
-            <div
-              className="absolute top-0 left-6 right-6 h-px"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(201, 125, 78, 0.30), transparent)" }}
-            />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {PIPELINE_STAGES.map((stage, index) => (
+            <motion.div
+              key={stage.step}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.55, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="relative"
+            >
+              {/* Arrow connector — between cards on desktop */}
+              {index < PIPELINE_STAGES.length - 1 && (
+                <div className="absolute right-0 top-[50px] z-10 hidden translate-x-1/2 lg:flex">
+                  <ArrowRight size={12} style={{ color: "rgba(201,125,78,0.40)" }} />
+                </div>
+              )}
 
-            {/* Number + Icon row */}
-            <div className="mb-5 flex items-center justify-between">
               <div
-                className="flex size-11 items-center justify-center rounded-xl"
-                style={{ background: "rgba(201, 125, 78, 0.08)", border: "1px solid rgba(201, 125, 78, 0.16)" }}
+                className="glass group relative flex h-full flex-col overflow-hidden p-5 transition-all duration-300 hover:-translate-y-1"
+                style={{
+                  borderColor: stage.border,
+                  boxShadow: `0 0 20px -8px ${stage.color}10`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = `0 8px 28px -6px ${stage.color}25`;
+                  e.currentTarget.style.borderColor = stage.color + "44";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 20px -8px ${stage.color}10`;
+                  e.currentTarget.style.borderColor = stage.border;
+                }}
               >
-                <step.icon size={20} style={{ color: "var(--accent-400)" }} />
+                {/* Top accent line */}
+                <div
+                  className="absolute top-0 inset-x-0 h-[2px]"
+                  style={{ background: `linear-gradient(90deg, transparent, ${stage.color}60, transparent)` }}
+                />
+
+                {/* Step + optional badge */}
+                <div className="mb-3 flex items-center justify-between">
+                  <span
+                    className="font-mono text-[22px] font-bold leading-none"
+                    style={{ color: `${stage.color}20` }}
+                  >
+                    {stage.step}
+                  </span>
+                  {stage.optional && (
+                    <span
+                      className="rounded-full px-2 py-0.5 font-mono text-[8px] font-semibold uppercase tracking-wider"
+                      style={{ background: `${stage.color}12`, color: stage.color, border: `1px solid ${stage.color}25` }}
+                    >
+                      optional
+                    </span>
+                  )}
+                </div>
+
+                {/* Icon + agent name */}
+                <div className="mb-3 flex items-center gap-2">
+                  <div
+                    className="flex size-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: stage.bg, border: `1px solid ${stage.border}` }}
+                  >
+                    <stage.icon size={15} style={{ color: stage.color }} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold" style={{ color: stage.color }}>{stage.agent}</p>
+                    <p className="text-[9px] font-mono uppercase tracking-wider" style={{ color: "var(--gray-400)" }}>{stage.title}</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="flex-1 text-[11px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+                  {stage.desc}
+                </p>
+
+                {/* Artifact output */}
+                <div className="mt-4 border-t pt-3" style={{ borderColor: "var(--border-default)" }}>
+                  <span className="font-mono text-[8px] uppercase tracking-widest" style={{ color: "var(--gray-400)" }}>outputs</span>
+                  <p
+                    className="mt-0.5 rounded-md px-2 py-1 text-center font-mono text-[10px] font-semibold"
+                    style={{ background: stage.bg, color: stage.color, border: `1px solid ${stage.border}` }}
+                  >
+                    {stage.artifact}
+                  </p>
+                </div>
               </div>
-              <span
-                className="font-mono text-[28px] font-bold leading-none"
-                style={{ color: "rgba(201, 125, 78, 0.15)" }}
-              >
-                {step.number}
-              </span>
-            </div>
-
-            <h3
-              className="mb-2 text-[15px] font-semibold tracking-tight"
-              style={{ color: "var(--gray-900)" }}
-            >
-              {step.title}
-            </h3>
-            <p
-              className="mb-5 text-[13px] leading-relaxed"
-              style={{ color: "var(--gray-500)" }}
-            >
-              {step.description}
-            </p>
-
-            <span
-              className="inline-flex rounded-md px-2.5 py-1 font-mono text-[10px] font-semibold"
-              style={{
-                background: "rgba(201, 125, 78, 0.08)",
-                color: "var(--accent-400)",
-                border: "1px solid rgba(201, 125, 78, 0.18)",
-              }}
-            >
-              {step.tag}
-            </span>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
       </div>
+
+      {/* Bottom callout */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="mt-8 rounded-2xl p-5"
+        style={{ background: "rgba(201,125,78,0.04)", border: "1px solid rgba(201,125,78,0.12)" }}
+      >
+        <p className="text-center text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+          <span style={{ color: "var(--accent-400)", fontWeight: 600 }}>Seller</span> takes the order.{" "}
+          <span style={{ color: "#7C3AED", fontWeight: 600 }}>Interpreter</span> clarifies it.{" "}
+          <span style={{ color: "#0EA5E9", fontWeight: 600 }}>Composer</span> builds it.{" "}
+          <span style={{ color: "#F59E0B", fontWeight: 600 }}>Buyer</span> enriches it when needed.{" "}
+          <span style={{ color: "#EF4444", fontWeight: 600 }}>Seller</span> delivers it.
+        </p>
+      </motion.div>
     </section>
   );
 }
