@@ -257,9 +257,19 @@ export function StudioPage() {
       window.history.replaceState({}, "", "/studio" + (q ? `?q=${encodeURIComponent(q)}` : "") + (m ? `${q ? "&" : "?"}mode=${m}` : ""));
     }
 
-    // Restore last result from localStorage
+    // Clear legacy localStorage result so stale data never persists across visits
+    try { localStorage.removeItem("ab_last_result"); } catch { /* noop */ }
+
+    // ?fresh param = force clean slate (useful for demos)
+    const isFresh = params.get("fresh") !== null;
+    if (isFresh) {
+      try { sessionStorage.removeItem("ab_last_result"); } catch { /* noop */ }
+      window.history.replaceState({}, "", "/studio");
+    }
+
+    // Restore last result from sessionStorage (tab-scoped, not cross-visit)
     try {
-      const saved = localStorage.getItem("ab_last_result");
+      const saved = !isFresh ? sessionStorage.getItem("ab_last_result") : null;
       if (saved && !q) {
         const parsed = JSON.parse(saved) as { result: PipelineResult; input: string; mode: ViewMode };
         setResult(parsed.result);
@@ -317,6 +327,7 @@ export function StudioPage() {
     setPipelineEvents([]);
     setError(null);
     setAdToolsUsed([]);
+    try { sessionStorage.removeItem("ab_last_result"); } catch { /* noop */ }
     inputRef.current?.focus();
   }, []);
 
@@ -509,8 +520,8 @@ export function StudioPage() {
         });
       } catch { /* quota exceeded */ }
 
-      // Persist last result to localStorage
-      try { localStorage.setItem("ab_last_result", JSON.stringify({ result: data, input: finalInput.trim(), mode })); } catch { /* quota exceeded */ }
+      // Persist last result to sessionStorage (tab-scoped only)
+      try { sessionStorage.setItem("ab_last_result", JSON.stringify({ result: data, input: finalInput.trim(), mode })); } catch { /* quota exceeded */ }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         // already handled by handleCancel
