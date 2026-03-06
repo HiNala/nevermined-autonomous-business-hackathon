@@ -16,6 +16,7 @@ const AGENT_SKILLS: Record<string, string[]> = {
   "agent-researcher": ["Web research", "2-pass synthesis", "Source scoring", "Confidence"],
   "agent-buyer":      ["Marketplace scan", "Asset eval", "Gap analysis", "x402 payment"],
   "agent-seller":     ["Order intake", "Quality gate", "Packaging", "Delivery"],
+  "agent-vision":     ["Image generation", "Quality loop", "Prompt refinement", "NanoBanana"],
 };
 
 function AgentCard({ agent, index, liveStats }: { agent: StudioAgent; index: number; liveStats: AgentLiveStats | null }) {
@@ -146,6 +147,7 @@ function AgentCard({ agent, index, liveStats }: { agent: StudioAgent; index: num
             agent.id === "agent-strategist" ? "/studio?mode=strategist" :
             agent.id === "agent-researcher" ? "/studio?mode=researcher" :
             agent.id === "agent-seller" ? "/store" :
+            agent.id === "agent-vision" ? "/studio" :
             "/studio"
           }
           className="group mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-medium transition-all duration-200 btn-press"
@@ -201,14 +203,14 @@ export function AgentCards() {
           </div>
         </div>
         <h2 className="text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
-          Four agents.{" "}
+          Five agents.{" "}
           <span className="text-gradient-accent">One clear job each.</span>
         </h2>
         <p className="mt-2 max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-          Each agent handles exactly one responsibility in the pipeline — no overlap, no ambiguity, full traceability.
+          Each agent handles exactly one responsibility in the pipeline — including VISION, which generates a hero image for every report via NanoBanana.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {STUDIO_AGENTS.map((agent, i) => (
           <AgentCard key={agent.id} agent={agent} index={i} liveStats={liveStats} />
         ))}
