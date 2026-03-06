@@ -14,6 +14,8 @@ import { SectionDivider } from "@/components/ui/section-divider";
 import { TransactionFeed } from "@/components/sections/transaction-feed";
 import { MarketplaceConnections } from "@/components/sections/marketplace-connections";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { StatsBar } from "@/components/sections/stats-bar";
+import { INITIAL_STATS } from "@/data/mock-transactions";
 
 export function HomePage() {
   return (
@@ -21,6 +23,7 @@ export function HomePage() {
       <Nav />
       <main>
         <HeroSection />
+        <StatsBar stats={INITIAL_STATS} />
         <SectionDivider />
         <OutputShowcase />
         <SectionDivider />
