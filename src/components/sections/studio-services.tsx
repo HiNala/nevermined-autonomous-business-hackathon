@@ -10,17 +10,11 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, boxShadow: "0 12px 32px -8px rgba(201,125,78,0.18), 0 2px 8px rgba(0,0,0,0.05)", borderColor: "rgba(201,125,78,0.30)", transition: { type: "spring", stiffness: 380, damping: 26 } }}
+      viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      className="glass group relative flex h-full flex-col overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1"
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(201, 125, 78, 0.22)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px -8px rgba(201, 125, 78, 0.12)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--glass-border)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "none";
-      }}
+      className="glass group relative flex h-full flex-col overflow-hidden p-6 cursor-default"
     >
       {/* Top accent */}
       <div
@@ -76,18 +70,19 @@ function ServiceCard({ service, index }: { service: StudioService; index: number
 export function StudioServices() {
   return (
     <section id="services" className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <div className="mb-3 flex items-center gap-3">
-            <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>004 / STUDIO SERVICES</span>
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+            <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>004 / Studio Services</span>
           </div>
-          <h2 className="mb-1 text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-            Start with high-signal deliverables.
+          <h2 className="mb-1 text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+            Start with{" "}
+            <span className="text-gradient-accent">high-signal deliverables.</span>
           </h2>
-          <p className="max-w-xl text-[13px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+          <p className="max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
             Three strong starting points for teams that need fast research, planning, and implementation direction.
-            Run them in the Studio, route them through the Seller, or enrich them with marketplace assets when needed.
+            Run them in the Studio, route through the Seller, or enrich with marketplace assets when needed.
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">

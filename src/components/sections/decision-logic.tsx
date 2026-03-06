@@ -70,15 +70,16 @@ export function DecisionLogic() {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20">
       <div className="mb-10">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>002 / CANONICAL PIPELINE</span>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>005 / Canonical Pipeline</span>
         </div>
-        <h2 className="mb-2 text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          One flow. Five stages.
+        <h2 className="mb-2 text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+          One flow.{" "}
+          <span className="text-gradient-accent">Five stages.</span>
         </h2>
-        <p className="max-w-lg text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
-          Every request — whether from the Studio, the Store, or an external agent API call — runs through the same canonical pipeline.
+        <p className="max-w-lg text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
+          Every request — Studio, Store, or external API call — runs through the same canonical pipeline with full provenance.
         </p>
       </div>
 
@@ -108,18 +109,21 @@ export function DecisionLogic() {
               )}
 
               <div
-                className="glass group relative flex h-full flex-col overflow-hidden p-5 transition-all duration-300 hover:-translate-y-1"
+                className="glass group relative flex h-full flex-col overflow-hidden p-5 cursor-default"
                 style={{
                   borderColor: stage.border,
                   boxShadow: `0 0 20px -8px ${stage.color}10`,
+                  transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, border-color 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 8px 28px -6px ${stage.color}25`;
-                  e.currentTarget.style.borderColor = stage.color + "44";
+                  e.currentTarget.style.boxShadow = `0 12px 32px -6px ${stage.color}28`;
+                  e.currentTarget.style.borderColor = stage.color + "55";
+                  e.currentTarget.style.transform = "translateY(-4px)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = `0 0 20px -8px ${stage.color}10`;
                   e.currentTarget.style.borderColor = stage.border;
+                  e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
                 {/* Top accent line */}

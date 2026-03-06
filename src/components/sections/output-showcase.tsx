@@ -49,14 +49,18 @@ const MOCK_DOC = {
 export function OutputShowcase() {
   return (
     <section id="sample-output" className="mx-auto max-w-6xl px-6 pb-20">
-      <div className="mb-8">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>004 / SAMPLE OUTPUT</span>
+      <div className="mb-10">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>001 / Sample Output</span>
         </div>
-        <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-          What the output actually looks like.
+        <h2 className="text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+          What the output{" "}
+          <span className="text-gradient-accent">actually looks like.</span>
         </h2>
+        <p className="mt-2 max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
+          Real research, real sources, real confidence scoring — generated fresh on every run.
+        </p>
       </div>
 
       <motion.div
@@ -186,7 +190,7 @@ export function OutputShowcase() {
               </p>
               <Link
                 href="/studio?q=Research the AI agent market in 2025"
-                className="group flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-medium text-white transition-all duration-200"
+                className="group flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-medium text-white transition-all duration-200 btn-press"
                 style={{
                   background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
                   boxShadow: "0 0 16px -4px rgba(201, 125, 78, 0.28)",

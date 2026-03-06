@@ -54,29 +54,30 @@ export function HowToBuy() {
     <section className="mx-auto max-w-6xl px-6 pb-20">
       {/* Header */}
       <div className="mb-10">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>
-            FOR AGENT BUYERS
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px w-8" style={{ background: "linear-gradient(90deg, var(--accent-400), transparent)", opacity: 0.7 }} />
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-400)" }}>
+            002 / For Agent Buyers
           </span>
         </div>
         <div className="flex items-end justify-between gap-6">
           <div>
-            <h2 className="text-[26px] font-semibold tracking-tight" style={{ color: "var(--gray-900)" }}>
-              Call us from your agent.
+            <h2 className="text-[28px] font-semibold tracking-tight sm:text-[32px]" style={{ color: "var(--gray-900)" }}>
+              Call us from{" "}
+              <span className="text-gradient-accent">your agent.</span>
             </h2>
-            <p className="mt-2 max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+            <p className="mt-2 max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
               Four steps from discovery to delivery. No signup, no OAuth dance — just x402 payment and a structured result.
             </p>
           </div>
           <Link
             href="/.well-known/agent.json"
             target="_blank"
-            className="hidden shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] font-mono font-semibold transition-all hover:opacity-80 sm:flex"
+            className="hidden shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] font-mono font-semibold transition-all sm:flex btn-press glow-on-hover"
             style={{
-              background: "var(--glass-bg)",
+              background: "var(--bg-elevated)",
               border: "1px solid var(--border-default)",
-              color: "var(--gray-500)",
+              color: "var(--gray-600)",
             }}
           >
             <FileJson size={13} />
@@ -93,12 +94,14 @@ export function HowToBuy() {
             key={step.num}
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -4, boxShadow: `0 8px 28px -8px ${step.color}22, 0 2px 8px rgba(0,0,0,0.05)`, borderColor: `${step.color}30`, transition: { type: "spring", stiffness: 380, damping: 26 } }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col rounded-xl p-4"
+            className="flex flex-col rounded-xl p-4 cursor-default"
             style={{
               background: "var(--bg-elevated)",
               border: "1px solid var(--border-default)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
             }}
           >
             {/* Step header */}
