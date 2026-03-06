@@ -1352,7 +1352,7 @@ export function StudioPage() {
               />
             ) : rightTab === "provenance" ? (
               <div className="h-full overflow-y-auto p-4 space-y-4">
-                {/* Agent chain timeline — APP_LOGIC_REVIEW Â§21 UX */}
+                {/* Agent chain timeline */}
                 <div
                   className="rounded-xl p-4"
                   style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
