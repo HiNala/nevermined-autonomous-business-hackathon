@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Sparkles, Search, Package } from "lucide-react";
+import { Bot, Sparkles, Search, Package, ArrowRight } from "lucide-react";
 
 type ViewMode = "pipeline" | "strategist" | "researcher" | "seller";
 
@@ -56,22 +56,26 @@ export function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p:
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 px-8 text-center animate-fade-up">
-      {/* Icon with pulse ring */}
-      <div className="relative flex size-16 items-center justify-center">
+      {/* Icon with pulse ring + radial glow */}
+      <div className="relative flex size-20 items-center justify-center">
+        <div
+          className="absolute -inset-6 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(201, 125, 78, 0.06) 0%, transparent 70%)" }}
+        />
         <div
           className="absolute inset-0 rounded-2xl"
-          style={{ background: "rgba(201, 125, 78, 0.06)", border: "1px solid rgba(201, 125, 78, 0.12)" }}
+          style={{ background: "rgba(201, 125, 78, 0.05)", border: "1px solid rgba(201, 125, 78, 0.10)" }}
         />
         <div
-          className="absolute -inset-2 rounded-3xl opacity-0 animate-pulse"
-          style={{ background: "rgba(201, 125, 78, 0.04)" }}
+          className="absolute -inset-1 rounded-[18px] animate-breathe"
+          style={{ "--breathe-color": "rgba(201, 125, 78, 0.12)" } as React.CSSProperties}
         />
-        <c.icon size={26} style={{ color: "var(--accent-400)" }} />
+        <c.icon size={28} style={{ color: "var(--accent-400)" }} />
       </div>
 
       <div>
-        <h3 className="mb-1.5 text-lg font-semibold" style={{ color: "var(--gray-800)" }}>{c.title}</h3>
-        <p className="max-w-md text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>{c.desc}</p>
+        <h3 className="mb-2 text-xl font-semibold tracking-tight" style={{ color: "var(--gray-800)" }}>{c.title}</h3>
+        <p className="text-balance max-w-md text-[13px] leading-relaxed" style={{ color: "var(--gray-400)" }}>{c.desc}</p>
       </div>
 
       {/* Try these — styled as numbered selectable templates */}
@@ -84,29 +88,20 @@ export function EmptyState({ mode, onExample }: { mode: ViewMode; onExample: (p:
             <button
               key={ex}
               onClick={() => onExample(ex)}
-              className="group flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200 hover:scale-[1.01]"
+              className="card-lift focus-ring group flex items-center gap-3 rounded-xl px-4 py-3 text-left"
               style={{
                 background: "var(--bg-elevated)",
                 border: "1px solid var(--border-default)",
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(201, 125, 78, 0.30)";
-                e.currentTarget.style.background = "rgba(201, 125, 78, 0.03)";
-                e.currentTarget.style.boxShadow = "0 2px 12px -4px rgba(201, 125, 78, 0.12)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--border-default)";
-                e.currentTarget.style.background = "var(--bg-elevated)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
             >
               <span
-                className="flex size-6 shrink-0 items-center justify-center rounded-lg font-mono text-[10px] font-bold"
+                className="flex size-6 shrink-0 items-center justify-center rounded-lg font-mono text-[10px] font-bold transition-colors duration-200 group-hover:bg-[rgba(201,125,78,0.14)]"
                 style={{ background: "rgba(201,125,78,0.08)", color: "var(--accent-400)" }}
               >
                 {i + 1}
               </span>
-              <span className="text-[12px] leading-snug" style={{ color: "var(--gray-500)" }}>{ex}</span>
+              <span className="flex-1 text-[12px] leading-snug transition-colors duration-200 group-hover:text-[var(--gray-700)]" style={{ color: "var(--gray-500)" }}>{ex}</span>
+              <ArrowRight size={12} className="shrink-0 opacity-0 transition-all duration-200 group-hover:opacity-60 group-hover:translate-x-0.5" style={{ color: "var(--accent-400)" }} />
             </button>
           ))}
         </div>

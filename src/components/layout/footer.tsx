@@ -80,8 +80,12 @@ export function Footer() {
               </span>
             </div>
             <p className="max-w-[200px] text-[12px] leading-relaxed" style={{ color: "var(--gray-400)" }}>
-              A multi-agent studio for strategy, research, and marketplace procurement.
+              A multi-agent studio for strategy, research, and autonomous marketplace procurement.
             </p>
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[9px] font-semibold" style={{ background: "rgba(201,125,78,0.06)", border: "1px solid rgba(201,125,78,0.15)", color: "var(--accent-400)" }}>
+              <span className="size-1.5 rounded-full" style={{ background: "var(--accent-400)" }} />
+              Nevermined Hackathon 2025
+            </div>
           </div>
 
           {/* Navigation */}
@@ -127,7 +131,7 @@ export function Footer() {
           style={{ borderColor: "var(--border-default)" }}
         >
           <p className="font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>
-            &copy; {new Date().getFullYear()} Undermind. Powered by Nevermined.
+            &copy; {new Date().getFullYear()} Undermind &middot; Powered by Nevermined &middot; Built with agents
           </p>
           <div className="flex items-center gap-1.5" role="status" aria-label="System status">
             <span className="relative flex size-1.5" aria-hidden="true">

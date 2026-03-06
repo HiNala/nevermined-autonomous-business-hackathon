@@ -103,7 +103,7 @@ export function HeroSection() {
 
           {/* Description — renders instantly */}
           <p
-            className="max-w-xl text-[16px] leading-relaxed"
+            className="text-balance max-w-xl text-[16px] leading-relaxed"
             style={{ color: "var(--gray-500)" }}
           >
             Get a structured deliverable in minutes — research reports, strategy briefs, or design specs. Pay per job, no subscription.
@@ -171,7 +171,7 @@ export function HeroSection() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/studio"
-              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white transition-all duration-200 btn-press"
+              className="focus-ring flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white transition-all duration-200 btn-press"
               style={{
                 background: "linear-gradient(135deg, var(--accent-600), var(--accent-400))",
                 boxShadow: "0 4px 16px -6px rgba(201,125,78,0.40)",
@@ -182,7 +182,7 @@ export function HeroSection() {
             </Link>
             <Link
               href="/store"
-              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium transition-all duration-200 glow-on-hover"
+              className="focus-ring flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-medium transition-all duration-200 glow-on-hover"
               style={{
                 background: "var(--bg-elevated)",
                 color: "var(--gray-700)",

@@ -364,3 +364,55 @@ textarea:focus {
   display: none;
 }
 
+/* ── Card lift on hover ── */
+.card-lift {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.08),
+              0 2px 8px -4px rgba(201, 125, 78, 0.06);
+}
+
+/* ── Focus ring utility ── */
+.focus-ring:focus-visible {
+  outline: 2px solid rgba(201, 125, 78, 0.40);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Subtle text balance ── */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ── Gradient border highlight (used on featured cards) ── */
+.border-gradient {
+  border-image: linear-gradient(
+    135deg,
+    rgba(201, 125, 78, 0.25),
+    rgba(14, 165, 233, 0.15),
+    rgba(124, 58, 237, 0.15)
+  ) 1;
+}
+
+/* ── Smoother scrollbar on hover ── */
+.scrollbar-thin::-webkit-scrollbar { width: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
+}
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* ── Typing cursor blink ── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.animate-blink { animation: blink 1s step-end infinite; }
+

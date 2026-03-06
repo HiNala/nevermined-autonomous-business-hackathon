@@ -927,8 +927,8 @@ export function StudioPage() {
                       : "Describe what you need. The full pipeline handles the rest."
                   }
                   rows={3}
-                  className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none transition-all"
-                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-800)" }}
+                  className="w-full resize-none rounded-xl px-4 py-3 pr-12 text-[13px] leading-relaxed outline-none transition-all duration-200"
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-800)", caretColor: "var(--accent-400)" }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = "rgba(201,125,78,0.45)";
                     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,125,78,0.08)";
@@ -944,8 +944,8 @@ export function StudioPage() {
                   type="submit"
                   disabled={!input.trim() || isLoading || isCheckingClarify}
                   aria-label={isCheckingClarify ? "Checking brief quality…" : "Send request"}
-                  className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all disabled:opacity-30"
-                  style={{ background: isCheckingClarify ? "rgba(124,58,237,0.7)" : "linear-gradient(135deg, var(--accent-600), var(--accent-400))" }}
+                  className="absolute right-3 bottom-3 flex size-8 items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
+                  style={{ background: isCheckingClarify ? "rgba(124,58,237,0.7)" : "linear-gradient(135deg, var(--accent-600), var(--accent-400))", boxShadow: "0 2px 8px -2px rgba(201,125,78,0.25)" }}
                 >
                   {isLoading || isCheckingClarify ? <Loader2 size={14} className="animate-spin text-white" /> : <Send size={14} className="text-white" />}
                 </button>
@@ -1171,7 +1171,7 @@ export function StudioPage() {
           </div>
 
           {/* Bottom panel content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden scrollbar-thin">
             {bottomTab === "stages" ? (
               <PipelineStages events={pipelineEvents} isRunning={isLoading} />
             ) : (
@@ -1182,7 +1182,7 @@ export function StudioPage() {
           {/* Stats bar */}
           <div
             className="flex items-center gap-3 border-t px-3 py-2 overflow-x-auto scrollbar-hide"
-            style={{ borderColor: "var(--border-default)", background: "var(--bg-surface)" }}
+            style={{ borderColor: "var(--border-default)", background: "var(--bg-surface)", boxShadow: "0 -1px 3px rgba(0,0,0,0.02)" }}
           >
             <div className="flex items-center gap-1.5" title="Credits used">
               <Zap size={10} style={{ color: "var(--accent-400)" }} />

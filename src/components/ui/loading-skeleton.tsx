@@ -94,7 +94,7 @@ function TypingStatusWords({ words, color }: { words: string[]; color: string })
       aria-live="polite"
     >
       <span>{visibleWord || "\u00A0"}</span>
-      <span className="ml-1 inline-block h-3 w-px animate-pulse" style={{ background: color }} aria-hidden="true" />
+      <span className="ml-1 inline-block h-3 w-px animate-blink" style={{ background: color }} aria-hidden="true" />
     </div>
   );
 }
@@ -158,8 +158,8 @@ export function LoadingSkeleton({
         className="relative w-full max-w-sm overflow-hidden rounded-2xl p-8"
         style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}
       >
-        <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden" style={{ background: `${color}15` }}>
-          <div className="h-full w-[40%] rounded-full" style={{ background: color, animation: "progress-indeterminate 1.8s ease-in-out infinite" }} />
+        <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden rounded-t-2xl" style={{ background: `${color}15` }}>
+          <div className="h-full w-[40%] rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)`, animation: "progress-indeterminate 1.8s ease-in-out infinite" }} />
         </div>
 
         <div className="flex flex-col items-center gap-5 text-center">
@@ -220,13 +220,18 @@ export function LoadingSkeleton({
       </div>
 
       {onCancel && (
-        <button
-          onClick={onCancel}
-          className="flex items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] transition-all hover:opacity-80"
-          style={{ background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.15)", color: "#EF4444" }}
-        >
-          <RotateCcw size={11} /> Cancel
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] transition-all hover:scale-[1.02] active:scale-95"
+            style={{ background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.15)", color: "#EF4444" }}
+          >
+            <RotateCcw size={11} /> Cancel
+          </button>
+          <span className="font-mono text-[9px]" style={{ color: "var(--gray-300)" }}>
+            <kbd className="rounded px-1 py-0.5" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--gray-400)" }}>Esc</kbd>
+          </span>
+        </div>
       )}
     </div>
   );

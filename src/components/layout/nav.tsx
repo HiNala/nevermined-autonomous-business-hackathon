@@ -76,7 +76,7 @@ export function Nav() {
               style={{ background: "var(--accent-400)" }}
             />
           </div>
-          <span className="font-mono text-[13px] font-semibold tracking-widest transition-colors duration-200 group-hover:text-[color:var(--accent-400)]" style={{ color: "var(--gray-900)" }}>
+          <span className="font-mono text-[13px] font-semibold tracking-widest transition-all duration-300 group-hover:text-[color:var(--accent-400)] group-hover:tracking-[0.16em]" style={{ color: "var(--gray-900)" }}>
             {SITE_NAME}
           </span>
         </Link>
@@ -88,7 +88,7 @@ export function Nav() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="relative px-3 py-1.5 text-[13px] transition-colors duration-200 rounded-lg"
+                className="focus-ring relative px-3 py-1.5 text-[13px] transition-colors duration-200 rounded-lg"
                 style={{ color: isActive ? "var(--gray-900)" : "var(--gray-400)" }}
                 aria-current={isActive ? "page" : undefined}
                 onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--gray-700)"; (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.03)"; }}
@@ -129,6 +129,7 @@ export function Nav() {
         >
           <Settings size={13} />
         </button>
+        <div className="hidden h-4 w-px sm:block" style={{ background: "var(--border-default)" }} />
         <Link
           href="/studio?checkout=true"
           className="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-200 sm:flex btn-press"
@@ -150,6 +151,7 @@ export function Nav() {
           <Zap size={11} />
           Try Studio
         </Link>
+
 
         <button
           className="flex size-8 items-center justify-center rounded-md transition-colors sm:hidden"

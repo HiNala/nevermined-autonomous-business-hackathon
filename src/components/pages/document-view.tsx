@@ -103,7 +103,7 @@ export function DocumentView({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-5">
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-6 py-5">
         {/* VISION image banner */}
         {isGeneratingImage && !visionResult && (
           <div className="mb-5 overflow-hidden rounded-xl" style={{ border: "1px solid rgba(234,179,8,0.20)" }}>
@@ -209,7 +209,10 @@ export function DocumentView({
                   </div>
                 ) : (
                   <div key={i}>
-                    <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>{section.heading}</h3>
+                    <div className="mb-2.5 flex items-center gap-2.5">
+                      <div className="h-4 w-[3px] rounded-full" style={{ background: "linear-gradient(180deg, var(--accent-400), rgba(201,125,78,0.20))" }} />
+                      <h3 className="text-[15px] font-semibold tracking-tight" style={{ color: "var(--gray-800)" }}>{section.heading}</h3>
+                    </div>
                     <MarkdownContent text={section.content} sources={doc.sources} />
                   </div>
                 );
@@ -247,7 +250,7 @@ export function DocumentView({
                   {doc.sources.map((source, i) => {
                     const scored = source as ResearchSource & { overallScore?: number; freshnessLabel?: string };
                     return (
-                      <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-black/3">
+                      <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="card-lift group flex items-start gap-2.5 rounded-lg p-2.5" style={{ border: "1px solid transparent" }}>
                         <ExternalLink size={12} className="mt-0.5 shrink-0" style={{ color: "var(--gray-400)" }} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
@@ -271,7 +274,7 @@ export function DocumentView({
                               </div>
                             )}
                           </div>
-                          <p className="truncate font-mono text-[10px]" style={{ color: "var(--gray-400)" }}>{source.url}</p>
+                          <p className="truncate font-mono text-[10px] transition-colors duration-200 group-hover:text-(--accent-400)" style={{ color: "var(--gray-400)" }}>{source.url}</p>
                         </div>
                       </a>
                     );
