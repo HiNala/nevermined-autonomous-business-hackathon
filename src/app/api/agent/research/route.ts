@@ -83,7 +83,6 @@ export async function POST(request: Request) {
     try {
       const verification = await verifyX402Token(paymentSignature, ENDPOINT, credits);
       verifyResult = verification.valid ? "valid" : (verification.reason ?? "invalid");
-      console.log(`[x402] Verify result: ${verifyResult}`);
     } catch (e) {
       verifyResult = `error: ${e instanceof Error ? e.message : e}`;
       console.warn(`[x402] Verify error (non-blocking):`, verifyResult);
