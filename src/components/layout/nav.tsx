@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useScroll } from "@/hooks/use-scroll";
 import { SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Menu, X, CreditCard, Zap } from "lucide-react";
+import { Menu, X, CreditCard, Zap, Settings } from "lucide-react";
+import { SettingsPanel } from "@/components/ui/settings-panel";
+import { loadToolSettings, saveToolSettings, type ToolSettings } from "@/lib/tool-settings";
 
 function useLiveTxCount() {
   const [count, setCount] = useState<number | null>(null);
@@ -30,7 +32,6 @@ function useLiveTxCount() {
 
 const PAGE_LINKS = [
   { label: "Studio", href: "/studio" },
-  { label: "Research", href: "/research" },
   { label: "Store", href: "/store" },
   { label: "Services", href: "/services" },
   { label: "Agents", href: "/agents" },
@@ -39,6 +40,8 @@ const PAGE_LINKS = [
 export function Nav() {
   const scrolled = useScroll(10);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toolSettings, setToolSettings] = useState<ToolSettings>(() => loadToolSettings());
   const pathname = usePathname();
   const txCount = useLiveTxCount();
 
@@ -116,6 +119,16 @@ export function Nav() {
             </span>
           </div>
         )}
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-all duration-200 sm:flex"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--gray-500)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,125,78,0.30)"; (e.currentTarget as HTMLElement).style.color = "var(--accent-400)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)"; (e.currentTarget as HTMLElement).style.color = "var(--gray-500)"; }}
+          title="Settings (⌘K)"
+        >
+          <Settings size={13} />
+        </button>
         <Link
           href="/studio?checkout=true"
           className="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-200 sm:flex btn-press"
@@ -212,6 +225,13 @@ export function Nav() {
             );
           })}
           <div className="mt-2 flex flex-col gap-2 border-t pt-3" style={{ borderColor: "var(--border-default)" }}>
+            <button
+              onClick={() => { setMobileOpen(false); setSettingsOpen(true); }}
+              className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[14px] font-medium transition-all"
+              style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--gray-600)" }}
+            >
+              <Settings size={14} /> Settings
+            </button>
             <Link href="/studio?checkout=true" className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[14px] font-medium transition-all" style={{ background: "rgba(201,125,78,0.08)", border: "1px solid rgba(201,125,78,0.18)", color: "var(--accent-400)" }} onClick={() => setMobileOpen(false)}>
               <CreditCard size={14} /> Buy Credits
             </Link>
@@ -223,6 +243,15 @@ export function Nav() {
         </>
       )}
     </AnimatePresence>
+    <SettingsPanel
+      open={settingsOpen}
+      onClose={() => setSettingsOpen(false)}
+      settings={toolSettings}
+      onChange={(next) => {
+        setToolSettings(next);
+        saveToolSettings(next);
+      }}
+    />
     </>
   );
 }

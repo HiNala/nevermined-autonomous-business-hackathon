@@ -67,6 +67,7 @@ import { PipelineStages, TransactionFeed } from "@/components/ui/pipeline-stages
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { EmptyState, EXAMPLE_PROMPTS } from "@/components/ui/empty-state";
 import { MarkdownContent } from "@/components/ui/markdown-content";
+import { SourcesPanel } from "@/components/ui/sources-panel";
 import { DocumentView } from "@/components/pages/document-view";
 import { BriefView } from "@/components/pages/brief-view";
 import { useTransactionStream } from "@/hooks/use-transaction-stream";
@@ -162,7 +163,7 @@ export function StudioPage() {
   const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases" | "provenance" | "delivery">("document");
+  const [rightTab, setRightTab] = useState<"document" | "brief" | "purchases" | "provenance" | "delivery" | "sources">("document");
   const [bottomTab, setBottomTab] = useState<"stages" | "transactions">("stages");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [initialStats, setInitialStats] = useState<{ strategist: { earned: number; handled: number }; researcher: { earned: number; handled: number }; buyer: { earned: number; handled: number }; seller: { earned: number; handled: number } }>({
@@ -1121,17 +1122,12 @@ export function StudioPage() {
             </div>
           </details>
 
-          {/* Judge Mode Presets */}
+          {/* Judge Mode Presets — collapsed into details for cleanliness */}
           {judgeMode && (
             <div className="border-b p-3" style={{ borderColor: "var(--border-default)", background: "rgba(201, 125, 78, 0.02)" }}>
               <JudgeMode onSelect={handleJudgePreset} />
             </div>
           )}
-
-          {/* Workspace Profile Panel */}
-          <div className="border-b px-3 py-2" style={{ borderColor: "var(--border-default)" }}>
-            <WorkspaceProfilePanel workspaceId={workspaceId} />
-          </div>
 
           {/* Seller marketplace-off info banner */}
           {mode === "seller" && !toolSettings.trading.externalTrading && (
@@ -1197,49 +1193,27 @@ export function StudioPage() {
                 {result?.totalDurationMs ? `${(result.totalDurationMs / 1000).toFixed(1)}s` : "—"}
               </span>
             </div>
-            <div className="flex items-center gap-1.5" title="Iterations">
-              <RefreshCw size={10} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-                {result?.iterations ?? 0}
-              </span>
-            </div>
+            <div className="h-2.5 w-px" style={{ background: "var(--border-default)" }} />
             <div className="flex items-center gap-1.5" title="Sources">
               <Globe size={10} style={{ color: "var(--gray-400)" }} />
               <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-                {result?.document?.sources.length ?? 0}
+                {result?.document?.sources.length ?? 0} sources
               </span>
             </div>
-            <div className="flex items-center gap-1.5" title="Purchases">
-              <Package size={10} style={{ color: "var(--gray-400)" }} />
-              <span className="font-mono text-[9px]" style={{ color: "var(--gray-400)" }}>
-                {result?.purchasedAssets?.length ?? 0}
-              </span>
-            </div>
-            <button
-              onClick={() => setLibraryOpen(true)}
-              className="flex items-center gap-1.5 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all hover:opacity-80"
-              style={{ color: "var(--gray-400)", background: "transparent", border: "1px solid transparent" }}
-              title="Artifact Library"
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-elevated)"; e.currentTarget.style.borderColor = "var(--border-default)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "transparent"; }}
-            >
-              <BookOpen size={9} />
-              library
-            </button>
             {result?.enrichmentSummary && (
-              <div className="flex items-center">
-                <div className="h-2.5 w-px mr-1.5" style={{ background: "var(--border-default)" }} />
+              <>
+                <div className="h-2.5 w-px" style={{ background: "var(--border-default)" }} />
                 <EnrichmentSummaryBadge
                   summary={result.enrichmentSummary as EnrichmentSummary}
                   compact={true}
                   expandable={false}
                 />
-              </div>
+              </>
             )}
             <div className="ml-auto flex items-center gap-1.5">
               <button
                 onClick={() => setCheckoutOpen(true)}
-                title="Buy credits with card (VGS secure checkout)"
+                title="Buy credits"
                 className="flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold transition-all hover:scale-[1.02]"
                 style={{
                   background: "rgba(201, 125, 78, 0.08)",
@@ -1249,20 +1223,6 @@ export function StudioPage() {
               >
                 <CreditCard size={10} />
                 <span>buy credits</span>
-              </button>
-              <button
-                onClick={toggleAdsMuted}
-                aria-label={adsMuted ? "Ads muted — click to enable" : "Mute ads"}
-                aria-pressed={adsMuted}
-                className="flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[9px] transition-all"
-                style={{
-                  background: adsMuted ? "rgba(239, 68, 68, 0.06)" : "transparent",
-                  border: `1px solid ${adsMuted ? "rgba(239, 68, 68, 0.15)" : "var(--border-default)"}`,
-                  color: adsMuted ? "#EF4444" : "var(--gray-400)",
-                }}
-              >
-                {adsMuted ? <VolumeX size={10} /> : <Volume2 size={10} />}
-                <span>{adsMuted ? "off" : "ads"}</span>
               </button>
             </div>
           </div>
@@ -1360,6 +1320,26 @@ export function StudioPage() {
                 <GitBranch size={12} /> Provenance
               </button>
             )}
+            {result?.document?.sources?.length ? (
+              <button
+                role="tab"
+                aria-selected={rightTab === "sources"}
+                onClick={() => setRightTab("sources")}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[11px] font-semibold transition-all duration-150"
+                style={{
+                  color: rightTab === "sources" ? "#0EA5E9" : "var(--gray-400)",
+                  background: rightTab === "sources" ? "rgba(14,165,233,0.10)" : "transparent",
+                }}
+              >
+                <Globe size={12} /> Sources
+                <span
+                  className="rounded-full px-1.5 py-0.5 font-mono text-[7px] font-bold"
+                  style={{ background: "rgba(14,165,233,0.12)", color: "#0EA5E9" }}
+                >
+                  {result.document.sources.length}
+                </span>
+              </button>
+            ) : null}
             {(actionIntelligence || isExtractingActions) && (
               <button
                 role="tab"
@@ -1578,6 +1558,13 @@ export function StudioPage() {
                     totalCreditsSpent={result.buyerResult.totalCreditsSpent}
                   />
                 )}
+              </div>
+            ) : rightTab === "sources" && result?.document?.sources?.length ? (
+              <div className="h-full overflow-y-auto p-4">
+                <SourcesPanel
+                  sources={result.document.sources}
+                  toolsUsed={result.toolsUsed ?? result.document.toolsUsed}
+                />
               </div>
             ) : (
               <EmptyState mode={mode} onExample={(p) => { setInput(p); setTimeout(() => inputRef.current?.focus(), 50); }} />
