@@ -897,12 +897,34 @@ function DocumentView({
         </div>
 
         <div className="space-y-6">
-          {doc.sections.map((section, i) => (
-            <div key={i}>
-              <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>{section.heading}</h3>
-              <MarkdownContent text={section.content} />
-            </div>
-          ))}
+          {doc.sections.map((section, i) => {
+            const isExternal = section.heading.startsWith("External Data:") || section.heading.startsWith("Marketplace:");
+            return isExternal ? (
+              <div
+                key={i}
+                className="rounded-xl p-4"
+                style={{ background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.16)" }}
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <span
+                    className="rounded-full px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest"
+                    style={{ background: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.22)" }}
+                  >
+                    ✦ External
+                  </span>
+                  <h3 className="text-[13px] font-semibold" style={{ color: "#F59E0B" }}>
+                    {section.heading.replace(/^(External Data:|Marketplace:)\s*/, "")}
+                  </h3>
+                </div>
+                <MarkdownContent text={section.content} />
+              </div>
+            ) : (
+              <div key={i}>
+                <h3 className="mb-2 text-[15px] font-semibold" style={{ color: "var(--gray-800)" }}>{section.heading}</h3>
+                <MarkdownContent text={section.content} />
+              </div>
+            );
+          })}
         </div>
 
         <ZeroClickAd query={adQuery ?? doc.query} muted={adsMuted} signals={adSignals} onAdServed={onAdServed} />

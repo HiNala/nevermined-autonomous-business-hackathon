@@ -8,7 +8,8 @@ import { StudioEntry } from "@/components/sections/studio-entry";
 import { STUDIO_AGENTS } from "@/data/mock-transactions";
 import {
   Brain, PenLine, ShoppingBag, PackageCheck, ShoppingCart,
-  ArrowRight, CheckCircle2, Zap, ChevronDown, ChevronUp
+  ArrowRight, CheckCircle2, Zap, ChevronDown, ChevronUp,
+  ShieldOff, Sparkles, AlertCircle, ToggleLeft, ToggleRight
 } from "lucide-react";
 import Link from "next/link";
 import type { StudioAgent } from "@/types";
@@ -335,6 +336,221 @@ function AgentDetailCard({ agent, index, liveStats }: { agent: StudioAgent; inde
   );
 }
 
+// ─── Enrichment Explainer ─────────────────────────────────────────────────────
+
+function EnrichmentExplainer() {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      className="mx-auto mt-20 max-w-6xl px-6"
+    >
+      {/* Header */}
+      <div className="mb-8">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px w-6" style={{ background: "var(--accent-400)", opacity: 0.5 }} />
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--gray-400)" }}>BUYER ENRICHMENT</span>
+        </div>
+        <h2 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl" style={{ color: "var(--gray-900)" }}>
+          Two execution contexts. <span className="text-gradient-accent">One clear boundary.</span>
+        </h2>
+        <p className="max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--gray-500)" }}>
+          The Seller decides whether external enrichment is needed. The Buyer only acts when the Seller calls it.
+          Which context runs depends on a single setting — <span className="font-mono text-[12px]" style={{ color: "var(--gray-700)" }}>External Marketplace</span>.
+        </p>
+      </div>
+
+      {/* Two context cards */}
+      <div className="grid gap-5 md:grid-cols-2">
+
+        {/* Context A — UI Demo Mode */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-6"
+          style={{ background: "rgba(99,102,241,0.04)", border: "1px solid rgba(99,102,241,0.18)" }}
+        >
+          <div className="mb-4 flex items-start justify-between">
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <span
+                  className="rounded-full px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest"
+                  style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1", border: "1px solid rgba(99,102,241,0.22)" }}
+                >
+                  Context A
+                </span>
+                <span className="font-mono text-[9px] font-semibold" style={{ color: "#6366F1" }}>UI Demo Mode</span>
+              </div>
+              <p className="text-[11px]" style={{ color: "var(--gray-400)" }}>
+                Safe for judges, demos, and internal reviews
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)" }}>
+              <ToggleLeft size={14} style={{ color: "#6366F1" }} />
+              <span className="font-mono text-[9px] font-semibold" style={{ color: "#6366F1" }}>Marketplace OFF</span>
+            </div>
+          </div>
+
+          {/* Flow */}
+          <div className="mb-4 space-y-2">
+            {[
+              { agent: "Seller", color: "#EF4444", note: "Receives order, plans fulfillment" },
+              { agent: "Interpreter", color: "#7C3AED", note: "Structures execution brief" },
+              { agent: "Composer", color: "#0EA5E9", note: "Builds research report" },
+              { agent: "Buyer", color: "#9CA3AF", note: "Evaluates enrichment — skipped (demo)", skipped: true },
+              { agent: "Seller", color: "#EF4444", note: "Packages and delivers" },
+            ].map((step, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <div
+                  className="flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[8px] font-bold"
+                  style={{
+                    background: step.skipped ? "var(--bg-surface)" : `${step.color}14`,
+                    color: step.skipped ? "var(--gray-300)" : step.color,
+                    border: `1px solid ${step.skipped ? "var(--border-default)" : step.color + "30"}`,
+                  }}
+                >
+                  {i + 1}
+                </div>
+                <div className="flex flex-1 items-center gap-2">
+                  <span
+                    className="font-mono text-[10px] font-semibold"
+                    style={{ color: step.skipped ? "var(--gray-300)" : step.color, textDecoration: step.skipped ? "line-through" : "none", opacity: step.skipped ? 0.5 : 1 }}
+                  >
+                    {step.agent}
+                  </span>
+                  <span className="text-[10px]" style={{ color: step.skipped ? "var(--gray-300)" : "var(--gray-500)", opacity: step.skipped ? 0.5 : 1 }}>
+                    — {step.note}
+                  </span>
+                  {step.skipped && (
+                    <span
+                      className="ml-auto rounded px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase"
+                      style={{ background: "rgba(99,102,241,0.10)", color: "#6366F1" }}
+                    >
+                      skipped
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            className="flex items-start gap-2 rounded-lg px-3 py-2.5"
+            style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.15)" }}
+          >
+            <ShieldOff size={12} className="mt-0.5 shrink-0" style={{ color: "#6366F1" }} />
+            <p className="text-[10px] leading-snug" style={{ color: "#6366F1" }}>
+              Seller narrates the enrichment decision in the event log, but no real transactions occur.
+              Output quality is still high — just without third-party data.
+            </p>
+          </div>
+        </div>
+
+        {/* Context B — Agentic Live Mode */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-6"
+          style={{ background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.18)" }}
+        >
+          <div className="mb-4 flex items-start justify-between">
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <span
+                  className="rounded-full px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest"
+                  style={{ background: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.22)" }}
+                >
+                  Context B
+                </span>
+                <span className="font-mono text-[9px] font-semibold" style={{ color: "#F59E0B" }}>Agentic Live Mode</span>
+              </div>
+              <p className="text-[11px]" style={{ color: "var(--gray-400)" }}>
+                Real procurement via Nevermined x402 payments
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.18)" }}>
+              <ToggleRight size={14} style={{ color: "#F59E0B" }} />
+              <span className="font-mono text-[9px] font-semibold" style={{ color: "#F59E0B" }}>Marketplace ON</span>
+            </div>
+          </div>
+
+          {/* Flow */}
+          <div className="mb-4 space-y-2">
+            {[
+              { agent: "Seller", color: "#EF4444", note: "Receives order, decides enrichment needed" },
+              { agent: "Interpreter", color: "#7C3AED", note: "Structures execution brief" },
+              { agent: "Composer", color: "#0EA5E9", note: "Builds base research report" },
+              { agent: "Buyer", color: "#F59E0B", note: "Purchases 3rd-party assets via x402", active: true },
+              { agent: "Seller", color: "#EF4444", note: "Merges assets, packages, delivers" },
+            ].map((step, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <div
+                  className="flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[8px] font-bold"
+                  style={{
+                    background: `${step.color}14`,
+                    color: step.color,
+                    border: `1px solid ${step.color}30`,
+                    boxShadow: step.active ? `0 0 8px ${step.color}40` : "none",
+                  }}
+                >
+                  {i + 1}
+                </div>
+                <div className="flex flex-1 items-center gap-2">
+                  <span className="font-mono text-[10px] font-semibold" style={{ color: step.color }}>
+                    {step.agent}
+                  </span>
+                  <span className="text-[10px]" style={{ color: "var(--gray-500)" }}>
+                    — {step.note}
+                  </span>
+                  {step.active && (
+                    <span
+                      className="ml-auto rounded px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase"
+                      style={{ background: "rgba(245,158,11,0.14)", color: "#F59E0B" }}
+                    >
+                      x402
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            className="flex items-start gap-2 rounded-lg px-3 py-2.5"
+            style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}
+          >
+            <Sparkles size={12} className="mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
+            <p className="text-[10px] leading-snug" style={{ color: "#F59E0B" }}>
+              Purchased assets are labeled <span className="font-semibold">✦ External</span> in the report.
+              Enrichment summary shows provider, credit cost, and asset count in the delivery package.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom row: key guarantees */}
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { label: "Seller owns the decision", note: "Only Seller decides if Buyer runs", icon: PackageCheck, color: "#EF4444" },
+          { label: "Demo always safe", note: "externalTrading=false blocks all buys", icon: ShieldOff, color: "#6366F1" },
+          { label: "External sections labeled", note: "✦ External badge on purchased content", icon: AlertCircle, color: "#F59E0B" },
+          { label: "Enrichment always narrated", note: "Event log explains outcome either way", icon: Zap, color: "#22C55E" },
+        ].map((item, i) => (
+          <div
+            key={i}
+            className="rounded-xl p-3"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+          >
+            <div className="mb-1.5 flex size-7 items-center justify-center rounded-lg" style={{ background: `${item.color}10` }}>
+              <item.icon size={13} style={{ color: item.color }} />
+            </div>
+            <p className="text-[11px] font-semibold" style={{ color: "var(--gray-800)" }}>{item.label}</p>
+            <p className="mt-0.5 text-[10px]" style={{ color: "var(--gray-400)" }}>{item.note}</p>
+          </div>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
 export function AgentsPage() {
   const [liveStats, setLiveStats] = useState<AgentLiveStats | null>(null);
 
@@ -412,6 +628,9 @@ export function AgentsPage() {
             ))}
           </div>
         </div>
+
+        {/* Enrichment Explainer */}
+        <EnrichmentExplainer />
 
         <div className="mt-16">
           <StudioEntry />
