@@ -420,9 +420,14 @@ export async function runPipeline(
     if (visionEnabled && (isNanobananaConfigured() || true)) {
       try {
         const vr = await runVisionAgent({
-          brief: `${document.title}. ${document.summary.slice(0, 200)}`,
+          brief: `${document.title}. ${document.summary.slice(0, 300)}`,
           outputContext: "research_report",
-          requirements: ["Professional quality", "No text overlay", "Relevant to topic"],
+          requirements: [
+            `Image must visually depict the topic: "${document.title}"`,
+            "Professional quality",
+            "No text overlay",
+            "No generic landscapes or unrelated stock imagery",
+          ],
           aspectRatio: "16:9",
           style: { mood: "professional" },
           calledBy: "composer",

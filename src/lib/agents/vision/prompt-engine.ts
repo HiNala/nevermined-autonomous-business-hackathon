@@ -67,8 +67,19 @@ export function buildInitialPrompt(request: VisionRequest): string {
       ? `Must include: ${request.requirements.join(", ")}.`
       : "";
 
+  // Extract a short subject from the brief (before the first period or 120 chars)
+  const briefText = request.brief.trim();
+  const shortSubject = briefText.includes(".")
+    ? briefText.slice(0, briefText.indexOf(".")).trim()
+    : briefText.slice(0, 120).trim();
+
+  // Build a prompt that explicitly tells the model WHAT to depict
+  const subjectDirective =
+    `Create an illustration that visually represents: "${shortSubject}". ` +
+    `The image MUST be directly about this specific topic — show objects, symbols, or scenes that clearly relate to "${shortSubject}".`;
+
   const parts = [
-    request.brief,
+    subjectDirective,
     template,
     moodMod,
     paletteMod,

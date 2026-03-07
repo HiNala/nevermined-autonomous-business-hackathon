@@ -365,9 +365,9 @@ export async function GET() {
         method: "POST",
         authentication: {
           type: "x402",
-          description: "Include a valid Nevermined x402 payment token in the authorization header, or pass x-internal-request: true for internal calls",
-          headerName: "authorization",
-          internalBypass: "x-internal-request: true",
+          description: "Acquire an x402 access token from Nevermined using the planId and agentId, then include it in the payment-signature header",
+          headerName: "payment-signature",
+          protocol: "nevermined-x402",
         },
       },
     },
