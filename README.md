@@ -10,6 +10,49 @@
 
 ---
 
+## Sponsor Tools & Integrations
+
+| Sponsor | Tool | How We Use It |
+|---------|------|---------------|
+| **Nevermined** | x402 Payments SDK | All agent-to-agent and external buyer payments — verify → execute → settle. Plan checkout, credit burning, A2A discovery via `agent.json`. |
+| **Apify** | Google Search Scraper + Website Content Crawler | Primary search and scraping engine for the Researcher agent. Multi-query Google search → URL discovery → Cheerio-based content extraction. |
+| **Exa** | Neural Search + Content Extraction | Alternative search path — semantic neural search returns full-text content inline, no separate scrape step needed. |
+| **ZeroClick** | Contextual Ads API | Serves relevant, non-intrusive contextual ads alongside research results. Tracked in the Sponsor Proof Rail. |
+| **NanoBanana** | Gemini Image Generation | Powers the VISION agent — generates hero images with an iterative quality loop (GPT-4o-mini judge, max 3 attempts). |
+| **VGS + Stripe** | Tokenized Card Payments | Secure credit card processing for buying credits — VGS vault tokenizes card data, Stripe processes the charge. |
+| **Vercel** | Blob Storage + Hosting | Persists generated deliverables to Vercel Blob; hosts the live production deployment. |
+
+### Agent Hierarchy — Orchestrators of Orchestrators
+
+```
+User / External Buyer Agent
+    │
+    ▼
+┌─────────────────────────────────────────────────────────┐
+│  SELLER (Layer 1 — External Orchestrator)               │
+│  Receives x402 order → AI plans fulfillment →           │
+│  Delegates to internal pipeline                         │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  PIPELINE (Layer 2 — Internal Orchestrator)       │  │
+│  │                                                   │  │
+│  │  ① Strategist ──▶ ② Researcher ──▶ ③ Buyer      │  │
+│  │       ▲                │                │         │  │
+│  │       └── back-loop ───┘                │         │  │
+│  │       (buy more context)          NVM marketplace │  │
+│  │                                                   │  │
+│  │  ④ VISION (NanoBanana)   ⑤ Completeness Judge   │  │
+│  │     hero image gen            QA evaluator        │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  Settlement: verify x402 → execute → settle → deliver   │
+└─────────────────────────────────────────────────────────┘
+```
+
+> **6 specialized agents** coordinate in a single flow. The Seller orchestrates the Pipeline, the Pipeline orchestrates Strategist → Researcher → Buyer → VISION, and the Researcher can back-loop to the Strategist for more context. All payments settle via Nevermined x402.
+
+---
+
 ## What This Is
 
 A **live, running agent economy** — not a chatbot, not a demo wrapper. Every request — whether from a human in the Studio or an external agent calling our API — flows through a canonical 5-stage pipeline where specialist agents buy, sell, research, compose, and generate images autonomously.
