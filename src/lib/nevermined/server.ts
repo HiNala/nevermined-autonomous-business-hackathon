@@ -83,8 +83,9 @@ export function getPaymentsClient(): Payments | null {
  * Build a PaymentRequired spec for a given endpoint.
  * Used by seller endpoints to produce proper 402 responses.
  *
- * The endpoint must match the full URL registered in the Nevermined dashboard,
- * otherwise x402 token verification/settlement will fail with a mismatch error.
+ * Aligned with the official Nevermined paymentMiddleware which uses
+ * `req.originalUrl` (relative path) as the endpoint. The SDK's
+ * buildPaymentRequired accepts relative paths.
  */
 export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X402PaymentRequired | null {
   const planId = normalizeNeverminedId(process.env.NVM_PLAN_ID);
@@ -92,15 +93,20 @@ export function buildPaymentSpec(endpoint: string, httpVerb: string = "POST"): X
 
   if (!planId || !agentId) return null;
 
-  // Resolve full URL — the endpoint registered in Nevermined is the full URL
-  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || process.env.NVM_SELLER_ENDPOINT?.replace(/\/api\/agent\/research$/, "") || "").trim().replace(/\/+$/, "");
-  const fullEndpoint = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`;
+  // Use relative endpoint path (matches SDK middleware behavior)
+  // Only resolve to full URL if already absolute
+  const resolvedEndpoint = endpoint.startsWith("http") ? endpoint : endpoint;
 
-  return buildPaymentRequired(planId, {
-    endpoint: fullEndpoint,
+  const spec = buildPaymentRequired(planId, {
+    endpoint: resolvedEndpoint,
     agentId,
     httpVerb,
+    environment: getEnvironment(),
   });
+
+  console.log(`[x402] buildPaymentSpec: planId=${planId.slice(0, 12)}... agentId=${agentId.slice(0, 12)}... endpoint=${resolvedEndpoint} env=${getEnvironment()}`);
+
+  return spec;
 }
 
 /**
@@ -121,17 +127,22 @@ export async function verifyX402Token(
   }
 
   try {
+    console.log(`[x402] verifyPermissions: endpoint=${endpoint} credits=${credits} tokenPrefix=${token.slice(0, 20)}...`);
+
     const verification = await payments.facilitator.verifyPermissions({
       paymentRequired,
       x402AccessToken: token,
       maxAmount: BigInt(credits),
     });
 
+    console.log(`[x402] verifyPermissions result: isValid=${verification.isValid}`, verification.isValid ? '' : `reason=${(verification as { invalidReason?: string }).invalidReason}`);
+
     return {
       valid: verification.isValid,
       reason: verification.isValid ? undefined : (verification as { invalidReason?: string }).invalidReason ?? "Verification failed",
     };
   } catch (err) {
+    console.error(`[x402] verifyPermissions ERROR:`, err instanceof Error ? err.message : err);
     return { valid: false, reason: err instanceof Error ? err.message : "Verification error" };
   }
 }
@@ -263,17 +274,23 @@ export async function settleX402Token(
   }
 
   try {
+    console.log(`[x402] settlePermissions: endpoint=${endpoint} credits=${credits} tokenPrefix=${token.slice(0, 20)}...`);
+
     const settlement = await payments.facilitator.settlePermissions({
       paymentRequired,
       x402AccessToken: token,
       maxAmount: BigInt(credits),
     });
 
+    const creditsRedeemed = Number((settlement as { creditsRedeemed?: bigint }).creditsRedeemed ?? credits);
+    console.log(`[x402] settlePermissions result: settled=true creditsRedeemed=${creditsRedeemed}`);
+
     return {
       settled: true,
-      creditsRedeemed: Number((settlement as { creditsRedeemed?: bigint }).creditsRedeemed ?? credits),
+      creditsRedeemed,
     };
   } catch (err) {
+    console.error(`[x402] settlePermissions ERROR:`, err instanceof Error ? err.message : err);
     return { settled: false, error: err instanceof Error ? err.message : "Settlement error" };
   }
 }

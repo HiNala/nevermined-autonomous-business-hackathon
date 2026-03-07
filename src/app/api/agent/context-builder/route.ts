@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { buildPaymentRequired } from "@nevermined-io/payments";
 import { buildContext } from "@/lib/agent/context-builder";
 import { agentEvents } from "@/lib/agent/event-store";
-import { getPaymentsClient } from "@/lib/nevermined/server";
+import { buildPaymentSpec, verifyX402Token, settleX402Token } from "@/lib/nevermined/server";
 import { checkRateLimit, getClientId, sanitizeError, isSameOriginRequest } from "@/lib/security";
 
 const CREDITS = BigInt(2);
@@ -62,10 +61,7 @@ export async function POST(request: Request) {
   // ── Step 1: No token on external request → 402 ──────────────────────────
   if (!isInternal && !token) {
     const { planId, agentId } = getAgent1Config();
-    const paymentRequired =
-      planId && agentId
-        ? buildPaymentRequired(planId, { endpoint: ENDPOINT, agentId, httpVerb: "POST" })
-        : null;
+    const paymentRequired = buildPaymentSpec(ENDPOINT);
     const encoded = paymentRequired
       ? Buffer.from(JSON.stringify(paymentRequired)).toString("base64")
       : "";
@@ -80,48 +76,22 @@ export async function POST(request: Request) {
 
   // ── Step 2: Verify token ────────────────────────────────────────────────
   if (!isInternal && token) {
-    const { planId, agentId } = getAgent1Config();
-    const payments = getPaymentsClient();
+    const verification = await verifyX402Token(token, ENDPOINT, Number(CREDITS));
 
-    if (!payments || !planId || !agentId) {
+    if (!verification.valid) {
+      console.warn(`[x402/architect] Verification REJECTED:`, verification.reason);
       return NextResponse.json(
-        { error: "Payment system not configured — cannot verify token" },
-        { status: 503 }
-      );
-    }
-
-    const paymentRequired = buildPaymentRequired(planId, {
-      endpoint: ENDPOINT,
-      agentId,
-      httpVerb: "POST",
-    });
-
-    try {
-      const verification = await payments.facilitator.verifyPermissions({
-        paymentRequired,
-        x402AccessToken: token,
-        maxAmount: CREDITS,
-      });
-
-      agentEvents.push({
-        id: genId(),
-        type: "payment_verified",
-        timestamp: new Date().toISOString(),
-        data: { agent: "architect", caller, credits: Number(CREDITS) },
-      });
-
-      if (!verification.isValid) {
-        return NextResponse.json(
-          { error: "Invalid payment token" },
-          { status: 402 }
-        );
-      }
-    } catch {
-      return NextResponse.json(
-        { error: "Payment verification failed" },
+        { error: "Payment verification failed", reason: verification.reason },
         { status: 402 }
       );
     }
+
+    agentEvents.push({
+      id: genId(),
+      type: "payment_verified",
+      timestamp: new Date().toISOString(),
+      data: { agent: "architect", caller, credits: Number(CREDITS) },
+    });
   }
 
   agentEvents.push({
@@ -137,46 +107,28 @@ export async function POST(request: Request) {
 
     // ── Step 4: Settle credits — BLOCK response if settlement fails ────
     if (!isInternal && token) {
-      const { planId, agentId } = getAgent1Config();
-      const payments = getPaymentsClient();
+      const settlement = await settleX402Token(token, ENDPOINT, Number(CREDITS));
 
-      if (!payments || !planId || !agentId) {
-        return NextResponse.json(
-          { error: "Payment system not configured — cannot settle" },
-          { status: 503 }
-        );
-      }
-
-      const paymentRequired = buildPaymentRequired(planId, {
-        endpoint: ENDPOINT,
-        agentId,
-        httpVerb: "POST",
-      });
-      try {
-        await payments.facilitator.settlePermissions({
-          paymentRequired,
-          x402AccessToken: token,
-          maxAmount: CREDITS,
-        });
-        agentEvents.push({
-          id: genId(),
-          type: "transaction",
-          timestamp: new Date().toISOString(),
-          data: { agent: "architect", caller, credits: Number(CREDITS), settled: true, mode: "live" },
-        });
-      } catch (settleErr) {
-        console.error(`[x402/architect] Settlement FAILED for caller ${caller}:`, settleErr);
+      if (!settlement.settled) {
+        console.error(`[x402/architect] Settlement FAILED for caller ${caller}:`, settlement.error);
         agentEvents.push({
           id: genId(),
           type: "settlement_failed",
           timestamp: new Date().toISOString(),
-          data: { agent: "architect", caller, credits: Number(CREDITS), error: String(settleErr) },
+          data: { agent: "architect", caller, credits: Number(CREDITS), error: settlement.error },
         });
         return NextResponse.json(
           { error: "Payment settlement failed — credits could not be burned" },
           { status: 402 }
         );
       }
+
+      agentEvents.push({
+        id: genId(),
+        type: "transaction",
+        timestamp: new Date().toISOString(),
+        data: { agent: "architect", caller, credits: Number(CREDITS), settled: true, mode: "live" },
+      });
     }
 
     agentEvents.push({
